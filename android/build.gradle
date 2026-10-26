@@ -22,4 +22,15 @@ buildscript {
     }
 }
 
+// Tesseract4Android (Gujarati OCR) is published on JitPack only; the content
+// filter keeps every other dependency resolving from Google / Maven Central.
+allprojects {
+    repositories {
+        maven {
+            url "https://jitpack.io"
+            content { includeGroup("cz.adaptech.tesseract4android") }
+        }
+    }
+}
+
 apply plugin: "com.facebook.react.rootproject"

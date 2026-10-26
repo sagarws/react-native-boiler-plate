@@ -86,19 +86,26 @@ export function Slider({
       accessibilityRole="adjustable"
       accessibilityLabel={accessibilityLabel}
       accessibilityState={{ disabled }}
-      accessibilityValue={{ min, max, now: value, text: accessibilityValueText }}
+      accessibilityValue={{
+        min,
+        max,
+        now: value,
+        text: accessibilityValueText,
+      }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={event => {
         if (event.nativeEvent.actionName === 'increment') nudge(1);
         if (event.nativeEvent.actionName === 'decrement') nudge(-1);
-      }}>
+      }}
+    >
       <View
         onLayout={onLayout}
         {...responder.panHandlers}
         style={[
           styles.track,
           { backgroundColor: colors.lightGrey, borderRadius: radius.pill },
-        ]}>
+        ]}
+      >
         <View
           style={[
             styles.fill,

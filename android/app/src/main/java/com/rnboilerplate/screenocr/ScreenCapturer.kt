@@ -13,6 +13,7 @@ import android.os.Handler
 import android.os.HandlerThread
 import android.os.Looper
 import android.util.DisplayMetrics
+import android.view.WindowInsets
 import android.view.WindowManager
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.math.min
@@ -119,6 +120,7 @@ class ScreenCapturer(
 
     // Drop any frame left over from a previous capture.
     imageReader.acquireLatestImage()?.close()
+    val (cropTop, cropBottom) = systemBarInsets()
 
     val done = AtomicBoolean(false)
     fun finish(bitmap: Bitmap?) {
@@ -137,7 +139,7 @@ class ScreenCapturer(
         }
         val bitmap =
           try {
-            toBitmap(image)
+            toBitmap(image, cropTop, cropBottom)
           } catch (e: RuntimeException) {
             null
           } finally {
@@ -154,8 +156,29 @@ class ScreenCapturer(
     main.postDelayed(timeout, timeoutMs)
   }
 
-  /** RGBA frame → ARGB bitmap, cropped of row padding and scaled for OCR. */
-  private fun toBitmap(image: Image): Bitmap {
+  /**
+   * Status-bar and navigation-bar heights. They are cropped away: the clock,
+   * battery and notification icons are not screen text (the Devanagari model
+   * read them as "১l61" on a test device), and a changing clock would look
+   * like new text to the reading session on every screen.
+   */
+  private fun systemBarInsets(): Pair<Int, Int> {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+      val wm = context.getSystemService(WindowManager::class.java)
+      val insets =
+        wm.currentWindowMetrics.windowInsets.getInsetsIgnoringVisibility(
+          WindowInsets.Type.statusBars() or WindowInsets.Type.navigationBars() or
+            WindowInsets.Type.displayCutout(),
+        )
+      return insets.top to insets.bottom
+    }
+    val res = context.resources
+    val id = res.getIdentifier("status_bar_height", "dimen", "android")
+    return (if (id > 0) res.getDimensionPixelSize(id) else 0) to 0
+  }
+
+  /** RGBA frame → ARGB bitmap, cropped of row padding and system bars, scaled for OCR. */
+  private fun toBitmap(image: Image, cropTop: Int, cropBottom: Int): Bitmap {
     val plane = image.planes[0]
     val pixelStride = plane.pixelStride
     val rowPadding = plane.rowStride - pixelStride * image.width
@@ -166,11 +189,13 @@ class ScreenCapturer(
         Bitmap.Config.ARGB_8888,
       )
     padded.copyPixelsFromBuffer(plane.buffer)
+    val top = cropTop.coerceIn(0, image.height / 4)
+    val height = (image.height - top - cropBottom.coerceIn(0, image.height / 4)).coerceAtLeast(1)
     val cropped =
-      if (padded.width == image.width) {
+      if (padded.width == image.width && top == 0 && height == image.height) {
         padded
       } else {
-        Bitmap.createBitmap(padded, 0, 0, image.width, image.height).also { padded.recycle() }
+        Bitmap.createBitmap(padded, 0, top, image.width, height).also { padded.recycle() }
       }
     // ML Kit needs ~16px per character; a 1080px short side keeps phone UI
     // text well above that while bounding memory and inference time on QHD+

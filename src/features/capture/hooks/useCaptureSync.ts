@@ -25,8 +25,16 @@ export function useCaptureSync(): void {
     screenOcrService.pushConfig(settings, {
       background: colors.primary,
       icon: colors.primaryForeground,
+      panel: colors.surface,
+      panelText: colors.textPrimary,
     });
-  }, [settings, colors.primary, colors.primaryForeground]);
+  }, [
+    settings,
+    colors.primary,
+    colors.primaryForeground,
+    colors.surface,
+    colors.textPrimary,
+  ]);
 
   useEffect(() => {
     runSync();

@@ -62,9 +62,16 @@ class FloatingBubble(
       visibility = View.GONE
       importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
     }
+  private val badgeCircle = GradientDrawable().apply { shape = GradientDrawable.OVAL }
+  private val badge =
+    ImageView(context).apply {
+      background = badgeCircle
+      scaleType = ImageView.ScaleType.FIT_CENTER
+      importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
+    }
+  private val face = FrameLayout(context).apply { background = circle }
   private val root =
     FrameLayout(context).apply {
-      background = circle
       contentDescription = context.getString(R.string.screen_ocr_bubble_description)
       isClickable = true
       // TalkBack activates the button through a click, not raw touches.
@@ -89,6 +96,7 @@ class FloatingBubble(
   private var config = OcrConfig()
   private var attached = false
   private var processing = false
+  private var reading = false
   private var snapAnimator: ValueAnimator? = null
 
   private val sizePx: Int
@@ -96,8 +104,10 @@ class FloatingBubble(
 
   init {
     val fill = FrameLayout.LayoutParams.MATCH_PARENT
-    root.addView(icon, FrameLayout.LayoutParams(fill, fill))
-    root.addView(spinner, FrameLayout.LayoutParams(fill, fill))
+    face.addView(icon, FrameLayout.LayoutParams(fill, fill))
+    face.addView(spinner, FrameLayout.LayoutParams(fill, fill))
+    root.addView(face, FrameLayout.LayoutParams(fill, fill))
+    root.addView(badge)
     root.setOnTouchListener(DragTouchListener())
   }
 
@@ -129,7 +139,23 @@ class FloatingBubble(
     icon.imageTintList = ColorStateList.valueOf(next.bubbleIconColor)
     spinner.indeterminateTintList = ColorStateList.valueOf(next.bubbleIconColor)
     val inset = (sizePx * 0.24f).roundToInt()
-    root.setPadding(inset, inset, inset, inset)
+    face.setPadding(inset, inset, inset, inset)
+    // Action badge: which of Copy / Speak / Speak + auto-scroll a tap runs.
+    val badgeSize = (sizePx * 0.4f).roundToInt()
+    badge.layoutParams =
+      FrameLayout.LayoutParams(badgeSize, badgeSize, Gravity.BOTTOM or Gravity.END)
+    val badgePad = (badgeSize * 0.2f).roundToInt()
+    badge.setPadding(badgePad, badgePad, badgePad, badgePad)
+    badgeCircle.setColor(next.panelColor)
+    badgeCircle.setStroke((1f * density).roundToInt(), next.bubbleColor)
+    badge.imageTintList = ColorStateList.valueOf(next.bubbleColor)
+    badge.setImageResource(
+      when (next.action) {
+        FloatingAction.COPY -> R.drawable.ic_copy
+        FloatingAction.SPEAK -> R.drawable.ic_volume_2
+        FloatingAction.SPEAK_SCROLL -> R.drawable.ic_scroll_text
+      },
+    )
     params.width = sizePx
     params.height = sizePx
     refreshAlpha()
@@ -142,6 +168,13 @@ class FloatingBubble(
   /** Hides the bubble while a frame is captured, so it is not in the screenshot. */
   fun setHiddenForCapture(hidden: Boolean) {
     root.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
+  }
+
+  /** Reading aloud: the face shows a speaker instead of the scan glyph. */
+  fun setReading(isReading: Boolean) {
+    reading = isReading
+    icon.setImageResource(if (isReading) R.drawable.ic_volume_2 else R.drawable.ic_scan_text)
+    refreshAlpha()
   }
 
   fun setProcessing(isProcessing: Boolean) {
@@ -167,7 +200,7 @@ class FloatingBubble(
   }
 
   private fun refreshAlpha() {
-    root.alpha = if (processing) 1f else config.bubbleOpacity
+    root.alpha = if (processing || reading) 1f else config.bubbleOpacity
   }
 
   private data class Size(val width: Int, val height: Int)

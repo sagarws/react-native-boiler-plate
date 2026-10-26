@@ -9,10 +9,7 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/theme';
-import {
-  SUPPORTED_LANGUAGES,
-  type LanguageCode,
-} from '@/i18n/languages';
+import { SUPPORTED_LANGUAGES, type LanguageCode } from '@/i18n/languages';
 
 export type LanguageDropdownTone = 'default' | 'dark';
 
@@ -40,7 +37,8 @@ export function LanguageDropdown({
   const [open, setOpen] = useState(false);
 
   const selected = useMemo(
-    () => SUPPORTED_LANGUAGES.find(l => l.code === value) ?? SUPPORTED_LANGUAGES[0],
+    () =>
+      SUPPORTED_LANGUAGES.find(l => l.code === value) ?? SUPPORTED_LANGUAGES[0],
     [value],
   );
 
@@ -49,12 +47,10 @@ export function LanguageDropdown({
   const triggerBorder = open
     ? colors.ring
     : dark
-      ? colors.sidebarBorder
-      : colors.border;
+    ? colors.sidebarBorder
+    : colors.border;
   const triggerText = dark ? colors.sidebarForeground : colors.text;
-  const triggerMuted = dark
-    ? colors.sidebarForeground
-    : colors.mutedForeground;
+  const triggerMuted = dark ? colors.sidebarForeground : colors.mutedForeground;
 
   return (
     <>
@@ -76,12 +72,14 @@ export function LanguageDropdown({
             opacity: pressed ? 0.85 : 1,
           },
           style,
-        ]}>
+        ]}
+      >
         <Text
           style={[
             typography.body,
             { fontSize: compact ? 16 : 20, marginRight: spacing.xs },
-          ]}>
+          ]}
+        >
           {selected.flag}
         </Text>
         {compact ? (
@@ -94,7 +92,8 @@ export function LanguageDropdown({
                 letterSpacing: 0.6,
                 marginRight: spacing.xs,
               },
-            ]}>
+            ]}
+          >
             {selected.code.toUpperCase()}
           </Text>
         ) : (
@@ -110,7 +109,8 @@ export function LanguageDropdown({
               opacity: dark ? 0.8 : 1,
               transform: [{ rotate: open ? '180deg' : '0deg' }],
             },
-          ]}>
+          ]}
+        >
           ⌄
         </Text>
       </Pressable>
@@ -120,11 +120,13 @@ export function LanguageDropdown({
         transparent
         animationType="fade"
         statusBarTranslucent
-        onRequestClose={() => setOpen(false)}>
+        onRequestClose={() => setOpen(false)}
+      >
         <Pressable
           style={[styles.backdrop, { backgroundColor: 'rgba(0,0,0,0.45)' }]}
           onPress={() => setOpen(false)}
-          accessibilityLabel={t('common.cancel') ?? 'Cancel'}>
+          accessibilityLabel={t('common.cancel') ?? 'Cancel'}
+        >
           <Pressable
             onPress={() => {}}
             style={[
@@ -137,7 +139,8 @@ export function LanguageDropdown({
                 paddingVertical: spacing.sm,
                 marginHorizontal: spacing.lg,
               },
-            ]}>
+            ]}
+          >
             {SUPPORTED_LANGUAGES.map(lang => {
               const isSelected = lang.code === value;
               return (
@@ -157,13 +160,23 @@ export function LanguageDropdown({
                       paddingVertical: spacing.md,
                       backgroundColor: pressed ? colors.muted : 'transparent',
                     },
-                  ]}>
-                  <Text style={{ fontSize: 22, marginRight: spacing.md }}>{lang.flag}</Text>
-                  <Text style={[typography.body, { color: colors.text, flex: 1 }]}>
+                  ]}
+                >
+                  <Text style={{ fontSize: 22, marginRight: spacing.md }}>
+                    {lang.flag}
+                  </Text>
+                  <Text
+                    style={[typography.body, { color: colors.text, flex: 1 }]}
+                  >
                     {lang.label}
                   </Text>
                   {isSelected ? (
-                    <Text style={[typography.body, { color: colors.primary, fontWeight: '700' }]}>
+                    <Text
+                      style={[
+                        typography.body,
+                        { color: colors.primary, fontWeight: '700' },
+                      ]}
+                    >
                       ✓
                     </Text>
                   ) : null}

@@ -18,7 +18,11 @@ function requireValue(key: string, value: string | undefined): string {
 }
 
 function parseAppEnv(value: string | undefined): AppEnv {
-  if (value === 'development' || value === 'staging' || value === 'production') {
+  if (
+    value === 'development' ||
+    value === 'staging' ||
+    value === 'production'
+  ) {
     return value;
   }
   throw new Error(

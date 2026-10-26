@@ -64,7 +64,7 @@ export function SearchSelect({
   const [query, setQuery] = useState('');
 
   const selected = useMemo(
-    () => options.find((o) => o.id === value) ?? null,
+    () => options.find(o => o.id === value) ?? null,
     [options, value],
   );
 
@@ -77,7 +77,7 @@ export function SearchSelect({
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return options;
-    return options.filter((o) => {
+    return options.filter(o => {
       if (o.name.toLowerCase().includes(q)) return true;
       if (o.hint && o.hint.toLowerCase().includes(q)) return true;
       return false;
@@ -111,30 +111,31 @@ export function SearchSelect({
             marginTop: label ? spacing.xs : 0,
             opacity: disabled || loading ? 0.6 : pressed ? 0.85 : 1,
           },
-        ]}>
+        ]}
+      >
         <Text
-          style={[
-            typography.body,
-            { color: triggerColor, flex: 1 },
-          ]}
-          numberOfLines={1}>
+          style={[typography.body, { color: triggerColor, flex: 1 }]}
+          numberOfLines={1}
+        >
           {loading ? t('common.loading') ?? 'Loading…' : triggerLabel}
         </Text>
         {selected && clearable && !loading ? (
           <Pressable
             hitSlop={8}
-            onPress={(e) => {
+            onPress={e => {
               e.stopPropagation();
               onChange(null);
             }}
             accessibilityRole="button"
             accessibilityLabel={t('common.clear') ?? 'Clear'}
-            style={styles.clearBtn}>
+            style={styles.clearBtn}
+          >
             <Text
               style={[
                 typography.caption,
                 { color: colors.mutedForeground, fontWeight: '700' },
-              ]}>
+              ]}
+            >
               ✕
             </Text>
           </Pressable>
@@ -143,7 +144,8 @@ export function SearchSelect({
             style={[
               typography.body,
               { color: colors.mutedForeground, marginLeft: spacing.sm },
-            ]}>
+            ]}
+          >
             ▾
           </Text>
         )}
@@ -154,7 +156,8 @@ export function SearchSelect({
           style={[
             typography.caption,
             { color: colors.danger, marginTop: spacing.xs },
-          ]}>
+          ]}
+        >
           {error}
         </Text>
       ) : null}
@@ -164,14 +167,17 @@ export function SearchSelect({
         transparent
         animationType="fade"
         statusBarTranslucent
-        onRequestClose={() => setOpen(false)}>
+        onRequestClose={() => setOpen(false)}
+      >
         <Pressable
           style={[styles.backdrop, { backgroundColor: 'rgba(0,0,0,0.5)' }]}
           onPress={() => setOpen(false)}
-          accessibilityLabel={t('common.cancel') ?? 'Cancel'}>
+          accessibilityLabel={t('common.cancel') ?? 'Cancel'}
+        >
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            style={styles.center}>
+            style={styles.center}
+          >
             <Pressable
               onPress={() => {}}
               style={[
@@ -183,13 +189,15 @@ export function SearchSelect({
                   borderRadius: radius.lg,
                   marginHorizontal: spacing.lg,
                 },
-              ]}>
+              ]}
+            >
               <View
                 style={{
                   paddingHorizontal: spacing.lg,
                   paddingTop: spacing.lg,
                   paddingBottom: spacing.md,
-                }}>
+                }}
+              >
                 <Text style={[typography.h2, { color: colors.text }]}>
                   {modalTitle ?? label ?? ''}
                 </Text>
@@ -197,9 +205,7 @@ export function SearchSelect({
                   value={query}
                   onChangeText={setQuery}
                   placeholder={
-                    searchPlaceholder ??
-                    t('common.search') ??
-                    'Search…'
+                    searchPlaceholder ?? t('common.search') ?? 'Search…'
                   }
                   placeholderTextColor={colors.mutedForeground}
                   autoCorrect={false}
@@ -227,7 +233,7 @@ export function SearchSelect({
               ) : (
                 <FlatList
                   data={filtered}
-                  keyExtractor={(item) => item.id}
+                  keyExtractor={item => item.id}
                   keyboardShouldPersistTaps="handled"
                   style={{ maxHeight: 320 }}
                   ItemSeparatorComponent={() => (
@@ -243,15 +249,18 @@ export function SearchSelect({
                       style={{
                         paddingHorizontal: spacing.lg,
                         paddingVertical: spacing.lg,
-                      }}>
+                      }}
+                    >
                       <Text
                         style={[
                           typography.body,
-                          { color: colors.mutedForeground, textAlign: 'center' },
-                        ]}>
-                        {emptyText ??
-                          t('common.noResults') ??
-                          'No results'}
+                          {
+                            color: colors.mutedForeground,
+                            textAlign: 'center',
+                          },
+                        ]}
+                      >
+                        {emptyText ?? t('common.noResults') ?? 'No results'}
                       </Text>
                     </View>
                   }
@@ -271,7 +280,8 @@ export function SearchSelect({
                             : 'transparent',
                           flexDirection: 'row',
                           alignItems: 'center',
-                        })}>
+                        })}
+                      >
                         <View style={{ flex: 1 }}>
                           <Text
                             style={[
@@ -280,7 +290,8 @@ export function SearchSelect({
                                 color: colors.text,
                                 fontWeight: isSelected ? '700' : '500',
                               },
-                            ]}>
+                            ]}
+                          >
                             {item.name}
                           </Text>
                           {item.hint ? (
@@ -288,7 +299,8 @@ export function SearchSelect({
                               style={[
                                 typography.caption,
                                 { color: colors.mutedForeground },
-                              ]}>
+                              ]}
+                            >
                               {item.hint}
                             </Text>
                           ) : null}
@@ -298,7 +310,8 @@ export function SearchSelect({
                             style={[
                               typography.body,
                               { color: colors.primary, marginLeft: spacing.sm },
-                            ]}>
+                            ]}
+                          >
                             ✓
                           </Text>
                         ) : null}
@@ -315,12 +328,11 @@ export function SearchSelect({
                   alignItems: 'center',
                   borderTopWidth: StyleSheet.hairlineWidth,
                   borderTopColor: colors.border,
-                }}>
+                }}
+              >
                 <Text
-                  style={[
-                    typography.body,
-                    { color: colors.mutedForeground },
-                  ]}>
+                  style={[typography.body, { color: colors.mutedForeground }]}
+                >
                   {t('common.cancel') ?? 'Cancel'}
                 </Text>
               </Pressable>

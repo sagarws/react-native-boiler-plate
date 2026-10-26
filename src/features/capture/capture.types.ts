@@ -1,7 +1,87 @@
-/** Which recogniser(s) the floating button runs. */
-export type OcrMode = 'english' | 'hindi' | 'mixed';
+/**
+ * Which recogniser(s) the floating button runs. `mixed` is Hindi + English
+ * (its id predates Gujarati support and is kept for stored settings).
+ * English: ML Kit Latin · Hindi: ML Kit Devanagari · Gujarati: Tesseract.
+ */
+export type OcrMode =
+  | 'english'
+  | 'hindi'
+  | 'gujarati'
+  | 'mixed'
+  | 'gujarati_english'
+  | 'hindi_gujarati'
+  | 'all';
 
-export const OCR_MODES: readonly OcrMode[] = ['english', 'hindi', 'mixed'];
+export const OCR_MODES: readonly OcrMode[] = [
+  'english',
+  'hindi',
+  'gujarati',
+  'mixed',
+  'gujarati_english',
+  'hindi_gujarati',
+  'all',
+];
+
+/** Scripts a mode reads — used to warn when the speech voice cannot read them. */
+export const OCR_MODE_SCRIPTS: Record<OcrMode, readonly SpeechLanguage[]> = {
+  english: ['en'],
+  hindi: ['hi'],
+  gujarati: ['gu'],
+  mixed: ['hi', 'en'],
+  gujarati_english: ['gu', 'en'],
+  hindi_gujarati: ['hi', 'gu'],
+  all: ['hi', 'gu', 'en'],
+};
+
+/** What a tap on the floating button does. */
+export type FloatingAction = 'copy' | 'speak' | 'speak_scroll';
+
+export const FLOATING_ACTIONS: readonly FloatingAction[] = [
+  'copy',
+  'speak',
+  'speak_scroll',
+];
+
+export function isFloatingAction(value: unknown): value is FloatingAction {
+  return (
+    typeof value === 'string' &&
+    (FLOATING_ACTIONS as readonly string[]).includes(value)
+  );
+}
+
+/** Speech language — independent of the OCR mode. */
+export type SpeechLanguage = 'en' | 'hi' | 'gu';
+
+export const SPEECH_LANGUAGES: readonly SpeechLanguage[] = ['en', 'hi', 'gu'];
+
+export function isSpeechLanguage(value: unknown): value is SpeechLanguage {
+  return (
+    typeof value === 'string' &&
+    (SPEECH_LANGUAGES as readonly string[]).includes(value)
+  );
+}
+
+export interface SpeechSettings {
+  language: SpeechLanguage;
+  /** Installed voice name, or '' for the language's default voice. */
+  voiceName: string;
+  rate: number;
+  pitch: number;
+  /** Read each sentence with a voice for its script when one is installed. */
+  switchByScript: boolean;
+  preferGoogle: boolean;
+  copyBeforeSpeaking: boolean;
+  /** In-app reading stops when you leave the screen; overlay reading stops when the screen turns off. */
+  stopOnLeave: boolean;
+  resumeAfterInterruption: boolean;
+}
+
+export interface ReadingSettings {
+  autoScroll: boolean;
+  maxSections: number;
+  maxNoNewText: number;
+  manualFallback: boolean;
+}
 
 export function isOcrMode(value: unknown): value is OcrMode {
   return (
@@ -25,11 +105,45 @@ export interface OcrResult {
 /** User settings for capture; persisted in MMKV and mirrored to native. */
 export interface CaptureSettings {
   ocrMode: OcrMode;
+  action: FloatingAction;
   autoCopy: boolean;
   saveHistory: boolean;
   bubbleSizeDp: number;
   bubbleOpacity: number;
+  speech: SpeechSettings;
+  reading: ReadingSettings;
 }
+
+export type LanguageStatus = 'available' | 'missing_data' | 'not_supported';
+
+export interface VoiceInfo {
+  name: string;
+  language: string;
+  locale: string;
+  networkRequired: boolean;
+  installed: boolean;
+  quality: number;
+}
+
+/** Device text-to-speech capabilities, read from Android (never assumed). */
+export interface SpeechInfo {
+  supported: boolean;
+  ready: boolean;
+  activeEngine: string;
+  defaultEngine: string;
+  googleInstalled: boolean;
+  engines: { name: string; label: string }[];
+  languages: Record<SpeechLanguage, LanguageStatus>;
+  voices: VoiceInfo[];
+  scrollServiceEnabled: boolean;
+}
+
+export type SpeechOutcome =
+  | 'ok'
+  | 'voice_missing'
+  | 'speech_failed'
+  | 'not_ready'
+  | 'unsupported';
 
 export interface OverlayStatus {
   /** False on platforms without the native module (iOS, tests). */

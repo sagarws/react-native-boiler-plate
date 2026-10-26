@@ -42,7 +42,9 @@ export interface ApiEnvelope<T> {
   data: T;
 }
 
-async function buildHeaders(custom?: Record<string, string>): Promise<Record<string, string>> {
+async function buildHeaders(
+  custom?: Record<string, string>,
+): Promise<Record<string, string>> {
   const headers: Record<string, string> = {
     Accept: 'application/json',
     'Content-Type': 'application/json',
@@ -63,7 +65,9 @@ async function parseBody(response: Response): Promise<unknown> {
   }
 }
 
-export async function request<TResponse>(options: RequestOptions): Promise<TResponse> {
+export async function request<TResponse>(
+  options: RequestOptions,
+): Promise<TResponse> {
   const {
     method = 'GET',
     path,
@@ -89,7 +93,9 @@ export async function request<TResponse>(options: RequestOptions): Promise<TResp
     const parsed = await parseBody(response);
 
     if (!response.ok) {
-      const errBody = parsed as { displayMessage?: string; message?: string } | undefined;
+      const errBody = parsed as
+        | { displayMessage?: string; message?: string }
+        | undefined;
       const summary = [
         `${method} ${path}`,
         `${response.status}`,
@@ -146,12 +152,21 @@ export async function requestData<T>(options: RequestOptions): Promise<T> {
 export const apiClient = {
   get: <T>(path: string, opts?: Omit<RequestOptions, 'path' | 'method'>) =>
     request<T>({ ...opts, path, method: 'GET' }),
-  post: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, 'path' | 'method' | 'body'>) =>
-    request<T>({ ...opts, path, method: 'POST', body }),
-  put: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, 'path' | 'method' | 'body'>) =>
-    request<T>({ ...opts, path, method: 'PUT', body }),
-  patch: <T>(path: string, body?: unknown, opts?: Omit<RequestOptions, 'path' | 'method' | 'body'>) =>
-    request<T>({ ...opts, path, method: 'PATCH', body }),
+  post: <T>(
+    path: string,
+    body?: unknown,
+    opts?: Omit<RequestOptions, 'path' | 'method' | 'body'>,
+  ) => request<T>({ ...opts, path, method: 'POST', body }),
+  put: <T>(
+    path: string,
+    body?: unknown,
+    opts?: Omit<RequestOptions, 'path' | 'method' | 'body'>,
+  ) => request<T>({ ...opts, path, method: 'PUT', body }),
+  patch: <T>(
+    path: string,
+    body?: unknown,
+    opts?: Omit<RequestOptions, 'path' | 'method' | 'body'>,
+  ) => request<T>({ ...opts, path, method: 'PATCH', body }),
   delete: <T>(path: string, opts?: Omit<RequestOptions, 'path' | 'method'>) =>
     request<T>({ ...opts, path, method: 'DELETE' }),
   /** Envelope-unwrapping variants — the default for backend endpoints. */

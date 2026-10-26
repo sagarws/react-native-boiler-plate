@@ -1,10 +1,16 @@
 import { useCallback, useSyncExternalStore } from 'react';
 import { captureSettingsStore } from '../store/captureSettings.store';
-import type { CaptureSettings } from '../capture.types';
+import type {
+  CaptureSettings,
+  ReadingSettings,
+  SpeechSettings,
+} from '../capture.types';
 
 export interface UseCaptureSettings {
   settings: CaptureSettings;
   update: (patch: Partial<CaptureSettings>) => void;
+  updateSpeech: (patch: Partial<SpeechSettings>) => void;
+  updateReading: (patch: Partial<ReadingSettings>) => void;
 }
 
 /** Live capture settings; `update` persists and notifies every subscriber. */
@@ -16,5 +22,11 @@ export function useCaptureSettings(): UseCaptureSettings {
   const update = useCallback((patch: Partial<CaptureSettings>) => {
     captureSettingsStore.update(patch);
   }, []);
-  return { settings, update };
+  const updateSpeech = useCallback((patch: Partial<SpeechSettings>) => {
+    captureSettingsStore.updateSpeech(patch);
+  }, []);
+  const updateReading = useCallback((patch: Partial<ReadingSettings>) => {
+    captureSettingsStore.updateReading(patch);
+  }, []);
+  return { settings, update, updateSpeech, updateReading };
 }

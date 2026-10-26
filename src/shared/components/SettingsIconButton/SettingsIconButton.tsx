@@ -1,5 +1,11 @@
 import React from 'react';
-import { Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { fontSize, hp, useTheme, wp } from '@/theme';
 
 export interface SettingsIconButtonProps {
@@ -31,7 +37,8 @@ export function SettingsIconButton({
           opacity: pressed ? 0.7 : 1,
         },
         style,
-      ]}>
+      ]}
+    >
       <Text style={[styles.glyph, { color: colors.primary }]}>⚙</Text>
     </Pressable>
   );

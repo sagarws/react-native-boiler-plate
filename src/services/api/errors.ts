@@ -3,7 +3,10 @@ export class ApiError extends Error {
   readonly url: string;
   readonly body: unknown;
 
-  constructor(message: string, params: { status: number; url: string; body?: unknown }) {
+  constructor(
+    message: string,
+    params: { status: number; url: string; body?: unknown },
+  ) {
     super(message);
     this.name = 'ApiError';
     this.status = params.status;

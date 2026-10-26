@@ -1,15 +1,48 @@
 import { storage, StorageKeys } from '@/store/mmkv';
-import { isOcrMode, type CaptureSettings } from '../capture.types';
+import {
+  isFloatingAction,
+  isOcrMode,
+  isSpeechLanguage,
+  type CaptureSettings,
+  type ReadingSettings,
+  type SpeechSettings,
+} from '../capture.types';
 
 export const BUBBLE_SIZE = { min: 40, max: 80, step: 4 } as const;
 export const BUBBLE_OPACITY = { min: 0.3, max: 1, step: 0.05 } as const;
+export const SPEECH_RATE = { min: 0.5, max: 2, step: 0.1 } as const;
+export const SPEECH_PITCH = { min: 0.5, max: 2, step: 0.1 } as const;
+export const MAX_SECTIONS = { min: 1, max: 100, step: 1 } as const;
+export const MAX_NO_NEW_TEXT = { min: 1, max: 5, step: 1 } as const;
+
+export const DEFAULT_SPEECH_SETTINGS: SpeechSettings = {
+  language: 'en',
+  voiceName: '',
+  rate: 1,
+  pitch: 1,
+  switchByScript: true,
+  preferGoogle: true,
+  copyBeforeSpeaking: false,
+  stopOnLeave: true,
+  resumeAfterInterruption: true,
+};
+
+export const DEFAULT_READING_SETTINGS: ReadingSettings = {
+  autoScroll: true,
+  maxSections: 30,
+  maxNoNewText: 2,
+  manualFallback: true,
+};
 
 export const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
   ocrMode: 'mixed',
+  action: 'copy',
   autoCopy: true,
   saveHistory: true,
   bubbleSizeDp: 56,
   bubbleOpacity: 0.9,
+  speech: DEFAULT_SPEECH_SETTINGS,
+  reading: DEFAULT_READING_SETTINGS,
 };
 
 function clamp(
@@ -23,18 +56,67 @@ function clamp(
     : fallback;
 }
 
+function record(raw: unknown): Record<string, unknown> {
+  return (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>;
+}
+
+function bool(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+
+/** Rounds to one decimal so slider steps don't accumulate float noise. */
+function tenth(value: number): number {
+  return Math.round(value * 10) / 10;
+}
+
+export function sanitizeSpeechSettings(raw: unknown): SpeechSettings {
+  const d = DEFAULT_SPEECH_SETTINGS;
+  const r = record(raw);
+  return {
+    language: isSpeechLanguage(r.language) ? r.language : d.language,
+    voiceName: typeof r.voiceName === 'string' ? r.voiceName : d.voiceName,
+    rate: tenth(clamp(r.rate, SPEECH_RATE.min, SPEECH_RATE.max, d.rate)),
+    pitch: tenth(clamp(r.pitch, SPEECH_PITCH.min, SPEECH_PITCH.max, d.pitch)),
+    switchByScript: bool(r.switchByScript, d.switchByScript),
+    preferGoogle: bool(r.preferGoogle, d.preferGoogle),
+    copyBeforeSpeaking: bool(r.copyBeforeSpeaking, d.copyBeforeSpeaking),
+    stopOnLeave: bool(r.stopOnLeave, d.stopOnLeave),
+    resumeAfterInterruption: bool(
+      r.resumeAfterInterruption,
+      d.resumeAfterInterruption,
+    ),
+  };
+}
+
+export function sanitizeReadingSettings(raw: unknown): ReadingSettings {
+  const d = DEFAULT_READING_SETTINGS;
+  const r = record(raw);
+  return {
+    autoScroll: bool(r.autoScroll, d.autoScroll),
+    maxSections: Math.round(
+      clamp(r.maxSections, MAX_SECTIONS.min, MAX_SECTIONS.max, d.maxSections),
+    ),
+    maxNoNewText: Math.round(
+      clamp(
+        r.maxNoNewText,
+        MAX_NO_NEW_TEXT.min,
+        MAX_NO_NEW_TEXT.max,
+        d.maxNoNewText,
+      ),
+    ),
+    manualFallback: bool(r.manualFallback, d.manualFallback),
+  };
+}
+
 /** Field-by-field validation: one bad value never resets the others. */
 export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
   const d = DEFAULT_CAPTURE_SETTINGS;
-  const r = (raw && typeof raw === 'object' ? raw : {}) as Record<
-    string,
-    unknown
-  >;
+  const r = record(raw);
   return {
     ocrMode: isOcrMode(r.ocrMode) ? r.ocrMode : d.ocrMode,
-    autoCopy: typeof r.autoCopy === 'boolean' ? r.autoCopy : d.autoCopy,
-    saveHistory:
-      typeof r.saveHistory === 'boolean' ? r.saveHistory : d.saveHistory,
+    action: isFloatingAction(r.action) ? r.action : d.action,
+    autoCopy: bool(r.autoCopy, d.autoCopy),
+    saveHistory: bool(r.saveHistory, d.saveHistory),
     bubbleSizeDp: Math.round(
       clamp(r.bubbleSizeDp, BUBBLE_SIZE.min, BUBBLE_SIZE.max, d.bubbleSizeDp),
     ),
@@ -44,6 +126,8 @@ export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
       BUBBLE_OPACITY.max,
       d.bubbleOpacity,
     ),
+    speech: sanitizeSpeechSettings(r.speech),
+    reading: sanitizeReadingSettings(r.reading),
   };
 }
 
@@ -67,6 +151,18 @@ export const captureSettingsStore = {
   read(): CaptureSettings {
     if (!cache) cache = load();
     return cache;
+  },
+  updateSpeech(patch: Partial<SpeechSettings>): CaptureSettings {
+    const current = captureSettingsStore.read();
+    return captureSettingsStore.update({
+      speech: { ...current.speech, ...patch },
+    });
+  },
+  updateReading(patch: Partial<ReadingSettings>): CaptureSettings {
+    const current = captureSettingsStore.read();
+    return captureSettingsStore.update({
+      reading: { ...current.reading, ...patch },
+    });
   },
   update(patch: Partial<CaptureSettings>): CaptureSettings {
     const next = sanitizeCaptureSettings({

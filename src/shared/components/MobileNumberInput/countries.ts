@@ -41,7 +41,7 @@ export const MOBILE_MAX = 15;
 export const MOBILE_RE = new RegExp(`^\\d{${MOBILE_MIN},${MOBILE_MAX}}$`);
 
 export function findCountry(dial: string): Country | undefined {
-  return COUNTRIES.find((c) => c.dial === dial);
+  return COUNTRIES.find(c => c.dial === dial);
 }
 
 // Strips spaces and any non-digit characters so the stored value is the

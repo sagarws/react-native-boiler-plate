@@ -24,4 +24,34 @@
     <string name="screen_ocr_notification_title">Floating text capture is on</string>
     <string name="screen_ocr_notification_text">Tap the floating button to copy text from the screen</string>
     <string name="screen_ocr_notification_stop">Stop</string>
+
+    <!-- Read-aloud controller -->
+    <string name="reading_mode_speak">Speaking</string>
+    <string name="reading_mode_scroll">Speak + auto-scroll</string>
+    <string name="reading_status_capturing">Capturing screen…</string>
+    <string name="reading_status_ocr">Reading text…</string>
+    <string name="reading_status_speaking">Speaking</string>
+    <string name="reading_status_section">Section %1$d</string>
+    <string name="reading_status_paused">Paused</string>
+    <string name="reading_status_scrolling">Scrolling…</string>
+    <string name="reading_status_manual">Scroll, then tap ▶</string>
+    <string name="reading_status_complete">Finished</string>
+    <string name="reading_status_stopped">Stopped</string>
+    <string name="reading_status_error">Couldn\'t continue</string>
+    <string name="reading_pause">Pause</string>
+    <string name="reading_resume">Resume</string>
+    <string name="reading_restart">Restart section</string>
+    <string name="reading_next">Next section</string>
+    <string name="reading_continue">Continue after scrolling</string>
+    <string name="reading_copy">Copy text</string>
+    <string name="reading_stop">Stop reading</string>
+    <string name="reading_error_speech">Speech failed. Check the text-to-speech engine in the app settings.</string>
+    <string name="reading_error_voice">The selected voice isn\'t installed. Open Speech &amp; Voice in the app to install it.</string>
+    <string name="reading_end_of_page">Reached the end of the page</string>
+    <string name="reading_limit_reached">Stopped at the reading limit</string>
+
+    <!-- Auto-scroll accessibility service (shown in Android settings) -->
+    <string name="scroll_service_label">Akshar auto-scroll</string>
+    <string name="scroll_service_summary">Scrolls the page while Akshar reads it aloud</string>
+    <string name="scroll_service_description">Used only by Akshar\'s \"Speak with auto-scroll\" mode: after a section has been read aloud, it scrolls the app you are reading to show the next part. It does not read, store or send screen content, and does nothing while you are not using auto-scroll reading. Turn it off here at any time.</string>
 </resources>

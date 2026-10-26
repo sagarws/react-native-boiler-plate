@@ -2,7 +2,9 @@ import React from 'react';
 import ReactTestRenderer, { type ReactTestInstance } from 'react-test-renderer';
 import { Slider } from './Slider';
 
-async function render(props: Partial<React.ComponentProps<typeof Slider>> = {}) {
+async function render(
+  props: Partial<React.ComponentProps<typeof Slider>> = {},
+) {
   const onChange = jest.fn();
   let renderer: ReactTestRenderer.ReactTestRenderer | undefined;
   await ReactTestRenderer.act(() => {
@@ -39,7 +41,11 @@ describe('Slider', () => {
     const { root } = await render({ value: 70 });
 
     expect(root.props.accessibilityRole).toBe('adjustable');
-    expect(root.props.accessibilityValue).toMatchObject({ min: 10, max: 100, now: 70 });
+    expect(root.props.accessibilityValue).toMatchObject({
+      min: 10,
+      max: 100,
+      now: 70,
+    });
   });
 
   it('moves one step per accessibility action', async () => {

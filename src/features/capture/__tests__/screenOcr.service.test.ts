@@ -105,25 +105,74 @@ describe('enable / disable', () => {
   });
 });
 
-describe('OCR mode selection reaches the native engine', () => {
-  it.each(['english', 'hindi', 'mixed'] as const)(
-    'pushes %s with the theme colours',
-    mode => {
+const COLORS = {
+  background: '#7C3AED',
+  icon: '#FFFFFF',
+  panel: '#1C1928',
+  panelText: '#F3F1F8',
+};
+
+function lastConfig(): Record<string, unknown> {
+  const calls = mockNative.updateConfig.mock.calls;
+  return JSON.parse(calls[calls.length - 1][0]);
+}
+
+describe('settings reach the native service', () => {
+  it.each([
+    'english',
+    'hindi',
+    'gujarati',
+    'mixed',
+    'gujarati_english',
+    'hindi_gujarati',
+    'all',
+  ] as const)('pushes the %s OCR mode', mode => {
+    screenOcrService.pushConfig(
+      { ...DEFAULT_CAPTURE_SETTINGS, ocrMode: mode },
+      COLORS,
+    );
+    expect(lastConfig().ocrMode).toBe(mode);
+  });
+
+  it.each(['copy', 'speak', 'speak_scroll'] as const)(
+    'pushes the %s click action',
+    action => {
       screenOcrService.pushConfig(
-        { ...DEFAULT_CAPTURE_SETTINGS, ocrMode: mode },
-        { background: '#7C3AED', icon: '#FFFFFF' },
+        { ...DEFAULT_CAPTURE_SETTINGS, action },
+        COLORS,
       );
-      expect(mockNative.updateConfig).toHaveBeenCalledWith({
-        ocrMode: mode,
-        autoCopy: true,
-        saveHistory: true,
-        bubbleSizeDp: 56,
-        bubbleOpacity: 0.9,
-        bubbleColor: '#7C3AED',
-        bubbleIconColor: '#FFFFFF',
-      });
+      expect(lastConfig().action).toBe(action);
     },
   );
+
+  it('sends theme colours and speech / reading settings', () => {
+    screenOcrService.pushConfig(
+      {
+        ...DEFAULT_CAPTURE_SETTINGS,
+        speech: {
+          ...DEFAULT_CAPTURE_SETTINGS.speech,
+          language: 'gu',
+          rate: 1.3,
+          stopOnLeave: false,
+        },
+        reading: { ...DEFAULT_CAPTURE_SETTINGS.reading, maxSections: 12 },
+      },
+      COLORS,
+    );
+    expect(lastConfig()).toMatchObject({
+      bubbleColor: '#7C3AED',
+      bubbleIconColor: '#FFFFFF',
+      panelColor: '#1C1928',
+      panelTextColor: '#F3F1F8',
+      speech: { language: 'gu', rate: 1.3, stopOnScreenOff: false },
+      reading: {
+        maxSections: 12,
+        maxNoNewText: 2,
+        autoScroll: true,
+        manualFallback: true,
+      },
+    });
+  });
 });
 
 describe('clipboard', () => {

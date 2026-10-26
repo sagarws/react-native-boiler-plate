@@ -60,7 +60,8 @@ export function ToggleSwitch({
           padding: PADDING,
           opacity: disabled ? 0.5 : 1,
         },
-      ]}>
+      ]}
+    >
       <Animated.View
         style={[
           styles.thumb,
@@ -69,12 +70,16 @@ export function ToggleSwitch({
             borderRadius: radius.pill,
             transform: [{ translateX }],
           },
-        ]}>
+        ]}
+      >
         <Image
           source={images.icon_toggle_switch}
           resizeMode="contain"
           accessibilityIgnoresInvertColors
-          style={[styles.icon, { transform: [{ rotateY: isOn ? '0deg' : '180deg' }] }]}
+          style={[
+            styles.icon,
+            { transform: [{ rotateY: isOn ? '0deg' : '180deg' }] },
+          ]}
         />
       </Animated.View>
     </Pressable>

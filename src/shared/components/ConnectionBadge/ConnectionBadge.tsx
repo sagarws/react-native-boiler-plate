@@ -37,7 +37,8 @@ export function ConnectionBadge({ compact = false }: ConnectionBadgeProps) {
           paddingHorizontal: compact ? spacing.xs : spacing.sm,
           paddingVertical: 2,
         },
-      ]}>
+      ]}
+    >
       <View style={[styles.dot, { backgroundColor: dotColor }]} />
       {compact ? null : (
         <Text
@@ -48,7 +49,8 @@ export function ConnectionBadge({ compact = false }: ConnectionBadgeProps) {
               marginLeft: spacing.xs,
               fontWeight: '600',
             },
-          ]}>
+          ]}
+        >
           {t(`connection.${status}`)}
         </Text>
       )}

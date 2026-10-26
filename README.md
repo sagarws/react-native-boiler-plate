@@ -6,8 +6,12 @@ No account, no API keys, no backend; release builds have no internet permission 
 
 - **Floating button** drawn over other apps: draggable, snaps to an edge, remembers its
   position, size and opacity configurable, shows a spinner while reading
-- **On-device OCR** with Google ML Kit's bundled Latin and Devanagari models; three modes
-  (English, Hindi, Hindi + English) that run different recognisers
+- **On-device OCR**: ML Kit (English, Hindi) and Tesseract (Gujarati; ML Kit has no
+  Gujarati model). Seven modes: English, Hindi, Gujarati and every combination
+- **Three tap actions**: copy text, read it aloud, or read a long page aloud with
+  auto-scroll (optional accessibility service, or manual-scroll fallback)
+- **Speech** through Android text-to-speech (Google Speech Services preferred when
+  installed): English / हिन्दी / ગુજરાતી, voice choice, speed, pitch, Test Voice
 - **Clipboard** copy with a confirmation toast; empty results never overwrite it
 - **Review screen**: edit, select all, copy (or copy selection), share, clear, delete
 - **Local history** (optional, max 50) and the latest capture kept in memory
@@ -129,6 +133,7 @@ build-breaking native change. Pure-JS and dev packages keep ranges.
 | `socket.io-client` | `^4.8.3` | Realtime singleton + `ConnectionBadge` — unused by the OCR app |
 | `com.google.mlkit:text-recognition` | `16.0.1` (Gradle) | Bundled Latin OCR model |
 | `com.google.mlkit:text-recognition-devanagari` | `16.0.1` (Gradle) | Bundled Devanagari OCR model |
+| `cz.adaptech.tesseract4android:tesseract4android` | `4.9.0` (Gradle, JitPack) | Gujarati OCR (Tesseract 5) + bundled `guj`/`eng` tessdata_fast models |
 
 Icons are [Lucide](https://lucide.dev) (ISC), rendered to tintable PNGs in
 `src/shared/assets/icons` — no icon-font or SVG runtime dependency.

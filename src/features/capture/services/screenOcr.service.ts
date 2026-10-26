@@ -18,10 +18,44 @@ const UNSUPPORTED: OverlayStatus = {
   serviceRunning: false,
 };
 
-/** Colours the native bubble takes from the active theme. */
-export interface BubbleColors {
+/** Colours the native bubble and controller take from the active theme. */
+export interface OverlayColors {
   background: string;
   icon: string;
+  panel: string;
+  panelText: string;
+}
+
+/** The JSON the native service reads (OcrConfig.fromJson in Kotlin). */
+export function buildNativeConfig(
+  settings: CaptureSettings,
+  colors: OverlayColors,
+) {
+  const { speech, reading } = settings;
+  return {
+    ocrMode: settings.ocrMode,
+    action: settings.action,
+    autoCopy: settings.autoCopy,
+    saveHistory: settings.saveHistory,
+    bubbleSizeDp: settings.bubbleSizeDp,
+    bubbleOpacity: settings.bubbleOpacity,
+    bubbleColor: colors.background,
+    bubbleIconColor: colors.icon,
+    panelColor: colors.panel,
+    panelTextColor: colors.panelText,
+    speech: {
+      language: speech.language,
+      voiceName: speech.voiceName,
+      rate: speech.rate,
+      pitch: speech.pitch,
+      switchByScript: speech.switchByScript,
+      preferGoogle: speech.preferGoogle,
+      copyBeforeSpeaking: speech.copyBeforeSpeaking,
+      stopOnScreenOff: speech.stopOnLeave,
+      resumeAfterInterruption: speech.resumeAfterInterruption,
+    },
+    reading,
+  };
 }
 
 function errorCode(error: unknown): string | undefined {
@@ -77,16 +111,10 @@ export const screenOcrService = {
     NativeScreenOcr?.openOverlaySettings();
   },
 
-  pushConfig(settings: CaptureSettings, colors: BubbleColors): void {
-    NativeScreenOcr?.updateConfig({
-      ocrMode: settings.ocrMode,
-      autoCopy: settings.autoCopy,
-      saveHistory: settings.saveHistory,
-      bubbleSizeDp: settings.bubbleSizeDp,
-      bubbleOpacity: settings.bubbleOpacity,
-      bubbleColor: colors.background,
-      bubbleIconColor: colors.icon,
-    });
+  pushConfig(settings: CaptureSettings, colors: OverlayColors): void {
+    NativeScreenOcr?.updateConfig(
+      JSON.stringify(buildNativeConfig(settings, colors)),
+    );
   },
 
   resetBubblePosition(): void {

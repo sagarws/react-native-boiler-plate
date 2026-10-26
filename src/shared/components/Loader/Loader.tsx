@@ -10,7 +10,11 @@ export interface LoaderProps {
 }
 
 /** Full-bleed activity indicator used while a screen is busy. */
-export function Loader({ isVisible = false, size = 'large', overlay = true }: LoaderProps) {
+export function Loader({
+  isVisible = false,
+  size = 'large',
+  overlay = true,
+}: LoaderProps) {
   const { colors } = useTheme();
 
   if (!isVisible) return null;
@@ -21,8 +25,12 @@ export function Loader({ isVisible = false, size = 'large', overlay = true }: Lo
       style={[
         styles.container,
         overlay && [StyleSheet.absoluteFill, { backgroundColor: colors.scrim }],
-      ]}>
-      <ActivityIndicator size={size} color={overlay ? colors.surface : colors.primary} />
+      ]}
+    >
+      <ActivityIndicator
+        size={size}
+        color={overlay ? colors.surface : colors.primary}
+      />
     </View>
   );
 }

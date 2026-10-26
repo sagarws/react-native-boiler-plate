@@ -206,6 +206,56 @@ describe('after onboarding', () => {
     expect(checked(renderer, 'ocr-mode-english')).toBe(true);
   });
 
+  it('offers all seven OCR modes, including Gujarati combinations', async () => {
+    const renderer = await renderApp();
+    await pressLabel(renderer, 'Open settings');
+    const texts = textsOf(renderer.root);
+    for (const label of [
+      'English',
+      'Hindi',
+      'Gujarati',
+      'Hindi + English',
+      'Gujarati + English',
+      'Hindi + Gujarati',
+      'Hindi + Gujarati + English',
+    ]) {
+      expect(texts).toContain(label);
+    }
+    await pressId(renderer, 'ocr-mode-gujarati_english');
+    expect(captureSettingsStore.read().ocrMode).toBe('gujarati_english');
+  });
+
+  it('selects the floating-button click action and persists it', async () => {
+    const renderer = await renderApp();
+    await pressLabel(renderer, 'Open settings');
+    expect(textsOf(renderer.root)).toContain('Action on floating button click');
+
+    await pressId(renderer, 'floating-action-speak_scroll');
+    expect(captureSettingsStore.read().action).toBe('speak_scroll');
+    expect(checked(renderer, 'floating-action-speak_scroll')).toBe(true);
+
+    captureSettingsStore.resetCacheForTest();
+    expect(captureSettingsStore.read().action).toBe('speak_scroll');
+  });
+
+  it('shows Speech & voice and Auto-scroll reading settings', async () => {
+    const renderer = await renderApp();
+    await pressLabel(renderer, 'Open settings');
+    const texts = textsOf(renderer.root);
+    expect(texts).toContain('Auto-scroll reading');
+    expect(texts).toContain('Why auto-scroll needs accessibility access');
+    // Without the native module the speech section says so instead of guessing.
+    expect(texts).toContain('Speech needs Android.');
+
+    const toggle = renderer.root.findAll(
+      n => n.props.testID === 'reading-auto-scroll' && n.props.onValueChange,
+    )[0];
+    await ReactTestRenderer.act(async () => {
+      toggle.props.onValueChange(false);
+    });
+    expect(captureSettingsStore.read().reading.autoScroll).toBe(false);
+  });
+
   it('turns history off from Settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');

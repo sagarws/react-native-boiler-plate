@@ -1,23 +1,28 @@
 package com.rnboilerplate.screenocr
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.Color
 import android.net.Uri
 import android.provider.Settings
+import android.speech.tts.TextToSpeech
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.Promise
 import com.facebook.react.bridge.ReactApplicationContext
-import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.bridge.UiThreadUtil
+import org.json.JSONException
+import org.json.JSONObject
 
 /**
  * TurboModule bridging the overlay service to JS. Holds no capture state of
  * its own: status lives in [OverlayCaptureService] / [ScreenOcrBus], settings
  * in [OcrPrefs], so the service keeps working while the JS runtime is gone.
+ * It owns a separate [SpeechPlayer] for the settings screen (voice info, Test
+ * Voice) and in-app reading.
  */
 class ScreenOcrModule(context: ReactApplicationContext) :
   NativeScreenOcrSpec(context), ScreenOcrBus.Listener {
   private val prefs = OcrPrefs(context)
+  private var speech: SpeechPlayer? = null
 
   override fun initialize() {
     super.initialize()
@@ -26,6 +31,10 @@ class ScreenOcrModule(context: ReactApplicationContext) :
 
   override fun invalidate() {
     if (ScreenOcrBus.listener === this) ScreenOcrBus.listener = null
+    UiThreadUtil.runOnUiThread {
+      speech?.shutdown()
+      speech = null
+    }
     super.invalidate()
   }
 
@@ -39,13 +48,12 @@ class ScreenOcrModule(context: ReactApplicationContext) :
   }
 
   override fun openOverlaySettings() {
-    val intent =
+    startSettings(
       Intent(
-          Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-          Uri.parse("package:${reactApplicationContext.packageName}"),
-        )
-        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-    reactApplicationContext.startActivity(intent)
+        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+        Uri.parse("package:${reactApplicationContext.packageName}"),
+      ),
+    )
   }
 
   override fun startOverlay(promise: Promise) {
@@ -74,19 +82,14 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     OverlayCaptureService.stop(reactApplicationContext)
   }
 
-  override fun updateConfig(config: ReadableMap) {
-    val defaults = OcrConfig()
-    prefs.writeConfig(
-      OcrConfig(
-        mode = OcrMode.from(config.getStringOrNull("ocrMode")),
-        autoCopy = config.getBooleanOr("autoCopy", defaults.autoCopy),
-        saveHistory = config.getBooleanOr("saveHistory", defaults.saveHistory),
-        bubbleSizeDp = config.getDoubleOr("bubbleSizeDp", defaults.bubbleSizeDp.toDouble()).toInt(),
-        bubbleOpacity = config.getDoubleOr("bubbleOpacity", defaults.bubbleOpacity.toDouble()).toFloat(),
-        bubbleColor = parseColor(config.getStringOrNull("bubbleColor"), defaults.bubbleColor),
-        bubbleIconColor = parseColor(config.getStringOrNull("bubbleIconColor"), defaults.bubbleIconColor),
-      ),
-    )
+  override fun updateConfig(configJson: String) {
+    val json =
+      try {
+        JSONObject(configJson)
+      } catch (_: JSONException) {
+        return
+      }
+    prefs.writeConfig(json)
     OverlayCaptureService.notifyConfigChanged(reactApplicationContext)
   }
 
@@ -112,6 +115,127 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     prefs.clearPending()
   }
 
+  // ── Speech ────────────────────────────────────────────────────────────
+
+  /** The module's player, recreated when the engine preference changes. Main thread only. */
+  private fun player(): SpeechPlayer {
+    val preferGoogle = prefs.readConfig().speech.preferGoogle
+    val wanted =
+      if (preferGoogle && SpeechPlayer.isGoogleInstalled(reactApplicationContext)) SpeechPlayer.GOOGLE_TTS else ""
+    speech?.let { if (it.enginePackage == wanted) return it }
+    speech?.shutdown()
+    return SpeechPlayer(reactApplicationContext, preferGoogle).also { speech = it }
+  }
+
+  override fun getSpeechInfo(promise: Promise) {
+    UiThreadUtil.runOnUiThread {
+      val p = player()
+      p.whenReady { ok ->
+        val info =
+          if (ok) p.describe() else JSONObject().put("ready", false).put("activeEngine", p.enginePackage)
+        info.put("scrollServiceEnabled", ScrollAccessibilityService.isEnabled(reactApplicationContext))
+        info.put("googleInstalled", SpeechPlayer.isGoogleInstalled(reactApplicationContext))
+        promise.resolve(info.toString())
+      }
+    }
+  }
+
+  override fun openTtsSettings() {
+    startSettings(Intent("com.android.settings.TTS_SETTINGS"), fallback = Intent(Settings.ACTION_SETTINGS))
+  }
+
+  override fun installVoiceData() {
+    UiThreadUtil.runOnUiThread {
+      val engine = speech?.enginePackage?.takeIf { it.isNotEmpty() } ?: speech?.defaultEngine().orEmpty()
+      val install = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA)
+      if (engine.isNotEmpty()) install.setPackage(engine)
+      startSettings(install, fallback = Intent("com.android.settings.TTS_SETTINGS"))
+    }
+  }
+
+  override fun testVoice(
+    text: String,
+    language: String,
+    voiceName: String,
+    rate: Double,
+    pitch: Double,
+    promise: Promise,
+  ) {
+    speakOnce(text, language, voiceName, rate.toFloat(), pitch.toFloat(), switchByScript = false, promise)
+  }
+
+  override fun speakText(text: String, promise: Promise) {
+    val s = prefs.readConfig().speech
+    speakOnce(text, s.language, s.voiceName, s.rate, s.pitch, s.switchByScript, promise)
+  }
+
+  private fun speakOnce(
+    text: String,
+    language: String,
+    voiceName: String,
+    rate: Float,
+    pitch: Float,
+    switchByScript: Boolean,
+    promise: Promise,
+  ) {
+    UiThreadUtil.runOnUiThread {
+      val p = player()
+      p.whenReady { ok ->
+        if (!ok) {
+          promise.resolve("not_ready")
+          return@whenReady
+        }
+        val available = OcrConfig.SPEECH_LANGUAGES.filter { p.isLanguageUsable(it) }.toSet()
+        if (!switchByScript && language !in available) {
+          promise.resolve("voice_missing")
+          return@whenReady
+        }
+        val segments = SpeechSegmenter.segment(text, language, switchByScript, available)
+        var settled = false
+        p.speak(
+          segments,
+          0,
+          voiceName,
+          rate,
+          pitch,
+          onProgress = { _, _ -> },
+          onDone = {
+            if (!settled) {
+              settled = true
+              promise.resolve("ok")
+            }
+          },
+          onError = { reason ->
+            if (!settled) {
+              settled = true
+              promise.resolve(if (reason == ReadingReason.VOICE_MISSING) "voice_missing" else "speech_failed")
+            }
+          },
+        )
+      }
+    }
+  }
+
+  override fun stopSpeech() {
+    UiThreadUtil.runOnUiThread { speech?.stop() }
+  }
+
+  override fun isScrollServiceEnabled(promise: Promise) {
+    promise.resolve(ScrollAccessibilityService.isEnabled(reactApplicationContext))
+  }
+
+  override fun openAccessibilitySettings() {
+    startSettings(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+  }
+
+  private fun startSettings(intent: Intent, fallback: Intent? = null) {
+    try {
+      reactApplicationContext.startActivity(intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    } catch (_: ActivityNotFoundException) {
+      fallback?.let { reactApplicationContext.startActivity(it.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+    }
+  }
+
   override fun onCaptureResult() = emit(EVENT_RESULT)
 
   override fun onStatusChanged() = emit(EVENT_STATUS)
@@ -121,22 +245,6 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     if (!reactApplicationContext.hasActiveReactInstance()) return
     reactApplicationContext.emitDeviceEvent(event, null)
   }
-
-  private fun parseColor(value: String?, fallback: Int): Int =
-    try {
-      if (value.isNullOrBlank()) fallback else Color.parseColor(value)
-    } catch (_: IllegalArgumentException) {
-      fallback
-    }
-
-  private fun ReadableMap.getStringOrNull(key: String): String? =
-    if (hasKey(key) && !isNull(key)) getString(key) else null
-
-  private fun ReadableMap.getBooleanOr(key: String, fallback: Boolean): Boolean =
-    if (hasKey(key) && !isNull(key)) getBoolean(key) else fallback
-
-  private fun ReadableMap.getDoubleOr(key: String, fallback: Double): Double =
-    if (hasKey(key) && !isNull(key)) getDouble(key) else fallback
 
   companion object {
     const val NAME = NativeScreenOcrSpec.NAME

@@ -151,6 +151,10 @@ dependencies {
     // also reads Latin script, which the mixed mode relies on.
     implementation("com.google.mlkit:text-recognition:16.0.1")
     implementation("com.google.mlkit:text-recognition-devanagari:16.0.1")
+    // Gujarati OCR — ML Kit has no Gujarati model. Tesseract 5 with the
+    // tessdata_fast guj+eng models bundled in assets/tessdata (Apache-2.0).
+    // 4.8.0+ ships 16 KB-aligned native libraries.
+    implementation("cz.adaptech.tesseract4android:tesseract4android:4.9.0")
 
     // JVM unit tests for the pure OCR text assembly (src/test).
     testImplementation("junit:junit:4.13.2")

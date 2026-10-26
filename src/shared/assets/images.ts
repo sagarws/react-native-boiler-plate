@@ -18,6 +18,8 @@ export const images = {
   icon_eye_off: require('./images/Icon_eye_off.png'),
   icon_up_arrow: require('./images/Icon_up_arrow.png'),
   icon_app_logo: require('./images/Icon_app_logo.png'),
+  /** Brand emblem, generated from public/images/logo.png. */
+  app_logo: require('./images/app_logo.png'),
   icon_down_arrow: require('./images/Icon_down_arrow.png'),
   icon_close_modal: require('./images/Icon_close_modal.png'),
   icon_common_logo: require('./images/Icon_common_logo.png'),

@@ -1,5 +1,11 @@
 import React, { type PropsWithChildren } from 'react';
-import { View, ScrollView, StyleSheet, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { useSafeAreaInsets, type Edge } from 'react-native-safe-area-context';
 import { useTheme } from '@/theme';
 
@@ -50,8 +56,13 @@ export function ScreenContainer({
   if (scroll) {
     return (
       <ScrollView
-        style={[styles.flex, { backgroundColor: colors.background }, safeAreaPadding]}
-        contentContainerStyle={[screenPadding, style]}>
+        style={[
+          styles.flex,
+          { backgroundColor: colors.background },
+          safeAreaPadding,
+        ]}
+        contentContainerStyle={[screenPadding, style]}
+      >
         {children}
       </ScrollView>
     );
@@ -65,7 +76,8 @@ export function ScreenContainer({
         screenPadding,
         safeAreaPadding,
         style,
-      ]}>
+      ]}
+    >
       {children}
     </View>
   );

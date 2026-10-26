@@ -18,15 +18,8 @@ export interface Spec extends TurboModule {
    */
   startOverlay(): Promise<boolean>;
   stopOverlay(): void;
-  updateConfig(config: {
-    ocrMode: string;
-    autoCopy: boolean;
-    saveHistory: boolean;
-    bubbleSizeDp: number;
-    bubbleOpacity: number;
-    bubbleColor: string;
-    bubbleIconColor: string;
-  }): void;
+  /** Full settings + theme colours as JSON (see captureSync / pushConfig). */
+  updateConfig(configJson: string): void;
   resetBubblePosition(): void;
   copyToClipboard(text: string): Promise<boolean>;
   /** JSON of the latest capture this process made, or '' if none. */
@@ -35,6 +28,29 @@ export interface Spec extends TurboModule {
   consumePendingResults(): Promise<string>;
   /** Forgets the latest capture and any queued ones. */
   clearCapturedData(): void;
+
+  /** JSON: TTS engines, active engine, per-language status, voices. */
+  getSpeechInfo(): Promise<string>;
+  openTtsSettings(): void;
+  /** Opens the active engine's voice-data installer. */
+  installVoiceData(): void;
+  /**
+   * Speaks [text] once with the given voice settings. Resolves 'ok',
+   * 'voice_missing', 'speech_failed' or 'not_ready'.
+   */
+  testVoice(
+    text: string,
+    language: string,
+    voiceName: string,
+    rate: number,
+    pitch: number,
+  ): Promise<string>;
+  /** Reads text aloud with the saved speech settings; resolves when finished. */
+  speakText(text: string): Promise<string>;
+  stopSpeech(): void;
+  /** The auto-scroll accessibility service is enabled in system settings. */
+  isScrollServiceEnabled(): Promise<boolean>;
+  openAccessibilitySettings(): void;
 }
 
 export default TurboModuleRegistry.get<Spec>('ScreenOcr');

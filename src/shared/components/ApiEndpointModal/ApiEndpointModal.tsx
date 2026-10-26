@@ -67,14 +67,17 @@ export function ApiEndpointModal({ visible, onClose }: ApiEndpointModalProps) {
       transparent
       animationType="fade"
       statusBarTranslucent
-      onRequestClose={onClose}>
+      onRequestClose={onClose}
+    >
       <Pressable
         style={[styles.backdrop, { backgroundColor: colors.scrim }]}
         onPress={onClose}
-        accessibilityLabel={t('common.cancel') ?? 'Cancel'}>
+        accessibilityLabel={t('common.cancel') ?? 'Cancel'}
+      >
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={styles.center}>
+          style={styles.center}
+        >
           <Pressable
             onPress={() => {}}
             style={[
@@ -87,10 +90,12 @@ export function ApiEndpointModal({ visible, onClose }: ApiEndpointModalProps) {
                 padding: spacing.lg,
                 marginHorizontal: spacing.lg,
               },
-            ]}>
+            ]}
+          >
             <ScrollView
               keyboardShouldPersistTaps="handled"
-              showsVerticalScrollIndicator={false}>
+              showsVerticalScrollIndicator={false}
+            >
               <Text style={[typography.h2, { color: colors.text }]}>
                 {t('devSettings.title')}
               </Text>
@@ -98,7 +103,8 @@ export function ApiEndpointModal({ visible, onClose }: ApiEndpointModalProps) {
                 style={[
                   typography.body,
                   { color: colors.mutedForeground, marginTop: spacing.xs },
-                ]}>
+                ]}
+              >
                 {t('devSettings.body')}
               </Text>
 
@@ -110,7 +116,8 @@ export function ApiEndpointModal({ visible, onClose }: ApiEndpointModalProps) {
                     marginTop: spacing.lg,
                     marginBottom: spacing.xs,
                   },
-                ]}>
+                ]}
+              >
                 {t('devSettings.label')}
               </Text>
               <TextInput
@@ -142,7 +149,8 @@ export function ApiEndpointModal({ visible, onClose }: ApiEndpointModalProps) {
                   style={[
                     typography.caption,
                     { color: colors.danger, marginTop: spacing.xs },
-                  ]}>
+                  ]}
+                >
                   {apiError}
                 </Text>
               ) : null}
@@ -150,7 +158,8 @@ export function ApiEndpointModal({ visible, onClose }: ApiEndpointModalProps) {
                 style={[
                   typography.caption,
                   { color: colors.mutedForeground, marginTop: spacing.xs },
-                ]}>
+                ]}
+              >
                 {t('devSettings.defaultPrefix')} {defaultApiUrl}
               </Text>
 
@@ -168,8 +177,11 @@ export function ApiEndpointModal({ visible, onClose }: ApiEndpointModalProps) {
                     marginTop: spacing.md,
                     alignSelf: 'center',
                     paddingVertical: spacing.xs,
-                  }}>
-                  <Text style={[typography.body, { color: colors.mutedForeground }]}>
+                  }}
+                >
+                  <Text
+                    style={[typography.body, { color: colors.mutedForeground }]}
+                  >
                     {t('common.cancel')}
                   </Text>
                 </Pressable>

@@ -74,7 +74,9 @@ export async function uploadFiles(
   if (!response.ok) {
     const body = parsed as { code?: string; message?: string } | undefined;
     const err = new ApiError(
-      `POST /api/upload · ${response.status} · ${body?.code ?? ''} · ${body?.message ?? ''}`,
+      `POST /api/upload · ${response.status} · ${body?.code ?? ''} · ${
+        body?.message ?? ''
+      }`,
       { status: response.status, url, body: parsed },
     );
     logger.error(err);

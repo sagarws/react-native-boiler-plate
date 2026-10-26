@@ -12,7 +12,10 @@ export type { ToggleSwitchProps } from './ToggleSwitch';
 export { TextField } from './TextField';
 export type { TextFieldProps } from './TextField';
 export { LanguageDropdown } from './LanguageDropdown';
-export type { LanguageDropdownProps, LanguageDropdownTone } from './LanguageDropdown';
+export type {
+  LanguageDropdownProps,
+  LanguageDropdownTone,
+} from './LanguageDropdown';
 export { BrandLogo } from './BrandLogo';
 export type { BrandLogoProps, BrandLogoVariant } from './BrandLogo';
 export { SettingsIconButton } from './SettingsIconButton';
@@ -43,10 +46,15 @@ export type { CardProps } from './Card';
 export { ListRow } from './ListRow';
 export type { ListRowProps } from './ListRow';
 export { SegmentedControl } from './SegmentedControl';
-export type { SegmentedControlProps, SegmentedOption } from './SegmentedControl';
+export type {
+  SegmentedControlProps,
+  SegmentedOption,
+} from './SegmentedControl';
 export { StatusPill } from './StatusPill';
 export type { StatusPillProps, StatusTone } from './StatusPill';
 export { Notice } from './Notice';
 export type { NoticeProps, NoticeTone } from './Notice';
 export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
+export { ChoiceList } from './ChoiceList';
+export type { ChoiceListProps, Choice } from './ChoiceList';

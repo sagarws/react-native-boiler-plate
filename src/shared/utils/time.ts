@@ -33,5 +33,7 @@ export function formatTimestamp(epochMs: number): string {
 export function formatClock(totalSeconds: number): string {
   const safe = Math.max(0, Math.floor(totalSeconds));
   const pad = (n: number) => String(n).padStart(2, '0');
-  return `${pad(Math.floor(safe / 3600))}:${pad(Math.floor((safe % 3600) / 60))}:${pad(safe % 60)}`;
+  return `${pad(Math.floor(safe / 3600))}:${pad(
+    Math.floor((safe % 3600) / 60),
+  )}:${pad(safe % 60)}`;
 }

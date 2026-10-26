@@ -19,3 +19,33 @@ export type {
 } from './capture.types';
 export { OCR_MODES } from './capture.types';
 export { OverlayNoticeBanner } from './components/OverlayNoticeBanner';
+export { useSpeechInfo } from './hooks/useSpeechInfo';
+export type { UseSpeechInfo } from './hooks/useSpeechInfo';
+export {
+  speechService,
+  engineLabel,
+  unspeakableScripts,
+  VOICE_SAMPLES,
+  GOOGLE_TTS,
+} from './services/speech.service';
+export {
+  SPEECH_RATE,
+  SPEECH_PITCH,
+  MAX_SECTIONS,
+  MAX_NO_NEW_TEXT,
+} from './store/captureSettings.store';
+export type {
+  FloatingAction,
+  SpeechLanguage,
+  SpeechSettings,
+  ReadingSettings,
+  SpeechInfo,
+  SpeechOutcome,
+  VoiceInfo,
+} from './capture.types';
+export {
+  FLOATING_ACTIONS,
+  SPEECH_LANGUAGES,
+  OCR_MODE_SCRIPTS,
+} from './capture.types';
+export { FloatingActionPicker } from './components/FloatingActionPicker';

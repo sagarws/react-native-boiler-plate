@@ -10,12 +10,18 @@ import { SettingsSection } from '../components/SettingsSection';
 
 const PERMISSIONS: readonly {
   icon: IconName;
-  key: 'permOverlay' | 'permCapture' | 'permService' | 'permNotifications';
+  key:
+    | 'permOverlay'
+    | 'permCapture'
+    | 'permService'
+    | 'permNotifications'
+    | 'permAccessibility';
 }[] = [
   { icon: 'layers', key: 'permOverlay' },
   { icon: 'monitor', key: 'permCapture' },
   { icon: 'shieldCheck', key: 'permService' },
   { icon: 'bell', key: 'permNotifications' },
+  { icon: 'accessibility', key: 'permAccessibility' },
 ];
 
 const TIPS = [
@@ -24,6 +30,7 @@ const TIPS = [
   'tipAccuracy',
   'tipSingleApp',
   'tipBattery',
+  'tipVoice',
 ] as const;
 
 /** Privacy statement, every permission with its reason, and troubleshooting. */
@@ -60,6 +67,12 @@ export default function AboutScreen() {
         <SettingsSection title={t('about.privacyTitle')} padded>
           <Text style={[typography.body, { color: colors.textPrimary }]}>
             {t('about.privacyBody')}
+          </Text>
+        </SettingsSection>
+
+        <SettingsSection title={t('about.ttsTitle')} padded>
+          <Text style={[typography.body, { color: colors.textPrimary }]}>
+            {t('about.ttsBody')}
           </Text>
         </SettingsSection>
 

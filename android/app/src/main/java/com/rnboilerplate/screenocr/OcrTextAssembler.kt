@@ -11,6 +11,8 @@ data class OcrLine(
   val right: Int,
   val bottom: Int,
   val block: Int,
+  /** Recogniser confidence, 0..1 (1 when the engine reports none). */
+  val confidence: Float = 1f,
 ) {
   val width: Int get() = max(0, right - left)
   val height: Int get() = max(0, bottom - top)
@@ -18,32 +20,47 @@ data class OcrLine(
 }
 
 /**
- * Pure text assembly: merges the two ML Kit recognisers' output for the mixed
- * mode and turns recognised lines into copyable text in reading order.
+ * Pure text assembly: merges several recognisers' output for the multi-script
+ * modes and turns recognised lines into copyable text in reading order.
  *
  * Kept free of Android types so it runs under plain JVM unit tests.
  */
 object OcrTextAssembler {
-  private val DEVANAGARI = Regex("[\\u0900-\\u097F\\uA8E0-\\uA8FF]")
+  val DEVANAGARI = Regex("[\\u0900-\\u097F\\uA8E0-\\uA8FF]")
+  val GUJARATI = Regex("[\\u0A80-\\u0AFF]")
+  val DEVANAGARI_OR_GUJARATI = Regex("[\\u0900-\\u097F\\uA8E0-\\uA8FF\\u0A80-\\u0AFF]")
 
-  /**
-   * Indic scripts other than Devanagari (Bengali … Sinhala). The Devanagari
-   * model sometimes emits these for icons and glyph-like UI (seen on device:
-   * "১l61" for a status-bar battery). They are never right in a Hindi/English
-   * screen, so such a line is a misread.
-   */
-  private val OTHER_INDIC = Regex("[\u0980-\u0DFF]")
+  /** Any Indic block after Devanagari (Bengali … Sinhala). */
+  private val INDIC_AFTER_DEVANAGARI = Regex("[\\u0980-\\u0DFF]")
 
-  /** A Latin line replaces a Devanagari-model line only on a near-exact box match… */
+  /** A Latin line replaces a base line only on a near-exact box match… */
   private const val REPLACE_IOU = 0.8f
 
-  /** …or a looser one when the Devanagari line is a misread in another script. */
+  /** …or a looser one when the base line is a misread in an unrelated script. */
   private const val REPLACE_IOU_MISREAD = 0.5f
 
-  /** A Latin line overlapping a Devanagari line by this much is the same text. */
+  /** A Latin line overlapping a base line by this much is the same text. */
   private const val DUPLICATE_OVERLAP = 0.3f
 
+  private const val SAME_LINE_OVERLAP = 0.5f
+  private const val SCRIPT_BONUS = 0.25f
+  private const val FOREIGN_PENALTY = 0.5f
+
   fun containsDevanagari(text: String): Boolean = DEVANAGARI.containsMatchIn(text)
+
+  fun containsGujarati(text: String): Boolean = GUJARATI.containsMatchIn(text)
+
+  /**
+   * True when [text] has Indic characters from a script the mode does not
+   * read. The Devanagari model sometimes emits these for icons and glyph-like
+   * UI (seen on device: "১l61" for a status-bar battery); they are never
+   * right, so such a line is a misread.
+   */
+  fun hasForeignIndic(text: String, expected: Regex): Boolean =
+    text.any { ch ->
+      val s = ch.toString()
+      INDIC_AFTER_DEVANAGARI.matches(s) && !expected.matches(s)
+    }
 
   fun intersectionArea(a: OcrLine, b: OcrLine): Long {
     val w = min(a.right, b.right) - max(a.left, b.left)
@@ -64,23 +81,28 @@ object OcrTextAssembler {
   }
 
   /**
-   * Mixed Hindi + English.
+   * An Indic script + English (Hindi + English, Gujarati + English, …).
    *
-   * The Devanagari recogniser also reads Latin script, so its output is the
-   * base: a line with any Devanagari in it (including mixed lines such as
+   * The Indic recogniser also reads Latin script (ML Kit Devanagari natively,
+   * Tesseract through its `+eng` model), so its output is the base: a line
+   * with any [script] character in it (including mixed lines such as
    * "आपका Order Shipped हो गया") is kept as is. A line that came out purely
    * Latin is swapped for the Latin recogniser's reading of the same box,
-   * which is the stronger model for English. Latin lines the Devanagari pass
-   * missed entirely are appended in their own blocks.
+   * which is the stronger model for English. Latin lines the base pass missed
+   * entirely are appended in their own blocks.
    */
-  fun mergeMixed(devanagari: List<OcrLine>, latin: List<OcrLine>): List<OcrLine> {
-    val merged = ArrayList<OcrLine>(devanagari.size + latin.size)
-    for (line in devanagari) {
-      if (containsDevanagari(line.text)) {
+  fun mergeMixed(
+    base: List<OcrLine>,
+    latin: List<OcrLine>,
+    script: Regex = DEVANAGARI,
+  ): List<OcrLine> {
+    val merged = ArrayList<OcrLine>(base.size + latin.size)
+    for (line in base) {
+      if (script.containsMatchIn(line.text)) {
         merged += line
         continue
       }
-      val threshold = if (OTHER_INDIC.containsMatchIn(line.text)) REPLACE_IOU_MISREAD else REPLACE_IOU
+      val threshold = if (hasForeignIndic(line.text, script)) REPLACE_IOU_MISREAD else REPLACE_IOU
       val match = latin.maxByOrNull { iou(line, it) }
       merged += if (match != null && iou(line, match) >= threshold) {
         line.copy(text = match.text)
@@ -88,10 +110,57 @@ object OcrTextAssembler {
         line
       }
     }
-    val blockOffset = (devanagari.maxOfOrNull { it.block } ?: -1) + 1
+    val blockOffset = (base.maxOfOrNull { it.block } ?: -1) + 1
     for (line in latin) {
-      val covered = devanagari.any { overlapOfSmaller(it, line) >= DUPLICATE_OVERLAP }
+      val covered = base.any { overlapOfSmaller(it, line) >= DUPLICATE_OVERLAP }
       if (!covered) merged += line.copy(block = line.block + blockOffset)
+    }
+    return merged
+  }
+
+  /**
+   * Two Indic recognisers over the same screen (Hindi + Gujarati).
+   *
+   * Each model tends to force the other script into its own (Gujarati read as
+   * Devanagari and vice versa), so neither output can be trusted wholesale.
+   * Lines are matched by box; for each match the reading with the higher
+   * score wins, where score = engine confidence, plus a bonus when the line is
+   * in the engine's own script, minus a penalty for characters from an
+   * unrelated script. Unmatched lines from either side are kept. ML Kit and
+   * Tesseract confidences are not calibrated against each other, so this is a
+   * heuristic, not a guarantee.
+   */
+  fun mergeByConfidence(
+    a: List<OcrLine>,
+    aScript: Regex,
+    b: List<OcrLine>,
+    bScript: Regex,
+  ): List<OcrLine> {
+    fun score(line: OcrLine, own: Regex): Float {
+      var s = line.confidence
+      if (own.containsMatchIn(line.text)) s += SCRIPT_BONUS
+      if (hasForeignIndic(line.text, DEVANAGARI_OR_GUJARATI)) s -= FOREIGN_PENALTY
+      return s
+    }
+    val usedB = BooleanArray(b.size)
+    val blockOffset = (a.maxOfOrNull { it.block } ?: -1) + 1
+    val merged = ArrayList<OcrLine>(a.size + b.size)
+    for (line in a) {
+      val matches = b.indices.filter { overlapOfSmaller(line, b[it]) >= SAME_LINE_OVERLAP }
+      if (matches.isEmpty()) {
+        merged += line
+        continue
+      }
+      val bScore = matches.map { score(b[it], bScript) }.average().toFloat()
+      if (bScore > score(line, aScript)) {
+        matches.filter { !usedB[it] }.forEach { merged += b[it].copy(block = b[it].block + blockOffset) }
+      } else {
+        merged += line
+      }
+      matches.forEach { usedB[it] = true }
+    }
+    b.forEachIndexed { i, line ->
+      if (!usedB[i]) merged += line.copy(block = line.block + blockOffset)
     }
     return merged
   }

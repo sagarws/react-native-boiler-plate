@@ -63,7 +63,8 @@ export function MobileNumberInput({
             inputStyle,
             styles.countryButton,
             { opacity: pressed ? 0.85 : 1 },
-          ]}>
+          ]}
+        >
           <Text style={[typography.body, { color: colors.text }]}>
             {selected ? selected.flag : '🌐'}{' '}
             <Text style={{ color: colors.mutedForeground }}>{countryCode}</Text>
@@ -71,7 +72,9 @@ export function MobileNumberInput({
         </Pressable>
         <TextInput
           value={phone}
-          onChangeText={(v) => onPhoneChange(v.replace(/\D/g, '').slice(0, MOBILE_MAX))}
+          onChangeText={v =>
+            onPhoneChange(v.replace(/\D/g, '').slice(0, MOBILE_MAX))
+          }
           keyboardType="phone-pad"
           autoCorrect={false}
           maxLength={MOBILE_MAX}
@@ -86,7 +89,8 @@ export function MobileNumberInput({
           style={[
             typography.caption,
             { color: colors.destructive, marginTop: spacing.xs },
-          ]}>
+          ]}
+        >
           {errorMessage}
         </Text>
       ) : null}
@@ -95,12 +99,11 @@ export function MobileNumberInput({
         visible={pickerOpen}
         transparent
         animationType="fade"
-        onRequestClose={() => setPickerOpen(false)}>
-        <Pressable
-          onPress={() => setPickerOpen(false)}
-          style={styles.backdrop}>
+        onRequestClose={() => setPickerOpen(false)}
+      >
+        <Pressable onPress={() => setPickerOpen(false)} style={styles.backdrop}>
           <Pressable
-            onPress={(e) => e.stopPropagation()}
+            onPress={e => e.stopPropagation()}
             style={{
               backgroundColor: colors.surface,
               borderTopLeftRadius: radius.xl,
@@ -109,12 +112,18 @@ export function MobileNumberInput({
               paddingTop: spacing.lg,
               paddingBottom: spacing.xl,
               maxHeight: '70%',
-            }}>
-            <Text style={[typography.h2, { color: colors.text, marginBottom: spacing.md }]}>
+            }}
+          >
+            <Text
+              style={[
+                typography.h2,
+                { color: colors.text, marginBottom: spacing.md },
+              ]}
+            >
               {t('profile.countryCode')}
             </Text>
             <ScrollView>
-              {COUNTRIES.map((c) => {
+              {COUNTRIES.map(c => {
                 const isSelected = countryCode === c.dial;
                 return (
                   <Pressable
@@ -131,9 +140,12 @@ export function MobileNumberInput({
                       paddingVertical: spacing.md,
                       paddingHorizontal: spacing.sm,
                       borderRadius: radius.md,
-                      backgroundColor: isSelected ? colors.accent : 'transparent',
+                      backgroundColor: isSelected
+                        ? colors.accent
+                        : 'transparent',
                       marginBottom: spacing.xs,
-                    }}>
+                    }}
+                  >
                     <Text style={{ fontSize: 22 }}>{c.flag}</Text>
                     <Text
                       style={[
@@ -144,7 +156,8 @@ export function MobileNumberInput({
                           color: isSelected ? colors.primary : colors.text,
                           fontWeight: isSelected ? '700' : '500',
                         },
-                      ]}>
+                      ]}
+                    >
                       {c.name}
                     </Text>
                     <Text
@@ -154,14 +167,19 @@ export function MobileNumberInput({
                           color: colors.mutedForeground,
                           fontVariant: ['tabular-nums'],
                         },
-                      ]}>
+                      ]}
+                    >
                       {c.dial}
                     </Text>
                   </Pressable>
                 );
               })}
             </ScrollView>
-            <Button label={t('common.close')} variant="secondary" onPress={() => setPickerOpen(false)} />
+            <Button
+              label={t('common.close')}
+              variant="secondary"
+              onPress={() => setPickerOpen(false)}
+            />
           </Pressable>
         </Pressable>
       </Modal>

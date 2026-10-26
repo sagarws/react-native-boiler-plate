@@ -32,9 +32,11 @@ import {
   useExtractedText,
   type ExtractedSource,
 } from '../hooks/useExtractedText';
-import type { TextSelection } from '../utils/text';
+import { useCaptureSettings } from '../hooks/useCaptureSettings';
+import { speechService } from '../services/speech.service';
+import { selectedOrAll, type TextSelection } from '../utils/text';
 
-type Feedback = 'copied' | 'copyFailed' | 'saved' | null;
+type Feedback = 'copied' | 'copyFailed' | 'saved' | 'speechFailed' | null;
 
 type Params = Pick<MainStackParamList, 'ExtractedText'>;
 
@@ -68,6 +70,33 @@ export default function ExtractedTextScreen() {
   }, [feedback]);
 
   const hasSelection = selection != null && selection.end > selection.start;
+
+  const { settings } = useCaptureSettings();
+  const [speaking, setSpeaking] = useState(false);
+  const stopOnLeave = useRef(settings.speech.stopOnLeave);
+  stopOnLeave.current = settings.speech.stopOnLeave;
+
+  // Leaving the screen ends in-app reading, when the user asked for that.
+  useEffect(
+    () => () => {
+      if (stopOnLeave.current) speechService.stop();
+    },
+    [],
+  );
+
+  const onSpeak = useCallback(async () => {
+    if (speaking) {
+      speechService.stop();
+      setSpeaking(false);
+      return;
+    }
+    setSpeaking(true);
+    const outcome = await speechService.speak(
+      selectedOrAll(text, hasSelection ? selection : null),
+    );
+    setSpeaking(false);
+    if (outcome !== 'ok') setFeedback('speechFailed');
+  }, [hasSelection, selection, speaking, text]);
 
   const onCopy = useCallback(async () => {
     const ok = await extraction.copy(hasSelection ? selection : null);
@@ -175,7 +204,11 @@ export default function ExtractedTextScreen() {
             <ResultMeta result={result} text={text} />
             {feedback ? (
               <Notice
-                tone={feedback === 'copyFailed' ? 'error' : 'success'}
+                tone={
+                  feedback === 'copyFailed' || feedback === 'speechFailed'
+                    ? 'error'
+                    : 'success'
+                }
                 message={t(`extracted.${feedback}`)}
                 testID="extracted-feedback"
               />
@@ -265,6 +298,18 @@ export default function ExtractedTextScreen() {
                 onPress={onToggleEdit}
                 active={editing}
                 testID="extracted-edit"
+              />
+              <ToolButton
+                icon={speaking ? 'square' : 'volume2'}
+                label={
+                  speaking ? t('extracted.stopSpeaking') : t('extracted.speak')
+                }
+                onPress={() => {
+                  void onSpeak();
+                }}
+                active={speaking}
+                disabled={isEmpty && !speaking}
+                testID="extracted-speak"
               />
               <ToolButton
                 icon="share2"

@@ -1,5 +1,8 @@
 import { Platform } from 'react-native';
-import { checkNotifications, requestNotifications } from 'react-native-permissions';
+import {
+  checkNotifications,
+  requestNotifications,
+} from 'react-native-permissions';
 import { logger } from './logger';
 
 /**
