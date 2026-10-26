@@ -1,16 +1,19 @@
 import { StyleSheet } from 'react-native';
-import { hp, wp } from '@/theme';
 
+// Heights keep every size at or above the 48dp touch target, except `sm`,
+// which pads its hit area with `hitSlop` in Button.tsx.
 export const buttonStyles = StyleSheet.create({
   base: {
     alignSelf: 'stretch',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: hp(32),
-    borderRadius: wp(8),
-    borderWidth: wp(2),
-    paddingHorizontal: wp(4),
+    borderWidth: 1.5,
+    paddingHorizontal: 16,
+    gap: 8,
   },
-  icon: { height: hp(16), width: hp(16), marginRight: wp(3) },
+  lg: { minHeight: 56 },
+  md: { minHeight: 48 },
+  sm: { minHeight: 40, paddingHorizontal: 12 },
+  icon: { height: 18, width: 18 },
 });

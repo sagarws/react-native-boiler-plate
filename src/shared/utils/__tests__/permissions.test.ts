@@ -1,5 +1,8 @@
 import { Platform } from 'react-native';
-import { checkNotifications, requestNotifications } from 'react-native-permissions';
+import {
+  checkNotifications,
+  requestNotifications,
+} from 'react-native-permissions';
 import {
   requestStartupPermissions,
   resetStartupPermissionsForTest,
@@ -15,11 +18,17 @@ describe('requestStartupPermissions', () => {
     resetStartupPermissionsForTest();
     mockCheck.mockReset().mockResolvedValue({ status: 'denied' });
     mockRequest.mockReset().mockResolvedValue({ status: 'granted' });
-    Object.defineProperty(Platform, 'Version', { value: 34, configurable: true });
+    Object.defineProperty(Platform, 'Version', {
+      value: 34,
+      configurable: true,
+    });
   });
 
   afterAll(() => {
-    Object.defineProperty(Platform, 'Version', { value: originalVersion, configurable: true });
+    Object.defineProperty(Platform, 'Version', {
+      value: originalVersion,
+      configurable: true,
+    });
   });
 
   it('asks for notifications on Android 13+ when not yet granted', async () => {
@@ -34,14 +43,19 @@ describe('requestStartupPermissions', () => {
   });
 
   it('skips the prompt below Android 13', async () => {
-    Object.defineProperty(Platform, 'Version', { value: 32, configurable: true });
+    Object.defineProperty(Platform, 'Version', {
+      value: 32,
+      configurable: true,
+    });
     await requestStartupPermissions();
     expect(mockCheck).not.toHaveBeenCalled();
   });
 
   it('never throws when the native call fails', async () => {
     mockCheck.mockRejectedValue(new Error('boom'));
-    const warn = jest.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const warn = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
     await expect(requestStartupPermissions()).resolves.toBeUndefined();
     warn.mockRestore();
   });

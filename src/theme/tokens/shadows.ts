@@ -2,7 +2,11 @@ import { Platform, type ViewStyle } from 'react-native';
 
 type ShadowSpec = Pick<
   ViewStyle,
-  'shadowColor' | 'shadowOffset' | 'shadowOpacity' | 'shadowRadius' | 'elevation'
+  | 'shadowColor'
+  | 'shadowOffset'
+  | 'shadowOpacity'
+  | 'shadowRadius'
+  | 'elevation'
 >;
 
 const ios = (

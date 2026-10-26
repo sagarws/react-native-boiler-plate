@@ -2,9 +2,11 @@
 
 > **Orientation.** Read this header, then `AI_RULES.md` (imported below). Both are binding.
 
-**What it is:** a React Native starter extracted from a production app. It ships an app
-shell — login → persisted session → drawer + stack, settings, typed API client, realtime
-socket, theming and i18n — with no domain features. New features go under `src/features/`.
+**What it is:** Akshar, an Android floating-screen OCR app (English / Hindi / mixed) built
+on a React Native boilerplate. Native capture + ML Kit OCR live in
+`android/app/src/main/java/com/rnboilerplate/screenocr/`; see `docs/SCREEN_OCR.md`. The
+boilerplate's login/session/API layers remain but are off (`FEATURES.auth = false`).
+Offline by design: no backend, no network calls, release builds strip `INTERNET`.
 
 |  |  |
 |---|---|
@@ -33,11 +35,13 @@ src/config/           env.ts (validated .env) · apiEndpoint.ts (runtime overrid
 src/services/api/     client.ts · errors.ts · upload.ts
 src/services/realtime/
 src/store/mmkv.ts     every storage key, in one place
+src/specs/            TurboModule codegen spec — only features/capture/services may import it
 src/features/
-  auth/               login screen, useLogin, validation
-  session/            session store, useSession, login/signOut API
-  dashboard/          signed-in landing — placeholder
-  settings/           theme, language, sign out
+  capture/            screen-OCR service wrapper, settings/history stores, review screen
+  onboarding/         one-time setup
+  dashboard/          home
+  settings/           settings, appearance, about
+  auth/  session/     boilerplate login (disabled)
 src/navigation/  src/i18n/  src/theme/  src/types/
 src/shared/           assets/ components/ hooks/ utils/ — cross-feature only
 ```
@@ -56,6 +60,9 @@ src/shared/           assets/ components/ hooks/ utils/ — cross-feature only
 - **Do not lower `targetSdk` below 36 or the NDK below r28** — Play Store floor and 16KB
   page-size compliance.
 - **Do not commit secrets** — `.env`, keystores and signing passwords stay out of git.
+- **Do not add network access or log extracted text.** Screenshots and OCR text never
+  leave the device or reach logs/notifications.
+- **Do not bypass Android capture consent** or secure-screen (`FLAG_SECURE`) protection.
 
 ## Definition of done
 

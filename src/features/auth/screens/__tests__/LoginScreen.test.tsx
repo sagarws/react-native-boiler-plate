@@ -39,7 +39,8 @@ async function press(
   label: string,
 ): Promise<void> {
   const target = renderer.root.findAll(
-    node => node.props.accessibilityLabel === label && Boolean(node.props.onPress),
+    node =>
+      node.props.accessibilityLabel === label && Boolean(node.props.onPress),
   )[0];
   if (!target) throw new Error(`no pressable labelled "${label}"`);
   await ReactTestRenderer.act(() => {
@@ -54,7 +55,9 @@ describe('LoginScreen', () => {
 
   it('renders the sign-in form', async () => {
     const renderer = await render();
-    expect(renderer.root.findAllByProps({ testID: 'login-submit' }).length).toBeGreaterThan(0);
+    expect(
+      renderer.root.findAllByProps({ testID: 'login-submit' }).length,
+    ).toBeGreaterThan(0);
   });
 
   it('shows the gear only when the developer sheet is enabled', async () => {
@@ -72,7 +75,8 @@ describe('LoginScreen', () => {
    */
   it('uses the built-in endpoint when the sheet is hidden', () => {
     setApiBaseUrlOverride('https://stale.test');
-    if (FEATURES.loginDevSettings) expect(getApiBaseUrl()).toBe('https://stale.test');
+    if (FEATURES.loginDevSettings)
+      expect(getApiBaseUrl()).toBe('https://stale.test');
     else expect(getApiBaseUrl()).toBe(getDefaultApiBaseUrl());
   });
 });

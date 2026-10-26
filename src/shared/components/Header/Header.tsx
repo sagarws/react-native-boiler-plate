@@ -1,21 +1,23 @@
-import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { type ReactNode } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { images } from '@/shared/assets';
-import { hp, useTheme, wp } from '@/theme';
+import { useTheme } from '@/theme';
+import { Icon } from '../Icon';
 
 export interface HeaderProps {
   label: string;
   /** Overrides the default `goBack()` — used where a screen must tear down
-   *  work in progress (a running recording) before it may leave. */
+   *  work in progress before it may leave. */
   onBackPress?: () => void;
+  /** Actions on the right edge. */
+  right?: ReactNode;
 }
 
-/** Screen header: back arrow, title, and the brand rule beneath it. */
-export function Header({ label, onBackPress }: HeaderProps) {
+/** Screen header: back button, title, optional actions. */
+export function Header({ label, onBackPress, right }: HeaderProps) {
   const { t } = useTranslation();
-  const { colors, typography } = useTheme();
+  const { colors, typography, spacing } = useTheme();
   const navigation = useNavigation();
 
   const handleBack = () => {
@@ -27,24 +29,32 @@ export function Header({ label, onBackPress }: HeaderProps) {
   };
 
   return (
-    <>
-      <View style={styles.row}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('common.back')}
-          hitSlop={8}
-          onPress={handleBack}>
-          <Image
-            source={images.icon_back}
-            style={styles.backIcon}
-            resizeMode="contain"
-            accessibilityIgnoresInvertColors
-          />
-        </Pressable>
-        <Text style={[typography.h1, styles.label, { color: colors.primary }]}>{label}</Text>
-      </View>
-      <View style={[styles.rule, { backgroundColor: colors.primary }]} />
-    </>
+    <View
+      style={[
+        styles.row,
+        { paddingHorizontal: spacing.sm, borderBottomColor: colors.divider },
+      ]}
+    >
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={t('common.back')}
+        onPress={handleBack}
+        style={({ pressed }) => [
+          styles.back,
+          pressed && { backgroundColor: colors.surfaceMuted },
+        ]}
+      >
+        <Icon name="arrowLeft" size={22} color={colors.textPrimary} />
+      </Pressable>
+      <Text
+        accessibilityRole="header"
+        numberOfLines={1}
+        style={[typography.h2, styles.label, { color: colors.textPrimary }]}
+      >
+        {label}
+      </Text>
+      {right ? <View style={styles.right}>{right}</View> : null}
+    </View>
   );
 }
 
@@ -52,10 +62,16 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingLeft: wp(12),
-    paddingVertical: hp(6.5),
+    minHeight: 56,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  backIcon: { height: hp(20), width: hp(20) },
-  label: { marginLeft: wp(12) },
-  rule: { height: hp(0.8) },
+  back: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  label: { flex: 1, marginLeft: 4 },
+  right: { flexDirection: 'row', alignItems: 'center' },
 });

@@ -1,145 +1,153 @@
 import React from 'react';
-import { Alert, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FEATURES } from '@/config';
 import { signOut, useSession } from '@/features/session';
-import { images } from '@/shared/assets';
-import { hp, isIos, useTheme, wp } from '@/theme';
+import type { IconName } from '@/shared/assets';
+import { BrandLogo, Icon } from '@/shared/components';
+import { useTheme } from '@/theme';
 import { useDrawer } from './DrawerContext';
 import { ROUTES } from '../routes';
 import type { MainStackParamList } from '../types';
 
+type DrawerTarget = 'Dashboard' | 'Settings' | 'Appearance' | 'About';
+
+const ITEMS: readonly {
+  screen: DrawerTarget;
+  icon: IconName;
+  label: 'home' | 'settings' | 'appearance' | 'about';
+}[] = [
+  { screen: ROUTES.DASHBOARD, icon: 'scanText', label: 'home' },
+  { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
+  { screen: ROUTES.APPEARANCE, icon: 'palette', label: 'appearance' },
+  { screen: ROUTES.ABOUT, icon: 'shieldCheck', label: 'about' },
+];
+
 /**
- * Side panel: who is signed in, the screens that sit outside the main flow,
- * and the way out. Add a nav row per screen you want reachable from here.
+ * Side panel: the brand, the main destinations and — only when the
+ * boilerplate's auth is switched on — the signed-in user and sign out.
  */
 export function CustomDrawer() {
   const { t } = useTranslation();
-  const { top } = useSafeAreaInsets();
-  const { colors, typography } = useTheme();
+  const { top, bottom } = useSafeAreaInsets();
+  const { colors, typography, spacing, radius } = useTheme();
   const navigation = useNavigation();
   const { closeDrawer } = useDrawer();
   const session = useSession();
 
   // The drawer wraps the main stack rather than living inside it, so this
-  // navigation object belongs to the ROOT navigator — which knows nothing of
-  // `Settings`. Targeting main-stack screens needs the nested form.
-  const go = (screen: keyof MainStackParamList) => () => {
+  // navigation object belongs to the ROOT navigator. Targeting main-stack
+  // screens needs the nested form.
+  const go = (screen: keyof MainStackParamList & DrawerTarget) => () => {
     closeDrawer();
     navigation.navigate(ROUTES.MAIN, { screen });
   };
 
   const onLogoutPress = () => {
-    Alert.alert(
-      t('settings.signOut'),
-      t('settings.signOutConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.signOut'),
-          style: 'destructive',
-          onPress: () => {
-            closeDrawer();
-            signOut();
-          },
+    Alert.alert(t('settings.signOut'), t('settings.signOutConfirm'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('settings.signOut'),
+        style: 'destructive',
+        onPress: () => {
+          closeDrawer();
+          signOut();
         },
-      ],
-      { cancelable: true },
-    );
+      },
+    ]);
   };
 
   return (
     <View
       style={[
         styles.container,
-        { backgroundColor: colors.primary, paddingTop: isIos ? top : hp(20) },
-      ]}>
-      <View style={[styles.logoRing, { backgroundColor: colors.surface }]}>
-        <Image
-          source={images.icon_app_logo}
-          style={styles.logo}
-          resizeMode="contain"
-          accessibilityIgnoresInvertColors
-        />
+        { backgroundColor: colors.surface, paddingBottom: bottom + spacing.lg },
+      ]}
+    >
+      <View
+        style={{
+          backgroundColor: colors.primary,
+          paddingTop: top + spacing.xl,
+          padding: spacing.lg,
+        }}
+      >
+        <BrandLogo size={44} variant="lockupLight" />
+        <Text
+          style={[
+            typography.caption,
+            {
+              color: colors.primaryForeground,
+              marginTop: spacing.sm,
+              opacity: 0.85,
+            },
+          ]}
+        >
+          {t('common.tagline')}
+        </Text>
+        {FEATURES.auth && session ? (
+          <Text
+            style={[
+              typography.body,
+              { color: colors.primaryForeground, marginTop: spacing.sm },
+            ]}
+            numberOfLines={1}
+          >
+            {session.user.name || t('drawer.notAvailable')}
+          </Text>
+        ) : null}
       </View>
-      <View style={styles.spacer} />
 
-      <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
-        <View style={[styles.field, { borderBottomColor: colors.surface2 }]}>
-          <Text style={[typography.label, { color: colors.primary }]} numberOfLines={2}>
-            {session?.user.name || t('drawer.notAvailable')}
-          </Text>
-          <Text style={[typography.body, { color: colors.grey }]} numberOfLines={2}>
-            {session?.user.email || t('drawer.notAvailable')}
-          </Text>
-        </View>
+      <View style={{ padding: spacing.sm, gap: spacing.xs }}>
+        {ITEMS.map(item => (
+          <Pressable
+            key={item.screen}
+            accessibilityRole="button"
+            accessibilityLabel={t(`drawer.${item.label}`)}
+            onPress={go(item.screen)}
+            style={({ pressed }) => [
+              styles.row,
+              {
+                borderRadius: radius.lg,
+                paddingHorizontal: spacing.md,
+                gap: spacing.md,
+              },
+              pressed && { backgroundColor: colors.primarySoft },
+            ]}
+          >
+            <Icon name={item.icon} size={20} color={colors.primaryText} />
+            <Text style={[typography.label, { color: colors.textPrimary }]}>
+              {t(`drawer.${item.label}`)}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
 
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t('drawer.settings')}
-          style={styles.navRow}
-          onPress={go(ROUTES.SETTINGS)}>
-          <Text style={[typography.label, styles.navLabel, { color: colors.text }]}>
-            {t('drawer.settings')}
-          </Text>
-        </Pressable>
-
+      {FEATURES.auth ? (
         <View style={styles.footer}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('settings.signOut')}
-            style={[styles.logoutRow, { borderTopColor: colors.primary }]}
-            onPress={onLogoutPress}>
-            <Image
-              source={images.icon_logout}
-              style={styles.logoutIcon}
-              resizeMode="contain"
-              accessibilityIgnoresInvertColors
-            />
-            <Text style={[typography.label, styles.logoutLabel, { color: colors.text }]}>
+            style={[
+              styles.row,
+              { paddingHorizontal: spacing.lg, gap: spacing.md },
+            ]}
+            onPress={onLogoutPress}
+          >
+            <Icon name="power" size={20} color={colors.error} />
+            <Text style={[typography.label, { color: colors.error }]}>
               {t('settings.signOut')}
             </Text>
           </Pressable>
         </View>
-      </View>
+      ) : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  logoRing: { padding: hp(10), borderRadius: hp(100), alignSelf: 'center' },
-  logo: { width: hp(60), height: hp(60), alignSelf: 'center' },
-  spacer: { height: hp(10) },
-  sheet: {
-    flex: 1,
-    borderTopLeftRadius: wp(14),
-    borderTopRightRadius: wp(14),
-    paddingTop: hp(10),
-  },
-  field: {
-    marginBottom: hp(14),
-    paddingVertical: hp(8),
-    borderBottomWidth: 1,
-    paddingLeft: wp(8),
-  },
-  navRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingLeft: wp(20),
-    paddingRight: wp(16),
-    paddingVertical: hp(10),
-  },
-  navLabel: { flex: 1 },
-  footer: { flex: 1, justifyContent: 'flex-end', paddingBottom: hp(isIos ? 30 : 15) },
-  logoutRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderTopWidth: wp(0.8),
-    paddingLeft: wp(20),
-    paddingTop: hp(8),
-  },
-  logoutIcon: { height: hp(20), width: hp(20) },
-  logoutLabel: { marginLeft: wp(20) },
+  row: { flexDirection: 'row', alignItems: 'center', minHeight: 52 },
+  footer: { flex: 1, justifyContent: 'flex-end' },
 });

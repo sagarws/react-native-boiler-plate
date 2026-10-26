@@ -1,10 +1,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!-- Debug builds only need this to reach Metro. Release builds strip it
+         (src/release/AndroidManifest.xml), so the shipped app cannot make
+         network requests at all — screenshots and text never leave the device. -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Android 13+ runtime permission for notifications. Requested at
-         startup by shared/utils/permissions; drop this and that request if the app never
-         posts one. -->
+    <!-- Android 13+: lets the capture service's ongoing notification show. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- "Display over other apps": draws the floating capture button. -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!-- Android requires a foreground service of type mediaProjection while
+         a screen-capture session is held. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
 
     <application
       android:name=".MainApplication"
@@ -26,6 +33,26 @@
             <action android:name="android.intent.action.MAIN" />
             <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
+        <!-- Long-pressing the floating button opens the latest capture.
+             Not BROWSABLE, so web pages cannot trigger it. -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:scheme="rnboilerplate" android:host="capture" />
+        </intent-filter>
       </activity>
+
+      <!-- Shows the system screen-capture consent dialog; no UI of its own. -->
+      <activity
+        android:name=".screenocr.CaptureConsentActivity"
+        android:exported="false"
+        android:excludeFromRecents="true"
+        android:noHistory="false"
+        android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+      <service
+        android:name=".screenocr.OverlayCaptureService"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection" />
     </application>
 </manifest>

@@ -6,16 +6,29 @@ export type AuthStackParamList = {
 };
 
 /**
- * Post-auth stack: a dashboard behind a side drawer, with further screens
+ * Which extraction the review screen opens: a saved one by id, or the latest
+ * capture of this session (also the target of the floating button's
+ * long-press deep link, rnboilerplate://capture/latest).
+ */
+export type ExtractedTextParams =
+  | { source: 'latest' }
+  | { source: 'history'; id: string };
+
+/**
+ * Main stack: the home dashboard behind a side drawer, with further screens
  * pushed on top of it.
  */
 export type MainStackParamList = {
   Dashboard: undefined;
+  ExtractedText: ExtractedTextParams;
   Settings: undefined;
+  Appearance: undefined;
+  About: undefined;
 };
 
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
+  Onboarding: undefined;
   Main: NavigatorScreenParams<MainStackParamList>;
 };
 

@@ -13,17 +13,34 @@ let startupRequested = false;
 
 /**
  * Notification access. Android 13+ only; earlier versions grant it at
- * install. Best-effort: a refusal is logged, never thrown.
+ * install. Best-effort: a refusal is logged, never thrown. Resolves whether
+ * notifications are allowed afterwards.
  */
-export async function requestNotificationPermission(): Promise<void> {
-  if (Platform.OS !== 'android' || Number(Platform.Version) < 33) return;
+export async function requestNotificationPermission(): Promise<boolean> {
+  if (Platform.OS !== 'android' || Number(Platform.Version) < 33) return true;
   try {
     const { status } = await checkNotifications();
+    if (status === 'granted') return true;
     if (status === 'denied') {
-      await requestNotifications(['alert']);
+      const result = await requestNotifications(['alert']);
+      return result.status === 'granted';
     }
+    return false;
   } catch (err) {
     logger.warn('notification permission request failed (ignored)', err);
+    return false;
+  }
+}
+
+/** Whether notifications are currently allowed (always true below Android 13). */
+export async function isNotificationPermissionGranted(): Promise<boolean> {
+  if (Platform.OS !== 'android' || Number(Platform.Version) < 33) return true;
+  try {
+    const { status } = await checkNotifications();
+    return status === 'granted';
+  } catch (err) {
+    logger.warn('notification permission check failed (ignored)', err);
+    return false;
   }
 }
 

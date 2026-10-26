@@ -4,30 +4,43 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import '@/i18n';
 import RootNavigator from '@/navigation/RootNavigator';
 import { setAuthTokenProvider } from '@/services/api';
+import { useCaptureSync } from '@/features/capture';
 import { sessionStore } from '@/features/session';
-import { requestStartupPermissions } from '@/shared/utils';
-import { useTheme } from '@/theme';
+import { ThemeProvider, useTheme } from '@/theme';
 
 // Registered at module scope as well as in the effect so any request fired
-// before the first render still carries the bearer token.
+// before the first render still carries the bearer token. Inert while
+// `FEATURES.auth` is off — the OCR app makes no network requests.
 setAuthTokenProvider(() => sessionStore.read()?.accessToken);
 
-export default function App() {
-  const { scheme } = useTheme();
+/** Everything that needs the theme: status bar, capture sync, navigation. */
+function ThemedApp() {
+  const { scheme, colors } = useTheme();
+  useCaptureSync();
 
+  return (
+    <>
+      <StatusBar
+        barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'}
+        backgroundColor={colors.background}
+      />
+      <RootNavigator />
+    </>
+  );
+}
+
+export default function App() {
   useEffect(() => {
     setAuthTokenProvider(() => sessionStore.read()?.accessToken);
     return () => setAuthTokenProvider(undefined);
   }, []);
 
-  useEffect(() => {
-    void requestStartupPermissions();
-  }, []);
-
+  // Permissions are requested in onboarding, where the user sees why.
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={scheme === 'dark' ? 'light-content' : 'dark-content'} />
-      <RootNavigator />
+      <ThemeProvider>
+        <ThemedApp />
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

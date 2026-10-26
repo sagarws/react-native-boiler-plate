@@ -1,20 +1,62 @@
 import React from 'react';
-import { ActivityIndicator, Image, Pressable, Text, type ViewStyle } from 'react-native';
-import { hp, useTheme } from '@/theme';
+import {
+  ActivityIndicator,
+  Image,
+  Pressable,
+  Text,
+  type ViewStyle,
+} from 'react-native';
+import { useTheme } from '@/theme';
+import type { ColorPalette } from '@/theme';
+import { Icon } from '../Icon';
 import { buttonStyles } from './Button.styles';
 import type { ButtonProps, ButtonVariant } from './Button.types';
-import type { ColorPalette } from '@/theme';
 
-/** Filled for the primary path, outlined for the secondary one. */
-function paletteFor(variant: ButtonVariant, colors: ColorPalette) {
+interface Tone {
+  background: string;
+  pressed: string;
+  border: string;
+  text: string;
+}
+
+function paletteFor(variant: ButtonVariant, colors: ColorPalette): Tone {
   switch (variant) {
     case 'secondary':
-      return { background: 'transparent', border: colors.primary, text: colors.primary };
+      return {
+        background: 'transparent',
+        pressed: colors.primarySoft,
+        border: colors.primary,
+        text: colors.primaryText,
+      };
+    case 'soft':
+      return {
+        background: colors.primarySoft,
+        pressed: colors.secondary,
+        border: colors.primarySoft,
+        text: colors.primaryText,
+      };
+    case 'ghost':
+      return {
+        background: 'transparent',
+        pressed: colors.surfaceMuted,
+        border: 'transparent',
+        text: colors.primaryText,
+      };
     case 'danger':
-      return { background: colors.danger, border: colors.danger, text: colors.onPrimary };
+      return {
+        background: colors.error,
+        pressed: colors.error,
+        border: colors.error,
+        text: colors.errorForeground,
+      };
     case 'primary':
     default:
-      return { background: colors.primary, border: colors.primary, text: colors.onPrimary };
+      return {
+        background: colors.primary,
+        pressed: colors.primaryPressed,
+        border: colors.primary,
+        text: colors.primaryForeground,
+      };
   }
 }
 
@@ -26,14 +68,15 @@ export function Button({
   disabled = false,
   loading = false,
   icon,
+  iconName,
   accessibilityLabel,
   accessibilityHint,
   style,
   testID,
 }: ButtonProps) {
-  const { colors, typography } = useTheme();
+  const { colors, typography, radius } = useTheme();
   const tone = paletteFor(variant, colors);
-  const labelStyle = size === 'sm' ? typography.body : typography.button;
+  const labelStyle = size === 'sm' ? typography.label : typography.button;
   const isDisabled = disabled || loading;
 
   return (
@@ -44,28 +87,48 @@ export function Button({
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: isDisabled, busy: loading }}
+      hitSlop={size === 'sm' ? 4 : undefined}
       testID={testID}
       style={({ pressed }) => {
         const dynamic: ViewStyle = {
-          backgroundColor: tone.background,
-          borderColor: tone.border,
-          opacity: isDisabled ? 0.5 : pressed ? 0.8 : 1,
+          backgroundColor: isDisabled
+            ? variant === 'ghost' || variant === 'secondary'
+              ? 'transparent'
+              : colors.disabled
+            : pressed
+            ? tone.pressed
+            : tone.background,
+          borderColor: isDisabled ? colors.disabled : tone.border,
+          borderRadius: size === 'lg' ? radius.xl : radius.lg,
         };
-        return [buttonStyles.base, dynamic, style];
-      }}>
+        return [buttonStyles.base, buttonStyles[size], dynamic, style];
+      }}
+    >
       {loading ? (
-        <ActivityIndicator color={tone.text} size={hp(14)} />
+        <ActivityIndicator color={tone.text} size="small" />
       ) : (
         <>
-          {icon ? (
+          {iconName ? (
+            <Icon
+              name={iconName}
+              size={18}
+              color={isDisabled ? colors.disabledForeground : tone.text}
+            />
+          ) : icon ? (
             <Image
               source={icon}
               resizeMode="contain"
               accessibilityIgnoresInvertColors
-              style={buttonStyles.icon}
+              style={[buttonStyles.icon, { tintColor: tone.text }]}
             />
           ) : null}
-          <Text numberOfLines={1} style={[labelStyle, { color: tone.text }]}>
+          <Text
+            numberOfLines={1}
+            style={[
+              labelStyle,
+              { color: isDisabled ? colors.disabledForeground : tone.text },
+            ]}
+          >
             {label}
           </Text>
         </>

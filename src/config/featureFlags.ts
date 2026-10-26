@@ -6,15 +6,24 @@
  * on is a one-line change rather than an archaeology exercise.
  */
 export const FEATURES: {
-  /** In-app language picker in Settings. */
+  /**
+   * Login → session gate from the boilerplate. Off: the OCR app is
+   * credential-free and opens straight to onboarding / home. The auth and
+   * session features stay in the codebase for apps that need them.
+   */
+  auth: boolean;
+  /**
+   * In-app UI language picker in Settings. Off while English is the only UI
+   * translation — and to keep it from being confused with the OCR language.
+   */
   languageSetting: boolean;
   /**
    * The gear on the login screen, and with it the API-endpoint override.
-   * Hidden means the app always uses the built-in `API_BASE_URL`.
-   * Switch off for store builds.
+   * Only reachable when `auth` is on.
    */
   loginDevSettings: boolean;
 } = {
-  languageSetting: true,
-  loginDevSettings: true,
+  auth: false,
+  languageSetting: false,
+  loginDevSettings: false,
 };

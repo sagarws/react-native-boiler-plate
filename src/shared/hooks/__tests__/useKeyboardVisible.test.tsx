@@ -11,19 +11,20 @@ let removed: string[] = [];
 beforeEach(() => {
   for (const key of Object.keys(handlers)) delete handlers[key];
   removed = [];
-  jest
-    .spyOn(Keyboard, 'addListener')
-    .mockImplementation(((event: string, handler: Handler) => {
-      handlers[event] = handler;
-      return {
-        remove: () => {
-          removed.push(event);
-          delete handlers[event];
-        },
-      } as ReturnType<typeof Keyboard.addListener>;
-      // Cast: the real signature is typed to KeyboardEventListener, but the
-      // hook never reads the event payload.
-    }) as unknown as typeof Keyboard.addListener);
+  jest.spyOn(Keyboard, 'addListener').mockImplementation(((
+    event: string,
+    handler: Handler,
+  ) => {
+    handlers[event] = handler;
+    return {
+      remove: () => {
+        removed.push(event);
+        delete handlers[event];
+      },
+    } as ReturnType<typeof Keyboard.addListener>;
+    // Cast: the real signature is typed to KeyboardEventListener, but the
+    // hook never reads the event payload.
+  }) as unknown as typeof Keyboard.addListener);
 });
 
 afterEach(() => {
@@ -44,7 +45,8 @@ async function mount() {
   return renderer;
 }
 
-const rendered = (r: ReactTestRenderer.ReactTestRenderer) => JSON.stringify(r.toJSON());
+const rendered = (r: ReactTestRenderer.ReactTestRenderer) =>
+  JSON.stringify(r.toJSON());
 
 describe('useKeyboardVisible', () => {
   it('starts down and follows show then hide', async () => {

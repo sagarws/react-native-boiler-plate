@@ -7,5 +7,10 @@ export const StorageKeys = {
   Language: 'app.language',
   Session: 'session.user',
   ThemePreference: 'app.themePreference',
+  ThemePreset: 'app.themePreset',
+  TypographyPreset: 'app.typographyPreset',
   ApiBaseUrlOverride: 'app.apiBaseUrlOverride',
+  CaptureSettings: 'capture.settings',
+  CaptureHistory: 'capture.history',
+  OnboardingComplete: 'app.onboardingComplete',
 } as const;

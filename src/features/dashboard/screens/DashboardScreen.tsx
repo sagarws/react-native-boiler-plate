@@ -1,71 +1,93 @@
-import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useSession } from '@/features/session';
+import {
+  useCaptureSettings,
+  useHistory,
+  useLatestResult,
+  useOverlayController,
+  type OcrResult,
+} from '@/features/capture';
 import { useDrawer } from '@/navigation/drawer';
-import { images } from '@/shared/assets';
-import { hp, useTheme, wp } from '@/theme';
+import { ROUTES } from '@/navigation/routes';
+import { Card, ListRow } from '@/shared/components';
+import { useTheme } from '@/theme';
+import { CaptureCard } from '../components/CaptureCard';
+import { HomeTopBar } from '../components/HomeTopBar';
+import { RecentSection } from '../components/RecentSection';
+import { StepsGuide } from '../components/StepsGuide';
 
-/**
- * Landing screen after sign-in: the drawer button and a welcome. Replace the
- * body with your app's home content; push further screens from here.
- */
+/** Home: switch the floating button on, see its status and recent captures. */
 export default function DashboardScreen() {
   const { t } = useTranslation();
-  const { top } = useSafeAreaInsets();
-  const { colors, typography } = useTheme();
+  const { top, bottom } = useSafeAreaInsets();
+  const { colors, spacing } = useTheme();
+  const navigation = useNavigation();
   const { openDrawer } = useDrawer();
-  const session = useSession();
+  const controller = useOverlayController();
+  const { settings } = useCaptureSettings();
+  const history = useHistory();
+  const latest = useLatestResult();
+
+  const openSettings = useCallback(
+    () => navigation.navigate(ROUTES.SETTINGS),
+    [navigation],
+  );
+  const openResult = useCallback(
+    (result: OcrResult, fromHistory: boolean) =>
+      navigation.navigate(
+        ROUTES.EXTRACTED_TEXT,
+        fromHistory
+          ? { source: 'history', id: result.id }
+          : { source: 'latest' },
+      ),
+    [navigation],
+  );
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background, paddingTop: top }]}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={t('dashboard.openMenu')}
-        hitSlop={12}
-        onPress={openDrawer}
-        style={styles.drawerButton}>
-        <Image
-          source={images.icon_drawer}
-          style={[styles.drawerIcon, { tintColor: colors.primary }]}
-          resizeMode="contain"
-          accessibilityIgnoresInvertColors
-        />
-      </Pressable>
+    <View
+      style={[
+        styles.screen,
+        { backgroundColor: colors.background, paddingTop: top },
+      ]}
+    >
+      <HomeTopBar onMenu={openDrawer} onSettings={openSettings} />
+      <ScrollView
+        testID="home-scroll"
+        contentContainerStyle={{
+          padding: spacing.lg,
+          paddingBottom: bottom + spacing.xl,
+          gap: spacing.lg,
+        }}
+      >
+        <CaptureCard controller={controller} />
 
-      <View style={styles.body}>
-        <Image
-          source={images.icon_app_logo}
-          style={styles.logo}
-          resizeMode="contain"
-          accessibilityIgnoresInvertColors
+        <Card flat>
+          <ListRow
+            testID="home-language"
+            icon="languages"
+            title={t('home.languageRow')}
+            subtitle={t(`ocrMode.${settings.ocrMode}`)}
+            onPress={openSettings}
+            accessibilityHint={t('home.change')}
+          />
+        </Card>
+
+        <StepsGuide />
+
+        <RecentSection
+          history={history}
+          latest={latest}
+          historyEnabled={settings.saveHistory}
+          onOpen={openResult}
         />
-        <Text style={[typography.h1, styles.title, { color: colors.text }]}>
-          {session?.user.name
-            ? t('dashboard.welcomeName', { name: session.user.name })
-            : t('dashboard.welcome')}
-        </Text>
-        <Text style={[typography.body, styles.subtitle, { color: colors.grey }]}>
-          {t('dashboard.subtitle')}
-        </Text>
-      </View>
+      </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
-  drawerButton: { height: hp(20), width: hp(20), marginLeft: wp(6), marginTop: hp(6) },
-  drawerIcon: { height: hp(24), width: hp(24) },
-  body: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: wp(24),
-    paddingBottom: hp(20),
-  },
-  logo: { height: hp(96), width: hp(96) },
-  title: { marginTop: hp(20), textAlign: 'center' },
-  subtitle: { marginTop: hp(8), textAlign: 'center' },
+  screen: { flex: 1 },
 });

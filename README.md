@@ -1,26 +1,26 @@
-# RN Boilerplate
+# Akshar — floating screen OCR
 
-React Native **0.85.3** app starter. New Architecture only, TypeScript strict,
-feature-sliced `src/`, native-stack navigation with a side drawer, i18next with typed keys,
-light/dark theming from design tokens, `@/*` path aliases, `.env` via `react-native-config`,
-and an Android 15 / 16KB page-size-ready build (NDK r28, targetSdk 36).
+Tap a floating button over any Android app and the screen's text — **English, Hindi
+(Devanagari) or a mix of both** — is read on the device and copied to the clipboard.
+No account, no API keys, no backend; release builds have no internet permission at all.
 
-It ships a working app **shell**, not a blank template:
+- **Floating button** drawn over other apps: draggable, snaps to an edge, remembers its
+  position, size and opacity configurable, shows a spinner while reading
+- **On-device OCR** with Google ML Kit's bundled Latin and Devanagari models; three modes
+  (English, Hindi, Hindi + English) that run different recognisers
+- **Clipboard** copy with a confirmation toast; empty results never overwrite it
+- **Review screen**: edit, select all, copy (or copy selection), share, clear, delete
+- **Local history** (optional, max 50) and the latest capture kept in memory
+- **Six colour themes** × light/dark/system, and **two text styles** (Modern, Classic) —
+  all through one typed `ThemeProvider`, applied instantly, persisted
+- One-time **onboarding**, permission recovery, privacy and troubleshooting screens
 
-- email/password **login → session → signed-in stack**, with the session persisted in MMKV
-  and the root navigator swapping subtrees on sign-in/sign-out
-- a **REST client** with bearer-token injection, timeouts, typed errors
-  (`ApiError` / `NetworkError` / `TimeoutError`) and response-envelope unwrapping
-- a **multipart upload** helper and a lazy **Socket.IO** singleton that share the same token
-- a **runtime API-endpoint override** (gear on the login screen) for QA/dev builds
-- **dashboard**, **settings** (theme, language, sign out) and a **drawer**
-- shared components: `Button`, `TextField`, `Header`, `AuthHeader`, `Loader`, `ToggleSwitch`,
-  `Slider`, `SearchSelect`, `MobileNumberInput`, `LanguageDropdown`, `ConnectionBadge`,
-  `ApiEndpointModal`, `BrandLogo`, `ScreenContainer`
-- Jest + react-test-renderer with native-module mocks already wired
+How capture, OCR, permissions and lifecycle work: **[docs/SCREEN_OCR.md](./docs/SCREEN_OCR.md)**.
 
-Extracted from a production app (TrackVid Mobile); the domain features were removed and the
-infrastructure kept.
+Built on a React Native **0.85.3** boilerplate (New Architecture, TypeScript strict,
+feature-sliced `src/`, native-stack + drawer, i18next with typed keys, MMKV, NDK r28 /
+targetSdk 36). The boilerplate's login/session/API layers are kept but switched off with
+`FEATURES.auth = false` in `src/config/featureFlags.ts`.
 
 ---
 
@@ -31,8 +31,11 @@ cp .env.example .env    # then set API_BASE_URL
 npm install
 cd ios && bundle install && bundle exec pod install && cd ..   # macOS only
 npm start               # terminal 1
-npm run android         # terminal 2  (or: npm run ios)
+npm run android         # terminal 2 — Android device or emulator
 ```
+
+`.env` is still read by the boilerplate's config validation; the OCR app makes no
+network requests, so the example URL is fine. The floating button is Android-only.
 
 Verify: `npm run typecheck && npm run lint && npm test`
 
@@ -123,7 +126,12 @@ build-breaking native change. Pure-JS and dev packages keep ranges.
 | `react-native-localize` | `3.7.0` | Device locale for i18n bootstrap |
 | `react-native-permissions` | `^5.6.1` | Runtime permissions (notifications at startup) |
 | `i18next` / `react-i18next` | `26.3.1` / `17.0.8` | i18n |
-| `socket.io-client` | `^4.8.3` | Realtime singleton + `ConnectionBadge` — drop if unused |
+| `socket.io-client` | `^4.8.3` | Realtime singleton + `ConnectionBadge` — unused by the OCR app |
+| `com.google.mlkit:text-recognition` | `16.0.1` (Gradle) | Bundled Latin OCR model |
+| `com.google.mlkit:text-recognition-devanagari` | `16.0.1` (Gradle) | Bundled Devanagari OCR model |
+
+Icons are [Lucide](https://lucide.dev) (ISC), rendered to tintable PNGs in
+`src/shared/assets/icons` — no icon-font or SVG runtime dependency.
 
 Adding a native module: pin it exactly, add a mock to `jest.setup.js`, add it to
 `transformIgnorePatterns` in `jest.config.js` if it ships untranspiled ESM, declare any
@@ -174,23 +182,27 @@ exposes a barrel `index.ts`. Cross-feature imports go through that barrel.
 ├── App.tsx                 # token provider, startup permissions, RootNavigator
 ├── AI_RULES.md             # engineering rules (CLAUDE.md imports it)
 ├── docs/ARCHITECTURE.md    # layers, data flow, extension points
-├── android/  ios/          # RNBoilerplate / com.rnboilerplate
+├── android/  ios/          # RNBoilerplate / com.rnboilerplate (label "Akshar")
+│   └── app/src/main/java/com/rnboilerplate/screenocr/   # overlay, capture, ML Kit OCR
 ├── scripts/icon/           # brand-icon.svg + launcher-icon generator
 └── src/
     ├── config/             # env.ts (validated .env), apiEndpoint.ts (override), featureFlags.ts
     ├── features/
-    │   ├── auth/           # LoginScreen, useLogin, validation
-    │   ├── session/        # session store (MMKV), useSession, login/signOut API
-    │   ├── dashboard/      # signed-in landing screen — replace with your home
-    │   └── settings/       # theme, language, sign out
+    │   ├── capture/        # OCR: native service wrapper, settings/history stores, review screen
+    │   ├── onboarding/     # one-time setup
+    │   ├── dashboard/      # home: floating-button switch, status, recent extractions
+    │   ├── settings/       # settings, appearance (themes + text styles), about
+    │   ├── auth/           # boilerplate login (off: FEATURES.auth)
+    │   └── session/        # boilerplate session store
     ├── i18n/               # i18next init, languages, typed keys, locales/en.json
     ├── navigation/         # Root → Auth | Main stacks, drawer, routes, typed params
     ├── services/
     │   ├── api/            # fetch client, errors, multipart upload
     │   └── realtime/       # Socket.IO singleton + useSocketStatus
     ├── shared/             # assets/ components/ hooks/ utils/ — cross-feature only
+    ├── specs/              # TurboModule codegen spec (NativeScreenOcr)
     ├── store/mmkv.ts       # MMKV instance + the one list of storage keys
-    ├── theme/              # tokens, preference, useTheme()
+    ├── theme/              # presets, typography presets, ThemeProvider, useTheme()
     └── types/env.d.ts      # react-native-config typings
 ```
 

@@ -144,4 +144,14 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // On-device OCR (screenocr/OcrEngine.kt). The bundled variants ship the
+    // models inside the APK: fully offline, no Play Services download, no
+    // first-run network. Latin covers English; Devanagari covers Hindi and
+    // also reads Latin script, which the mixed mode relies on.
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+    implementation("com.google.mlkit:text-recognition-devanagari:16.0.1")
+
+    // JVM unit tests for the pure OCR text assembly (src/test).
+    testImplementation("junit:junit:4.13.2")
 }

@@ -55,15 +55,20 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={[styles.flex, { backgroundColor: colors.background, paddingTop: top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      style={[
+        styles.flex,
+        { backgroundColor: colors.background, paddingTop: top },
+      ]}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
       <ScrollView
         bounces={false}
         showsVerticalScrollIndicator={false}
         // The form has to stay reachable once the keyboard takes half the
         // screen, so taps keep working while it scrolls.
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={styles.scrollContent}>
+        contentContainerStyle={styles.scrollContent}
+      >
         <View>
           <AuthHeader compact={keyboardVisible} />
           {FEATURES.loginDevSettings ? (
@@ -81,7 +86,8 @@ export default function LoginScreen() {
               typography.h1,
               keyboardVisible ? styles.titleCompact : styles.title,
               { color: colors.primary },
-            ]}>
+            ]}
+          >
             {t('auth.title')}
           </Text>
 
@@ -125,7 +131,12 @@ export default function LoginScreen() {
             {formError ? (
               <Text
                 accessibilityLiveRegion="assertive"
-                style={[typography.body, styles.formError, { color: colors.red }]}>
+                style={[
+                  typography.body,
+                  styles.formError,
+                  { color: colors.red },
+                ]}
+              >
                 {formError.message ?? t('common.somethingWentWrong')}
               </Text>
             ) : null}
@@ -139,14 +150,23 @@ export default function LoginScreen() {
               style={styles.submit}
               testID="login-submit"
             />
-            <Text style={[typography.caption, styles.version, { color: colors.grey }]}>
+            <Text
+              style={[
+                typography.caption,
+                styles.version,
+                { color: colors.grey },
+              ]}
+            >
               {t('auth.version', { version: appVersion })}
             </Text>
           </View>
         </View>
       </ScrollView>
 
-      <ApiEndpointModal visible={endpointOpen} onClose={() => setEndpointOpen(false)} />
+      <ApiEndpointModal
+        visible={endpointOpen}
+        onClose={() => setEndpointOpen(false)}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -156,11 +176,23 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1 },
   sheet: { flexGrow: 1 },
   title: { alignSelf: 'center', marginTop: hp(45), marginBottom: hp(30) },
-  titleCompact: { alignSelf: 'center', marginTop: hp(12), marginBottom: hp(12) },
+  titleCompact: {
+    alignSelf: 'center',
+    marginTop: hp(12),
+    marginBottom: hp(12),
+  },
   form: { paddingHorizontal: wp(17) },
   formError: { marginTop: hp(6), textAlign: 'center' },
-  footer: { paddingHorizontal: wp(17), paddingTop: hp(20), paddingBottom: hp(24) },
-  footerCompact: { paddingHorizontal: wp(17), paddingTop: hp(10), paddingBottom: hp(12) },
+  footer: {
+    paddingHorizontal: wp(17),
+    paddingTop: hp(20),
+    paddingBottom: hp(24),
+  },
+  footerCompact: {
+    paddingHorizontal: wp(17),
+    paddingTop: hp(10),
+    paddingBottom: hp(12),
+  },
   submit: { marginVertical: hp(6) },
   version: { textAlign: 'center', marginTop: hp(16) },
   settingsButton: { position: 'absolute', top: hp(10), right: wp(15) },

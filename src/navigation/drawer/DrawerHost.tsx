@@ -1,4 +1,11 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState, type PropsWithChildren } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type PropsWithChildren,
+} from 'react';
 import {
   Animated,
   BackHandler,
@@ -59,10 +66,13 @@ export function DrawerHost({ children }: PropsWithChildren) {
   // An open drawer owns the back button, exactly as a drawer navigator would.
   useEffect(() => {
     if (!isOpen) return undefined;
-    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
-      setIsOpen(false);
-      return true;
-    });
+    const subscription = BackHandler.addEventListener(
+      'hardwareBackPress',
+      () => {
+        setIsOpen(false);
+        return true;
+      },
+    );
     return () => subscription.remove();
   }, [isOpen]);
 
@@ -87,7 +97,8 @@ export function DrawerHost({ children }: PropsWithChildren) {
                 StyleSheet.absoluteFill,
                 styles.scrim,
                 { backgroundColor: colors.scrim, opacity: progress },
-              ]}>
+              ]}
+            >
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={t('common.close')}
@@ -96,7 +107,8 @@ export function DrawerHost({ children }: PropsWithChildren) {
               />
             </Animated.View>
             <Animated.View
-              style={[styles.panel, { width, transform: [{ translateX }] }]}>
+              style={[styles.panel, { width, transform: [{ translateX }] }]}
+            >
               <CustomDrawer />
             </Animated.View>
           </>

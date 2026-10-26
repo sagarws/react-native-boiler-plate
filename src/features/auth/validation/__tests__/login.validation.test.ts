@@ -11,7 +11,9 @@ describe('validateLogin', () => {
   });
 
   it('rejects a missing email', () => {
-    expect(validateLogin({ ...valid, email: '  ' }).email).toBe('auth.errors.emailRequired');
+    expect(validateLogin({ ...valid, email: '  ' }).email).toBe(
+      'auth.errors.emailRequired',
+    );
   });
 
   it('rejects a malformed email', () => {
@@ -25,7 +27,9 @@ describe('validateLogin', () => {
     expect(validateLogin({ ...valid, password: '' }).password).toBe(
       'auth.errors.passwordRequired',
     );
-    expect(validateLogin({ ...valid, password: '   ' }).password).toBeUndefined();
+    expect(
+      validateLogin({ ...valid, password: '   ' }).password,
+    ).toBeUndefined();
   });
 
   it('reports every invalid field at once rather than one at a time', () => {
