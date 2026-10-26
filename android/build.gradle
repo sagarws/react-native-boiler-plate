@@ -1,0 +1,25 @@
+buildscript {
+    ext {
+        buildToolsVersion = "36.0.0"
+        minSdkVersion = 24
+        compileSdkVersion = 36
+        targetSdkVersion = 36
+        // NDK r28+ is REQUIRED for Android 15 16KB page-size compliance.
+        // r28 is the first NDK whose default link flags produce 16KB-aligned .so files.
+        // If this exact patch is not installed locally, set it to whatever r28.x you
+        // have via `sdkmanager --list_installed | grep ndk`.
+        ndkVersion = "28.0.13004108"
+        kotlinVersion = "2.1.20"
+    }
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle")
+        classpath("com.facebook.react:react-native-gradle-plugin")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+    }
+}
+
+apply plugin: "com.facebook.react.rootproject"

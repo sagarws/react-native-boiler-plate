@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">RNBoilerplate</string>
+    <!--
+      Where react-native-config looks for the generated BuildConfig. It
+      otherwise reflects on getPackageName() (the applicationId), which breaks
+      as soon as applicationId and namespace differ. Keep this equal to the
+      `namespace` in app/build.gradle.
+    -->
+    <string name="build_config_package">com.rnboilerplate</string>
+</resources>

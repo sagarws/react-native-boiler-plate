@@ -1,0 +1,58 @@
+{
+  "name": "rn-boilerplate",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "reload:android": "adb shell am broadcast -a com.rnboilerplate.RELOAD_APP_ACTION",
+    "apk:debug": "cd android && ./gradlew :app:assembleDebug && cd .. && echo \"\\nAPK: android/app/build/outputs/apk/debug/app-debug.apk\"",
+    "apk:release": "cd android && ./gradlew :app:assembleRelease && cd .. && echo \"\\nAPK: android/app/build/outputs/apk/release/app-release.apk\"",
+    "aab:release": "cd android && ./gradlew :app:bundleRelease && cd .. && echo \"\\nAAB: android/app/build/outputs/bundle/release/app-release.aab\"",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest",
+    "clean": "watchman watch-del-all 2>/dev/null; rm -rf node_modules ios/Pods ios/build android/build android/.gradle android/app/build $TMPDIR/metro-* $TMPDIR/haste-map-*"
+  },
+  "dependencies": {
+    "@react-navigation/native": "7.2.5",
+    "@react-navigation/native-stack": "7.16.0",
+    "i18next": "26.3.1",
+    "react": "19.2.3",
+    "react-i18next": "17.0.8",
+    "react-native": "0.85.3",
+    "react-native-config": "1.6.1",
+    "react-native-localize": "3.7.0",
+    "react-native-mmkv": "3.3.3",
+    "react-native-permissions": "^5.6.1",
+    "react-native-safe-area-context": "5.5.2",
+    "react-native-screens": "4.25.2",
+    "socket.io-client": "^4.8.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.1.0",
+    "@react-native-community/cli-platform-android": "20.1.0",
+    "@react-native-community/cli-platform-ios": "20.1.0",
+    "@react-native/babel-preset": "0.85.3",
+    "@react-native/eslint-config": "0.85.3",
+    "@react-native/jest-preset": "0.85.3",
+    "@react-native/metro-config": "0.85.3",
+    "@react-native/typescript-config": "0.85.3",
+    "@types/jest": "^29.5.13",
+    "@types/react": "^19.2.0",
+    "@types/react-test-renderer": "^19.1.0",
+    "babel-plugin-module-resolver": "5.0.3",
+    "eslint": "^8.19.0",
+    "jest": "^29.6.3",
+    "prettier": "2.8.8",
+    "react-test-renderer": "19.2.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">= 22.11.0"
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "common": {
+    "appName": "RN Boilerplate",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "back": "Back",
+    "close": "Close",
+    "clear": "Clear",
+    "search": "Search…",
+    "loading": "Loading…",
+    "noResults": "No results",
+    "retry": "Retry",
+    "somethingWentWrong": "Something went wrong. Please try again."
+  },
+  "auth": {
+    "title": "Sign in",
+    "subtitle": "Sign in to continue.",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "version": "Version {{version}}",
+    "errors": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordRequired": "Password is required."
+    },
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
+  },
+  "settings": {
+    "title": "Settings",
+    "account": "Account",
+    "signedOut": "Not signed in",
+    "language": "Language",
+    "selectLanguage": "Select {{language}}",
+    "theme": "Theme",
+    "theme_system": "System",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "selectTheme": "Select {{theme}}",
+    "signOut": "Sign out",
+    "signOutConfirm": "You will need to sign in again to continue."
+  },
+  "connection": {
+    "connected": "Live",
+    "connecting": "Connecting…",
+    "disconnected": "Offline"
+  },
+  "dashboard": {
+    "openMenu": "Open menu",
+    "welcome": "Welcome",
+    "welcomeName": "Welcome, {{name}}",
+    "subtitle": "This is your home screen. Replace it with your app."
+  },
+  "drawer": {
+    "settings": "Settings",
+    "notAvailable": "N/A"
+  },
+  "devSettings": {
+    "title": "Developer settings",
+    "body": "Point this build at a different API server. Saved on this device and used until you reset it.",
+    "open": "Developer settings",
+    "label": "API base URL",
+    "placeholder": "https://…",
+    "defaultPrefix": "Default:",
+    "errorInvalid": "Enter a full URL starting with http:// or https://",
+    "save": "Save",
+    "reset": "Reset to default"
+  },
+  "profile": {
+    "countryCode": "Country code"
+  }
+}

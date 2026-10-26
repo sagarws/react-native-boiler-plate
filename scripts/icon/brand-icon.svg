@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Placeholder RNBoilerplate launcher icon. Rasterise it into every iOS/Android
+  variant with `node scripts/icon/generate-icons.js` (needs `sharp`).
+  Replace this file with the real mark and re-run the script.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1A2433"/>
+      <stop offset="1" stop-color="#0F1623"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFB874"/>
+      <stop offset="1" stop-color="#F97316"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded square tile -->
+  <rect width="1024" height="1024" rx="220" ry="220" fill="url(#bg)"/>
+
+  <!-- Subtle inner ring for depth -->
+  <rect x="36" y="36" width="952" height="952" rx="196" ry="196"
+        fill="none" stroke="#FFFFFF" stroke-opacity="0.05" stroke-width="2"/>
+
+  <!-- Progress ring: an open arc, echoing "tracking" -->
+  <circle cx="512" cy="512" r="288" fill="none" stroke="#FFFFFF"
+          stroke-opacity="0.10" stroke-width="34"/>
+  <path d="M 512 224 A 288 288 0 1 1 308 396"
+        fill="none" stroke="url(#accent)" stroke-width="34" stroke-linecap="round"/>
+
+  <!-- Play triangle -->
+  <path d="M 444 386 L 700 512 L 444 638 Z" fill="url(#accent)"/>
+</svg>
