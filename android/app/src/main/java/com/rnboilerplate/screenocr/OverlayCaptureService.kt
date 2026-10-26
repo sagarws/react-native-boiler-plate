@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
+import android.hardware.display.DisplayManager
 import android.media.projection.MediaProjectionManager
 import android.net.Uri
 import android.os.Build
@@ -18,6 +19,8 @@ import android.os.Looper
 import android.os.SystemClock
 import android.provider.Settings
 import android.util.Log
+import android.view.Display
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -49,6 +52,7 @@ class OverlayCaptureService : Service(), FloatingBubble.Listener {
   private var capturer: ScreenCapturer? = null
   private var bubble: FloatingBubble? = null
   private var engine: OcrEngine? = null
+  private var activeToast: Toast? = null
 
   override fun onBind(intent: Intent?): IBinder? = null
 
@@ -127,7 +131,7 @@ class OverlayCaptureService : Service(), FloatingBubble.Listener {
         shutdown()
         return
       }
-      val created = FloatingBubble(this, prefs, this)
+      val created = FloatingBubble(overlayContext(), prefs, this)
       try {
         created.show(prefs.readConfig())
         bubble = created
@@ -147,6 +151,9 @@ class OverlayCaptureService : Service(), FloatingBubble.Listener {
     val activeBubble = bubble ?: return
     // One capture at a time; repeated taps while busy are ignored.
     if (!busy.compareAndSet(false, true)) return
+    // A toast from the previous capture would otherwise be read as screen text.
+    activeToast?.cancel()
+    activeToast = null
 
     activeBubble.setProcessing(true)
     activeBubble.setHiddenForCapture(true)
@@ -248,6 +255,7 @@ class OverlayCaptureService : Service(), FloatingBubble.Listener {
     engine?.close()
     engine = null
     busy.set(false)
+    activeToast = null
     if (isRunning) {
       isRunning = false
       ScreenOcrBus.notifyStatus()
@@ -260,7 +268,21 @@ class OverlayCaptureService : Service(), FloatingBubble.Listener {
   }
 
   private fun toast(messageRes: Int) {
-    Toast.makeText(applicationContext, messageRes, Toast.LENGTH_SHORT).show()
+    activeToast?.cancel()
+    activeToast =
+      Toast.makeText(applicationContext, messageRes, Toast.LENGTH_SHORT).also { it.show() }
+  }
+
+  /**
+   * A window context for the overlay (Android 11+): the supported way for a
+   * service to add windows, and its resources follow rotation and display
+   * changes. Older versions use the service itself.
+   */
+  private fun overlayContext(): Context {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R) return this
+    val display = getSystemService(DisplayManager::class.java).getDisplay(Display.DEFAULT_DISPLAY)
+    return createDisplayContext(display)
+      .createWindowContext(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY, null)
   }
 
   private fun buildNotification(): Notification {

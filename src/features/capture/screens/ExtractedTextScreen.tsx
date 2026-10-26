@@ -24,6 +24,7 @@ import {
   Icon,
   Notice,
 } from '@/shared/components';
+import type { MainStackParamList } from '@/navigation/types';
 import { useTheme } from '@/theme';
 import { ToolButton } from '../components/ToolButton';
 import { ResultMeta } from '../components/ResultMeta';
@@ -35,11 +36,7 @@ import type { TextSelection } from '../utils/text';
 
 type Feedback = 'copied' | 'copyFailed' | 'saved' | null;
 
-// Kept local to avoid a feature → navigation import cycle; mirrors
-// `ExtractedTextParams` in navigation/types.ts.
-type Params = {
-  ExtractedText: { source: 'latest' } | { source: 'history'; id: string };
-};
+type Params = Pick<MainStackParamList, 'ExtractedText'>;
 
 const FEEDBACK_MS = 2500;
 

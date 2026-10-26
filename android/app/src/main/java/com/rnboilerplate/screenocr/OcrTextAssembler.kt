@@ -26,8 +26,19 @@ data class OcrLine(
 object OcrTextAssembler {
   private val DEVANAGARI = Regex("[\\u0900-\\u097F\\uA8E0-\\uA8FF]")
 
-  /** A Latin line replaces a Devanagari-model line only on a near-exact box match. */
+  /**
+   * Indic scripts other than Devanagari (Bengali … Sinhala). The Devanagari
+   * model sometimes emits these for icons and glyph-like UI (seen on device:
+   * "১l61" for a status-bar battery). They are never right in a Hindi/English
+   * screen, so such a line is a misread.
+   */
+  private val OTHER_INDIC = Regex("[\u0980-\u0DFF]")
+
+  /** A Latin line replaces a Devanagari-model line only on a near-exact box match… */
   private const val REPLACE_IOU = 0.8f
+
+  /** …or a looser one when the Devanagari line is a misread in another script. */
+  private const val REPLACE_IOU_MISREAD = 0.5f
 
   /** A Latin line overlapping a Devanagari line by this much is the same text. */
   private const val DUPLICATE_OVERLAP = 0.3f
@@ -69,8 +80,9 @@ object OcrTextAssembler {
         merged += line
         continue
       }
+      val threshold = if (OTHER_INDIC.containsMatchIn(line.text)) REPLACE_IOU_MISREAD else REPLACE_IOU
       val match = latin.maxByOrNull { iou(line, it) }
-      merged += if (match != null && iou(line, match) >= REPLACE_IOU) {
+      merged += if (match != null && iou(line, match) >= threshold) {
         line.copy(text = match.text)
       } else {
         line

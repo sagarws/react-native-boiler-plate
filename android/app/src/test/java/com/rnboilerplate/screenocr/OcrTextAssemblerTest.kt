@@ -87,4 +87,16 @@ class OcrTextAssemblerTest {
     val lines = listOf(line("₹1,299.00 — 50% off!", 0, 0, 500, 40))
     assertEquals("₹1,299.00 — 50% off!", OcrTextAssembler.assemble(lines))
   }
+
+  @Test
+  fun misreadInAnotherIndicScriptPrefersTheLatinReading() {
+    // Seen on device: the site icon in Chrome's URL bar read as Bengali "ক",
+    // widening the box enough to miss the strict match.
+    val dev = listOf(line("কhi.wikipedia.orghwiki/", 40, 200, 700, 250))
+    val latin = listOf(line("hi.wikipedia.org/wiki/", 190, 202, 700, 248))
+
+    val text = OcrTextAssembler.assemble(OcrTextAssembler.mergeMixed(dev, latin))
+
+    assertEquals("hi.wikipedia.org/wiki/", text)
+  }
 }
