@@ -36,14 +36,14 @@ class MultiScriptMergeTest {
     val dev = listOf(line("नमस्ते दुनिया", 100, 0.92f), line("तमारं ओर्डर", 200, 0.41f))
     val guj = listOf(line("નમસ્તે દુનિયા", 100, 0.38f), line("તમારું ઓર્ડર", 200, 0.88f))
     val merged = A.mergeByConfidence(dev, A.DEVANAGARI, guj, A.GUJARATI)
-    assertEquals("नमस्ते दुनिया\nતમારું ઓર્ડર", A.assemble(merged))
+    assertEquals("नमस्ते दुनिया\n\nતમારું ઓર્ડર", A.assemble(merged))
   }
 
   @Test
   fun hindiGujaratiKeepsLinesOnlyOneEngineFound() {
     val merged =
       A.mergeByConfidence(listOf(line("केवल हिन्दी", 100)), A.DEVANAGARI, listOf(line("માત્ર ગુજરાતી", 300)), A.GUJARATI)
-    assertEquals("केवल हिन्दी\nમાત્ર ગુજરાતી", A.assemble(merged))
+    assertEquals("केवल हिन्दी\n\nમાત્ર ગુજરાતી", A.assemble(merged))
   }
 
   @Test

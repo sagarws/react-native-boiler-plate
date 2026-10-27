@@ -182,11 +182,61 @@ object OcrTextAssembler {
       )
     }
     val ordered = readingOrder(blocks, tolerance, { it.top }, { it.left })
-    return ordered
-      .flatMap { block -> block.lines.map { it.text.trim() } }
-      .filter { it.isNotEmpty() }
-      .joinToString("\n")
+    val sequence = ordered.flatMap { block -> block.lines.filter { it.text.isNotBlank() } }
+    // Thresholds adapt to this block's own text: its typical line height and
+    // the typical gap between its lines (no fixed pixel distances).
+    val stats = clean.groupBy { it.block }.mapValues { (_, l) -> layoutStats(l) }
+
+    val out = StringBuilder()
+    for ((i, line) in sequence.withIndex()) {
+      if (i > 0) {
+        val previous = sequence[i - 1]
+        out.append(if (isParagraphBreak(previous, line, stats[line.block])) "\n\n" else "\n")
+      }
+      out.append(line.text.trim())
+    }
+    return out.toString()
   }
+
+  /** Typical line height and inter-line gap within one block. */
+  data class LayoutStats(val lineHeight: Int, val lineGap: Int)
+
+  fun layoutStats(lines: List<OcrLine>): LayoutStats {
+    val height = max(1, medianHeight(lines))
+    val byTop = lines.sortedBy { it.top }
+    val gaps =
+      byTop.zipWithNext { a, b -> b.top - a.bottom }.filter { it >= -height / 2 && it < height * 3 }.sorted()
+    // Lower median: with few lines, one paragraph gap must not become "normal".
+    val gap = if (gaps.isEmpty()) height / 3 else max(0, gaps[(gaps.size - 1) / 2])
+    return LayoutStats(height, gap)
+  }
+
+  /**
+   * Whether [next] starts a new paragraph after [previous], from layout:
+   * - a different OCR block (separate text region, column, toolbar, cell);
+   * - a vertical gap clearly larger than the block's normal line spacing;
+   * - a clear change in text size (a heading next to body text);
+   * - a first-line indent.
+   * Lines on the same row (side by side) never merge across a block.
+   */
+  fun isParagraphBreak(previous: OcrLine, next: OcrLine, stats: LayoutStats? = null): Boolean {
+    if (previous.block != next.block) return true
+    val s = stats ?: layoutStats(listOf(previous, next))
+    val gap = next.top - previous.bottom
+    val height = max(1, s.lineHeight)
+    if (gap > max(s.lineGap * 2 + height / 4, (height * 0.6).toInt())) return true
+    val a = max(1, previous.height)
+    val b = max(1, next.height)
+    if (max(a, b).toFloat() / min(a, b) > HEADING_SIZE_RATIO) return true
+    if (next.left - previous.left > height * INDENT_LINE_HEIGHTS && gap >= 0) return true
+    return false
+  }
+
+  /** Text this much taller/shorter than its neighbour is a heading or caption. */
+  private const val HEADING_SIZE_RATIO = 1.35f
+
+  /** A first line indented by more than this many line heights starts a paragraph. */
+  private const val INDENT_LINE_HEIGHTS = 1.5
 
   private data class Block(val top: Int, val left: Int, val lines: List<OcrLine>)
 

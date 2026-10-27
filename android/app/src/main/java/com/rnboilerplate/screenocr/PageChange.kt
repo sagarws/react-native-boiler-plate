@@ -92,8 +92,8 @@ object PageText {
   fun isPageNumber(line: String): Boolean = PAGE_NUMBER.matches(line.trim())
 
   fun stripChrome(current: String, previous: String?): String {
-    val lines = current.lines().map { it.trim() }.filter { it.isNotEmpty() }
-    if (lines.size <= 2) return lines.filterNot(::isPageNumber).joinToString("\n")
+    val lines = ParagraphText.lines(current)
+    if (lines.size <= 2) return ParagraphText.keepLines(current) { _, line -> !isPageNumber(line) }
     val prevLines = previous?.lines()?.map { it.trim() }?.filter { it.isNotEmpty() }.orEmpty()
     val prevEdges = (prevLines.take(EDGE_LINES) + prevLines.takeLast(EDGE_LINES)).map(TextDedup::normalize)
 
@@ -107,6 +107,7 @@ object PageText {
     while (start < minOf(EDGE_LINES, lines.size) && isChrome(lines[start])) start++
     var end = lines.size
     while (end > start && lines.size - end < EDGE_LINES && isChrome(lines[end - 1])) end--
-    return lines.subList(start, end).joinToString("\n")
+    // The body lines, with their paragraph breaks kept.
+    return ParagraphText.keepLines(current) { index, _ -> index in start until end }
   }
 }

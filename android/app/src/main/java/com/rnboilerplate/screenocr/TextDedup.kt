@@ -61,6 +61,18 @@ object TextDedup {
     }
   }
 
+  /**
+   * [current] text minus the lines already on the [previous] screen, keeping
+   * the paragraph breaks between the lines that remain.
+   */
+  fun newText(current: String, previous: List<String>): String {
+    val seen = previous.map(::normalize).filter { it.isNotEmpty() }
+    return ParagraphText.keepLines(current) { _, line ->
+      val key = normalize(line)
+      key.isNotEmpty() && seen.none { isSameLine(it, key) }
+    }
+  }
+
   private fun levenshtein(a: String, b: String): Int {
     var prev = IntArray(b.length + 1) { it }
     var curr = IntArray(b.length + 1)

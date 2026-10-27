@@ -46,7 +46,7 @@ class OcrTextAssemblerTest {
 
     val text = OcrTextAssembler.assemble(OcrTextAssembler.mergeMixed(dev, latin))
 
-    assertEquals("नमस्ते\nTrack order #4521", text)
+    assertEquals("नमस्ते\n\nTrack order #4521", text)
   }
 
   @Test
@@ -71,7 +71,7 @@ class OcrTextAssemblerTest {
       )
 
     assertEquals(
-      "First line\nNext line\nRight column\nSecond paragraph",
+      "First line\nNext line\n\nRight column\n\nSecond paragraph",
       OcrTextAssembler.assemble(lines),
     )
   }

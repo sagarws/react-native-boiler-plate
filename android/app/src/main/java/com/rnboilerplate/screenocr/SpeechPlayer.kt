@@ -222,6 +222,11 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
           onError(ReadingReason.SPEECH_FAILED)
           return@whenReady
         }
+        // A short, natural pause between paragraphs (not after the last one).
+        // Its id is not in `ids`, so its callbacks are ignored.
+        if (segment.paragraphEnd && index < segments.size - 1) {
+          tts.playSilentUtterance(PARAGRAPH_PAUSE_MS, TextToSpeech.QUEUE_ADD, "p$token-$index")
+        }
       }
     }
   }
@@ -287,6 +292,7 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
   companion object {
     private const val TAG = "ScreenOcrTts"
     const val GOOGLE_TTS = "com.google.android.tts"
+    private const val PARAGRAPH_PAUSE_MS = 350L
 
     /** Installed TTS engine services (needs the TTS_SERVICE `<queries>` entry). */
     fun isGoogleInstalled(context: Context): Boolean =

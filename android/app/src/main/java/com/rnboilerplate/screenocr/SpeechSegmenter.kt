@@ -1,22 +1,29 @@
 package com.rnboilerplate.screenocr
 
-/** One utterance: text and the speech language ("en", "hi", "gu") to read it in. */
-data class SpeechSegment(val text: String, val language: String)
+/**
+ * One utterance: text, the speech language ("en", "hi", "gu") to read it in,
+ * and whether a paragraph ends after it (a short pause follows).
+ */
+data class SpeechSegment(val text: String, val language: String, val paragraphEnd: Boolean = false)
 
 /**
- * Splits extracted text into utterances.
+ * Turns extracted text into utterances, **paragraph by paragraph**.
  *
- * Text is cut at line breaks and sentence ends (. ! ? । ॥), then long
- * sentences at commas/spaces, so no utterance exceeds the engine's input
- * limit and pause/resume can restart from a nearby point.
+ * OCR lines are first joined into paragraphs ([ParagraphText]) so the engine
+ * reads running text instead of pausing at every screen line. Each paragraph
+ * is one utterance while it fits the engine's input limit; a longer one is
+ * split at sentence ends (. ! ? । ॥), then at commas/spaces as a last resort —
+ * never at the original line breaks. Paragraph ends are marked so the player
+ * can leave a natural pause between paragraphs.
  *
  * Language: Android voices are per-language, and switching voices mid
  * sentence sounds broken, so the choice is made **per sentence**: a sentence
  * containing Gujarati is read by a Gujarati voice, Devanagari by a Hindi
  * voice, otherwise English — but only when [switchByScript] is on and a voice
- * for that language is in [available]. Otherwise the user's [primary]
- * language is used. Hindi and Gujarati voices read embedded English words
- * themselves, so mixed sentences keep a single voice.
+ * for that language is in `available`. Otherwise the user's `primary`
+ * language is used. Consecutive sentences in the same language within a
+ * paragraph stay in one utterance; Hindi and Gujarati voices read embedded
+ * English words themselves, so mixed sentences keep a single voice.
  */
 object SpeechSegmenter {
   private val SENTENCE_END = Regex("(?<=[.!?।॥])\\s+")
@@ -43,24 +50,25 @@ object SpeechSegmenter {
     available: Set<String>,
     maxLength: Int = 500,
   ): List<SpeechSegment> {
-    val sentences =
-      text.lines()
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .flatMap { it.split(SENTENCE_END) }
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .flatMap { split(it, maxLength) }
-    // Adjacent sentences in the same language are joined (up to the limit)
-    // so the engine gets natural phrasing, not one request per line.
     val segments = ArrayList<SpeechSegment>()
-    for (sentence in sentences) {
-      val language = languageFor(sentence, primary, switchByScript, available)
-      val last = segments.lastOrNull()
-      if (last != null && last.language == language && last.text.length + sentence.length + 1 <= maxLength) {
-        segments[segments.size - 1] = last.copy(text = "${last.text}\n$sentence")
-      } else {
-        segments += SpeechSegment(sentence, language)
+    for (paragraph in ParagraphText.paragraphs(text)) {
+      val start = segments.size
+      val sentences =
+        paragraph.split(SENTENCE_END).map { it.trim() }.filter { it.isNotEmpty() }.flatMap { split(it, maxLength) }
+      for (sentence in sentences) {
+        val language = languageFor(sentence, primary, switchByScript, available)
+        val last = segments.lastOrNull()
+        // Join within the paragraph only — paragraphs always start a new utterance.
+        if (segments.size > start && last != null && last.language == language &&
+          last.text.length + sentence.length + 1 <= maxLength
+        ) {
+          segments[segments.size - 1] = last.copy(text = "${last.text} $sentence")
+        } else {
+          segments += SpeechSegment(sentence, language)
+        }
+      }
+      if (segments.size > start) {
+        segments[segments.size - 1] = segments.last().copy(paragraphEnd = true)
       }
     }
     return segments

@@ -181,6 +181,25 @@ class ReadingSessionTest {
   }
 
   @Test
+  fun newTextAfterAScrollKeepsItsParagraphBreaks() {
+    val ports =
+      FakePorts(
+        listOf(
+          "Old paragraph line one\nold paragraph line two",
+          "old paragraph line two\n\nNew paragraph starts here\nand continues\n\nAnother new paragraph",
+        ),
+      )
+    val session = ReadingSession(true, config, ports)
+    session.start()
+    ports.finishSpeech()
+    assertEquals("New paragraph starts here\nand continues\n\nAnother new paragraph", ports.spoken[1])
+    assertEquals(
+      listOf("New paragraph starts here and continues", "Another new paragraph"),
+      ParagraphText.paragraphs(ports.spoken[1]),
+    )
+  }
+
+  @Test
   fun restartReadsTheSectionAgainFromTheStart() {
     val ports = FakePorts(listOf("Section text"))
     val session = ReadingSession(true, config, ports)

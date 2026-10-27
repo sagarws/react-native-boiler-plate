@@ -139,8 +139,11 @@ class ReadingSession(
         move(ReadingState.ERROR, if (section == 0) ReadingReason.CAPTURE_FAILED else ReadingReason.OCR_FAILED)
         return
       }
-    val lines = text.lines().map { it.trim() }.filter { it.isNotEmpty() }
-    val fresh = if (section == 0) lines else TextDedup.newLines(lines, previousScreen)
+    val lines = ParagraphText.lines(text)
+    // New text only, with its paragraph breaks intact so it is read paragraph by paragraph.
+    val freshText =
+      if (section == 0) ParagraphText.keepLines(text) { _, _ -> true } else TextDedup.newText(text, previousScreen)
+    val fresh = ParagraphText.lines(freshText)
     previousScreen = lines
 
     if (fresh.isEmpty()) {
@@ -155,7 +158,7 @@ class ReadingSession(
     }
     noNewText = 0
     section++
-    currentText = fresh.joinToString("\n")
+    currentText = freshText
     speakFrom(0)
   }
 
