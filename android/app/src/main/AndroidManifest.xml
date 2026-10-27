@@ -57,6 +57,12 @@
       </activity>
 
       <!-- Shows the system screen-capture consent dialog; no UI of its own. -->
+      <!-- File Management: in-app video player (not exported). -->
+      <activity
+        android:name=".screenocr.VideoPlayerActivity"
+        android:exported="false"
+        android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
       <activity
         android:name=".screenocr.CaptureConsentActivity"
         android:exported="false"

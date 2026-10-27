@@ -12,10 +12,12 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Button, Icon } from '@/shared/components';
+import { filePreviewService, type PreviewError } from '@/features/capture';
+import { Button, Icon, Notice } from '@/shared/components';
 import { useTheme } from '@/theme';
 import { driveRepository } from '../repository/drive.repository';
 import type { DriveItem } from '../types';
+import { PdfPages } from './PdfPages';
 import {
   fileKind,
   formatSize,
@@ -35,11 +37,10 @@ type ImageSource = { uri: string; headers?: Record<string, string> };
 /**
  * Full-screen preview of a Drive file:
  * - images: the full image (authorized request to Drive);
+ * - PDFs: every page (rendered on the phone), else the first-page thumbnail;
+ * - videos: a frame + ▶ that plays it in the app's own player;
  * - text: the first 64 KB;
- * - PDFs, videos, documents: Drive's large thumbnail (first page / frame);
- * - anything else: its details.
- * "Open in Google Drive" covers what an app can't render (playing video,
- * paging through a PDF).
+ * - documents: Drive's large thumbnail; anything else: its details.
  */
 export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
   const { t } = useTranslation();
@@ -49,6 +50,7 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
   const [text, setText] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [pdfFailed, setPdfFailed] = useState<PreviewError | null>(null);
 
   const kind = item ? fileKind(item.mimeType, item.name) : 'other';
 
@@ -56,6 +58,7 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
     setImage(null);
     setText(null);
     setFailed(false);
+    setPdfFailed(null);
     if (!item) return undefined;
     let live = true;
     const done = () => live && setLoading(false);
@@ -89,6 +92,27 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
 
   if (!item) return null;
 
+  const close = () => {
+    // Downloaded PDFs and rendered pages live in the cache until closed.
+    filePreviewService.clearCache();
+    onClose();
+  };
+
+  const playVideo = async () => {
+    try {
+      const source = await driveRepository.mediaSource(item.id);
+      const started = filePreviewService.playVideo(
+        source.uri,
+        source.headers.Authorization ?? '',
+        item.name,
+      );
+      if (started) return;
+    } catch {
+      // Fall through to Google Drive.
+    }
+    if (item.webViewLink) void Linking.openURL(item.webViewLink);
+  };
+
   const meta = [formatSize(item.size), formatWhen(item.modifiedAt)]
     .filter(Boolean)
     .join(' · ');
@@ -98,7 +122,7 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
     <Modal
       visible
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={close}
       statusBarTranslucent
     >
       <View
@@ -119,7 +143,7 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('files.closePreview')}
-            onPress={onClose}
+            onPress={close}
             style={styles.iconButton}
             testID="preview-close"
           >
@@ -140,7 +164,9 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
           style={[styles.stage, { backgroundColor: colors.surfaceMuted }]}
           testID="preview-stage"
         >
-          {loading ? (
+          {kind === 'pdf' && !pdfFailed ? (
+            <PdfPages item={item} onFailed={setPdfFailed} />
+          ) : loading ? (
             <ActivityIndicator color={colors.primary} size="large" />
           ) : text !== null ? (
             <ScrollView
@@ -172,11 +198,11 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
               {kind === 'video' ? (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={t('files.playInDrive')}
+                  accessibilityLabel={t('files.playVideo')}
                   onPress={() => {
-                    if (item.webViewLink)
-                      void Linking.openURL(item.webViewLink);
+                    void playVideo();
                   }}
+                  testID="preview-play"
                   style={[
                     styles.play,
                     {
@@ -212,6 +238,17 @@ export function FilePreview({ item, onClose, onShare }: FilePreviewProps) {
           )}
         </View>
 
+        {pdfFailed ? (
+          <View
+            style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md }}
+          >
+            <Notice
+              testID="preview-pdf-failed"
+              tone="warning"
+              message={t(`files.pdfFailed_${pdfFailed}`)}
+            />
+          </View>
+        ) : null}
         {item.description ? (
           <Text
             style={[

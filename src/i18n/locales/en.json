@@ -637,7 +637,13 @@
     "previewFile": "Preview {{name}}",
     "closePreview": "Close preview",
     "noPreview": "No preview for this type of file. Open it in Google Drive to view it.",
-    "playInDrive": "Play in Google Drive"
+    "pdfLoading": "Opening the PDF…",
+    "pdfPage": "Page {{page}} of {{total}}",
+    "pdfPageFailed": "This page couldn’t be shown.",
+    "pdfFailed_too_large": "This PDF is over 100 MB, so only its first page is shown. Open it in Google Drive to read it all.",
+    "pdfFailed_preview_failed": "This PDF couldn’t be opened here, so only its first page is shown. Open it in Google Drive to read it all.",
+    "pdfFailed_unsupported": "PDF pages need Android. Only the first page is shown.",
+    "playVideo": "Play video"
   },
   "driveCreds": {
     "section": "Shared Google Drive",

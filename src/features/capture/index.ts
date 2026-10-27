@@ -119,3 +119,8 @@ export type {
   DriveCredentialsInput,
   DriveTokenError,
 } from './services/driveCredentials.service';
+export {
+  filePreviewService,
+  PreviewUnavailable,
+} from './services/filePreview.service';
+export type { PreviewError } from './services/filePreview.service';

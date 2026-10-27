@@ -122,6 +122,19 @@ export interface Spec extends TurboModule {
    * timeout | server.
    */
   getDriveAccessToken(forceRefresh: boolean): Promise<string>;
+  /**
+   * File Management previews. Downloads a Drive file (googleapis.com only)
+   * into the app cache with the given `Authorization` header; resolves the
+   * local path. Rejects with too_large (over 100 MB) or preview_failed.
+   */
+  downloadPreviewFile(url: string, authorization: string): Promise<string>;
+  getPdfPageCount(path: string): Promise<number>;
+  /** Renders a PDF page to a cached JPEG; resolves its file:// URI. */
+  renderPdfPage(path: string, page: number, width: number): Promise<string>;
+  /** Deletes downloaded previews and rendered pages. */
+  clearPreviewCache(): void;
+  /** Plays a Drive video in the app's own player screen. */
+  playVideo(url: string, authorization: string, title: string): void;
   clearPaginationTarget(): void;
   /**
    * Shows the Next-button picker over other apps. Resolves 'started', or

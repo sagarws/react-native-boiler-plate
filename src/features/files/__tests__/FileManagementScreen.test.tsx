@@ -21,6 +21,11 @@ jest.mock('@/specs/NativeScreenOcr', () => ({
   default: {
     getDriveCredentialStatus: jest.fn(),
     getDriveAccessToken: jest.fn(),
+    downloadPreviewFile: jest.fn(),
+    getPdfPageCount: jest.fn(),
+    renderPdfPage: jest.fn(),
+    clearPreviewCache: jest.fn(),
+    playVideo: jest.fn(),
   },
 }));
 const mockNative: Record<string, jest.Mock> = jest.requireMock(
@@ -258,5 +263,82 @@ describe('File Management', () => {
       find(r, 'file-open-row-z1', 'onPress').props.onPress();
     });
     expect(has(r, 'preview-none')).toBe(true);
+  });
+
+  it('shows every PDF page and plays videos in the app', async () => {
+    mockNative.getDriveCredentialStatus.mockResolvedValue(sharedConfigured);
+    request.mockResolvedValueOnce({ files: [] }).mockResolvedValueOnce({
+      files: [
+        { id: 'd1', name: 'book.pdf', mimeType: 'application/pdf' },
+        {
+          id: 'v1',
+          name: 'clip.mp4',
+          mimeType: 'video/mp4',
+          thumbnailLink: 'https://lh3.googleusercontent.com/v1=s220',
+        },
+      ],
+    });
+    mockNative.downloadPreviewFile.mockResolvedValue(
+      '/cache/previews/book.bin',
+    );
+    mockNative.getPdfPageCount.mockResolvedValue(3);
+    mockNative.renderPdfPage.mockImplementation((_p: string, page: number) =>
+      Promise.resolve(`file:///cache/page-${page}.jpg`),
+    );
+    const r = await render();
+
+    await ReactTestRenderer.act(async () => {
+      find(r, 'file-open-row-d1', 'onPress').props.onPress();
+    });
+    // Downloaded with a short-lived token, then paged.
+    expect(mockNative.downloadPreviewFile).toHaveBeenCalledWith(
+      'https://drive/d1?alt=media',
+      'Bearer tok',
+    );
+    expect(find(r, 'pdf-pages', 'data').props.data).toEqual([0, 1, 2]);
+    expect(has(r, 'pdf-page-0')).toBe(true);
+    await ReactTestRenderer.act(async () => {
+      find(r, 'preview-close', 'onPress').props.onPress();
+    });
+    expect(mockNative.clearPreviewCache).toHaveBeenCalled();
+
+    await ReactTestRenderer.act(async () => {
+      find(r, 'file-open-row-v1', 'onPress').props.onPress();
+    });
+    await ReactTestRenderer.act(async () => {
+      find(r, 'preview-play', 'onPress').props.onPress();
+    });
+    expect(mockNative.playVideo).toHaveBeenCalledWith(
+      'https://drive/v1?alt=media',
+      'Bearer tok',
+      'clip.mp4',
+    );
+  });
+
+  it('falls back to the first page when a PDF cannot be opened', async () => {
+    mockNative.getDriveCredentialStatus.mockResolvedValue(sharedConfigured);
+    request.mockResolvedValueOnce({ files: [] }).mockResolvedValueOnce({
+      files: [
+        {
+          id: 'd2',
+          name: 'huge.pdf',
+          mimeType: 'application/pdf',
+          thumbnailLink: 'https://lh3.googleusercontent.com/d2=s220',
+        },
+      ],
+    });
+    mockNative.downloadPreviewFile.mockRejectedValue(
+      Object.assign(new Error('too_large'), { code: 'too_large' }),
+    );
+    const r = await render();
+    await ReactTestRenderer.act(async () => {
+      find(r, 'file-open-row-d2', 'onPress').props.onPress();
+    });
+    expect(find(r, 'preview-pdf-failed', 'message').props.message).toMatch(
+      /over 100 MB/,
+    );
+    expect(find(r, 'preview-image', 'source').props.source).toEqual({
+      uri: 'https://lh3.googleusercontent.com/d2=s1600',
+    });
   });
 });

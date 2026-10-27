@@ -307,6 +307,54 @@ class ScreenOcrModule(context: ReactApplicationContext) :
   private val driveStore by lazy { DriveCredentialStore(reactApplicationContext) }
   private val driveTokens by lazy { DriveTokenClient() }
 
+  // ── File Management: in-app previews (PDF pages, video) ───────────────
+  // Short-lived Drive access tokens only; one background thread so the PDF
+  // renderer is never used concurrently.
+
+  private val previews by lazy { FilePreviews(reactApplicationContext) }
+  private val previewExecutor by lazy { java.util.concurrent.Executors.newSingleThreadExecutor() }
+
+  private fun onPreviewThread(promise: Promise, work: () -> Any) {
+    previewExecutor.execute {
+      try {
+        promise.resolve(work())
+      } catch (e: Exception) {
+        promise.reject(if (e.message == "too_large") "too_large" else "preview_failed", e.javaClass.simpleName)
+      }
+    }
+  }
+
+  override fun downloadPreviewFile(url: String, authorization: String, promise: Promise) {
+    if (!url.startsWith("https://www.googleapis.com/")) {
+      promise.reject("preview_failed", "Unsupported URL")
+      return
+    }
+    onPreviewThread(promise) { previews.download(url, authorization) }
+  }
+
+  override fun getPdfPageCount(path: String, promise: Promise) {
+    onPreviewThread(promise) { previews.pageCount(path).toDouble() }
+  }
+
+  override fun renderPdfPage(path: String, page: Double, width: Double, promise: Promise) {
+    onPreviewThread(promise) { previews.renderPage(path, page.toInt(), width.toInt()) }
+  }
+
+  override fun clearPreviewCache() {
+    previewExecutor.execute { previews.clear() }
+  }
+
+  override fun playVideo(url: String, authorization: String, title: String) {
+    if (!url.startsWith("https://www.googleapis.com/")) return
+    val intent =
+      Intent(reactApplicationContext, VideoPlayerActivity::class.java)
+        .putExtra(VideoPlayerActivity.EXTRA_URL, url)
+        .putExtra(VideoPlayerActivity.EXTRA_AUTH, authorization)
+        .putExtra(VideoPlayerActivity.EXTRA_TITLE, title)
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    reactApplicationContext.startActivity(intent)
+  }
+
   override fun setDriveCredentials(json: String, promise: Promise) {
     val update =
       try {

@@ -118,7 +118,21 @@ class DriveCredentialStore(private val context: Context) {
     get() = display.getBoolean(K_DEFAULTS_OFF, false)
 
   /** Saved values, else the build defaults (unless removed). */
-  fun read(): DriveCredentials? = saved() ?: if (defaultsDisabled) null else defaults()
+  /**
+   * Saved values, else the build defaults (unless removed). Build defaults
+   * are copied into the encrypted store the first time they are used, so
+   * from then on everything comes from the local store (editable in
+   * Settings) — and a later build without `.env` values keeps working.
+   */
+  fun read(): DriveCredentials? = saved() ?: adoptDefaults()
+
+  /** Copies the build defaults into the store once; null if none / removed. */
+  private fun adoptDefaults(): DriveCredentials? {
+    if (defaultsDisabled) return null
+    val d = defaults() ?: return null
+    save(d)
+    return d
+  }
 
   fun save(credentials: DriveCredentials): Boolean {
     if (!secure.save(credentials.toJson())) return false
@@ -146,8 +160,9 @@ class DriveCredentialStore(private val context: Context) {
 
   /** What Settings may show. Never the secret or the token. */
   fun statusJson(): JSONObject {
+    if (saved() == null) adoptDefaults()
     val stored = saved()
-    val active = stored ?: if (defaultsDisabled) null else defaults()
+    val active = stored
     return JSONObject()
       .put("configured", active != null)
       .put("source", if (stored != null) "saved" else if (active != null) "default" else "none")

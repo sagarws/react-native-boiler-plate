@@ -74,6 +74,9 @@
     <string name="audio_share_allow">Allow</string>
     <string name="audio_share_deny">Deny</string>
 
+    <!-- File Management -->
+    <string name="video_play_failed">This video can\'t be played here. Open it in Google Drive instead.</string>
+
     <!-- Speak with pagination -->
     <string name="reading_mode_pagination">Speak + next page</string>
     <string name="pagination_status_page">Page %1$d</string>
