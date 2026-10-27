@@ -8,7 +8,12 @@ import {
   toDriveError,
   toItem,
 } from '../repository/drive.repository';
-import { fileKind, formatSize, formatWhen } from '../utils/format';
+import {
+  fileKind,
+  formatSize,
+  formatWhen,
+  sizedThumbnail,
+} from '../utils/format';
 
 jest.mock('@/specs/NativeScreenOcr', () => ({
   __esModule: true,
@@ -17,7 +22,14 @@ jest.mock('@/specs/NativeScreenOcr', () => ({
 
 const request = jest.fn();
 const upload = jest.fn();
-setDriveClientForTest({ request, upload } as unknown as DriveClient);
+const readText = jest.fn();
+setDriveClientForTest({
+  request,
+  upload,
+  readText,
+  mediaUrl: (id: string) => `https://drive/${id}?alt=media`,
+  token: () => Promise.resolve('tok'),
+} as unknown as DriveClient);
 
 beforeEach(() => {
   request.mockReset();
@@ -219,6 +231,34 @@ describe('errors the UI can explain', () => {
         mimeType: 'application/vnd.google-apps.document',
       }).size,
     ).toBe(0);
+  });
+});
+
+describe('previews', () => {
+  it('keeps Drive thumbnails and can ask for a bigger size', () => {
+    const item = toItem({
+      id: 'i',
+      name: 'a.png',
+      mimeType: 'image/png',
+      thumbnailLink: 'https://lh3.googleusercontent.com/abc=s220',
+    });
+    expect(item.thumbnailLink).toBe(
+      'https://lh3.googleusercontent.com/abc=s220',
+    );
+    expect(sizedThumbnail(item.thumbnailLink, 1600)).toBe(
+      'https://lh3.googleusercontent.com/abc=s1600',
+    );
+    expect(sizedThumbnail('https://x/no-size', 100)).toBe('https://x/no-size');
+  });
+
+  it('gives full images an authorized source and reads text files in part', async () => {
+    await expect(driveRepository.mediaSource('img')).resolves.toEqual({
+      uri: 'https://drive/img?alt=media',
+      headers: { Authorization: 'Bearer tok' },
+    });
+    readText.mockResolvedValueOnce('hello');
+    await expect(driveRepository.readText('t')).resolves.toBe('hello');
+    expect(readText).toHaveBeenCalledWith('t', 64 * 1024);
   });
 });
 

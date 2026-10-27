@@ -56,6 +56,8 @@ export interface DriveItem {
   modifiedAt: number;
   description: string;
   webViewLink: string;
+  /** Short-lived thumbnail URL from Drive (no auth needed), or ''. */
+  thumbnailLink: string;
   /** "Anyone with the link" has been granted. */
   shared: boolean;
 }

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -17,6 +18,7 @@ import {
   formatSize,
   formatWhen,
   type FileKind,
+  sizedThumbnail,
 } from '../utils/format';
 
 const KIND_ICONS: Record<FileKind, IconName> = {
@@ -35,6 +37,8 @@ export interface FileRowProps {
   busy: boolean;
   divider: boolean;
   onOpenFolder: (item: DriveItem) => void;
+  /** Tapping a file opens its preview. */
+  onPreview: (item: DriveItem) => void;
   onOpen: (item: DriveItem) => void;
   onShare: (item: DriveItem) => void;
   onDelete: (item: DriveItem) => void;
@@ -47,6 +51,7 @@ export function FileRow({
   busy,
   divider,
   onOpenFolder,
+  onPreview,
   onOpen,
   onShare,
   onDelete,
@@ -56,6 +61,8 @@ export function FileRow({
   const { colors, typography, spacing, radius } = useTheme();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(item.description);
+  const [thumbFailed, setThumbFailed] = useState(false);
+  const thumbnail = !item.isFolder && item.thumbnailLink && !thumbFailed;
 
   const meta = [formatSize(item.size), formatWhen(item.modifiedAt)]
     .filter(Boolean)
@@ -103,11 +110,14 @@ export function FileRow({
       testID={`file-row-${item.id}`}
     >
       <Pressable
-        accessibilityRole={item.isFolder ? 'button' : undefined}
+        accessibilityRole="button"
         accessibilityLabel={
-          item.isFolder ? t('files.openFolder', { name: item.name }) : undefined
+          item.isFolder
+            ? t('files.openFolder', { name: item.name })
+            : t('files.previewFile', { name: item.name })
         }
-        onPress={item.isFolder ? () => onOpenFolder(item) : undefined}
+        onPress={() => (item.isFolder ? onOpenFolder(item) : onPreview(item))}
+        testID={`file-open-row-${item.id}`}
         style={[styles.row, { gap: spacing.md }]}
       >
         <View
@@ -121,11 +131,21 @@ export function FileRow({
             },
           ]}
         >
-          <Icon
-            name={icon}
-            size={20}
-            color={item.isFolder ? colors.primaryText : colors.textSecondary}
-          />
+          {thumbnail ? (
+            <Image
+              source={{ uri: sizedThumbnail(item.thumbnailLink, 160) }}
+              style={[styles.thumb, { borderRadius: radius.md }]}
+              onError={() => setThumbFailed(true)}
+              accessibilityIgnoresInvertColors
+              testID={`file-thumb-${item.id}`}
+            />
+          ) : (
+            <Icon
+              name={icon}
+              size={20}
+              color={item.isFolder ? colors.primaryText : colors.textSecondary}
+            />
+          )}
         </View>
         <View style={styles.flex}>
           <Text
@@ -238,11 +258,13 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center' },
   actions: { justifyContent: 'flex-end', gap: 4 },
   flex: { flex: 1, minWidth: 0 },
+  thumb: { width: 48, height: 48 },
   tile: {
-    width: 40,
-    height: 40,
+    width: 48,
+    height: 48,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   action: {
     width: 44,

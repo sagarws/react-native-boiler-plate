@@ -633,7 +633,11 @@
     "error_shared_auth": "The shared Drive’s client or refresh token was rejected. Update them in Settings → File Management.",
     "error_api_disabled": "The Google Drive API is turned off for this app’s Google Cloud project. Enable “Google Drive API” in Google Cloud Console (APIs & Services → Library) for the project that holds the Android sign-in client, wait a minute, then tap Try again.",
     "grantAccess": "Allow Drive access",
-    "googleSays": "Google says: {{detail}}"
+    "googleSays": "Google says: {{detail}}",
+    "previewFile": "Preview {{name}}",
+    "closePreview": "Close preview",
+    "noPreview": "No preview for this type of file. Open it in Google Drive to view it.",
+    "playInDrive": "Play in Google Drive"
   },
   "driveCreds": {
     "section": "Shared Google Drive",

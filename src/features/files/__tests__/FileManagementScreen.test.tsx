@@ -29,7 +29,14 @@ const mockNative: Record<string, jest.Mock> = jest.requireMock(
 const signin = jest.requireMock('@react-native-google-signin/google-signin');
 
 const request = jest.fn();
-setDriveClientForTest({ request, upload: jest.fn() } as unknown as DriveClient);
+const readText = jest.fn();
+setDriveClientForTest({
+  request,
+  upload: jest.fn(),
+  readText,
+  mediaUrl: (id: string) => `https://drive/${id}?alt=media`,
+  token: () => Promise.resolve('tok'),
+} as unknown as DriveClient);
 
 const notConfigured = JSON.stringify({
   configured: false,
@@ -203,5 +210,53 @@ describe('File Management', () => {
       find(r, 'files-grant-access', 'onPress').props.onPress();
     });
     expect(has(r, 'files-empty')).toBe(true);
+  });
+
+  it('shows thumbnails and previews files full-screen', async () => {
+    mockNative.getDriveCredentialStatus.mockResolvedValue(sharedConfigured);
+    request.mockResolvedValueOnce({ files: [] }).mockResolvedValueOnce({
+      files: [
+        {
+          id: 'p1',
+          name: 'photo.png',
+          mimeType: 'image/png',
+          thumbnailLink: 'https://lh3.googleusercontent.com/p1=s220',
+        },
+        { id: 'n1', name: 'notes.txt', mimeType: 'text/plain' },
+        { id: 'z1', name: 'backup.zip', mimeType: 'application/zip' },
+      ],
+    });
+    const r = await render();
+    expect(find(r, 'file-thumb-p1', 'source').props.source).toEqual({
+      uri: 'https://lh3.googleusercontent.com/p1=s160',
+    });
+
+    // Image: full resolution with the Drive token.
+    await ReactTestRenderer.act(async () => {
+      find(r, 'file-open-row-p1', 'onPress').props.onPress();
+    });
+    expect(find(r, 'preview-image', 'source').props.source).toEqual({
+      uri: 'https://drive/p1?alt=media',
+      headers: { Authorization: 'Bearer tok' },
+    });
+    await ReactTestRenderer.act(async () => {
+      find(r, 'preview-close', 'onPress').props.onPress();
+    });
+
+    // Text: its contents.
+    readText.mockResolvedValueOnce('line one');
+    await ReactTestRenderer.act(async () => {
+      find(r, 'file-open-row-n1', 'onPress').props.onPress();
+    });
+    expect(find(r, 'preview-text', 'children').props.children).toBe('line one');
+    await ReactTestRenderer.act(async () => {
+      find(r, 'preview-close', 'onPress').props.onPress();
+    });
+
+    // No thumbnail and not text: details + Open in Drive.
+    await ReactTestRenderer.act(async () => {
+      find(r, 'file-open-row-z1', 'onPress').props.onPress();
+    });
+    expect(has(r, 'preview-none')).toBe(true);
   });
 });

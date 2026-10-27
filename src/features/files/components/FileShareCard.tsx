@@ -22,6 +22,7 @@ import { useTheme } from '@/theme';
 import type { UseFileBrowser } from '../hooks/useFileBrowser';
 import type { DriveItem, DriveSource } from '../types';
 import { CardHeader } from './CardHeader';
+import { FilePreview } from './FilePreview';
 import { FileRow } from './FileRow';
 
 export interface FileShareCardProps {
@@ -42,6 +43,7 @@ export function FileShareCard({ source, browser }: FileShareCardProps) {
   const [description, setDescription] = useState('');
   const [addingFolder, setAddingFolder] = useState(false);
   const [folderName, setFolderName] = useState('');
+  const [previewing, setPreviewing] = useState<DriveItem | null>(null);
 
   const items = [...browser.folders, ...browser.files];
 
@@ -363,6 +365,7 @@ export function FileShareCard({ source, browser }: FileShareCardProps) {
                     busy={browser.busyId === item.id}
                     divider={index > 0}
                     onOpenFolder={browser.openFolder}
+                    onPreview={setPreviewing}
                     onOpen={open}
                     onShare={row => {
                       void share(row);
@@ -376,6 +379,13 @@ export function FileShareCard({ source, browser }: FileShareCardProps) {
           </View>
         </View>
       )}
+      <FilePreview
+        item={previewing}
+        onClose={() => setPreviewing(null)}
+        onShare={item => {
+          void share(item);
+        }}
+      />
     </Card>
   );
 }

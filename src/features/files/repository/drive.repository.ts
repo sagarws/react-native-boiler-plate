@@ -99,6 +99,7 @@ export function toItem(file: DriveFile): DriveItem {
     description: file.description ?? '',
     webViewLink: file.webViewLink ?? '',
     shared: file.shared === true,
+    thumbnailLink: file.thumbnailLink ?? '',
   };
 }
 
@@ -326,6 +327,24 @@ export const driveRepository = {
         body: { trashed: true },
       });
     });
+  },
+
+  /**
+   * What an in-app preview needs for the file's full content: its URL and
+   * the Authorization header for the Drive in use.
+   */
+  mediaSource(
+    id: string,
+  ): Promise<{ uri: string; headers: Record<string, string> }> {
+    return wrap(async () => ({
+      uri: client().mediaUrl(id),
+      headers: { Authorization: `Bearer ${await client().token()}` },
+    }));
+  },
+
+  /** The start of a text file, for a preview (at most [maxBytes]). */
+  readText(id: string, maxBytes = 64 * 1024): Promise<string> {
+    return wrap(() => client().readText(id, maxBytes));
   },
 
   /** Grants "anyone with the link can view" and returns that link. */

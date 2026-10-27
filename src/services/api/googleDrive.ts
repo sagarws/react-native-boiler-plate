@@ -217,7 +217,46 @@ export function createDriveClient(getToken: DriveTokenProvider) {
     });
   }
 
-  return { request, upload };
+  /**
+   * The first [maxBytes] of a file's content as text (Range request), for
+   * previews. Never loads more than that into memory.
+   */
+  async function readText(fileId: string, maxBytes: number): Promise<string> {
+    const url = withQuery(`${API}/files/${encodeURIComponent(fileId)}`, {
+      alt: 'media',
+      supportsAllDrives: true,
+    });
+    const response = await authorizedFetch(url, {
+      method: 'GET',
+      headers: { Range: `bytes=0-${Math.max(0, maxBytes - 1)}` },
+    });
+    if (!response.ok && response.status !== 206) {
+      const data = await parse(response);
+      throw new ApiError(errorMessage(data, `Download failed (${response.status})`), {
+        status: response.status,
+        url,
+        body: data,
+      });
+    }
+    return response.text();
+  }
+
+  /** URL of a file's content; needs `Authorization: Bearer <token>`. */
+  function mediaUrl(fileId: string): string {
+    return withQuery(`${API}/files/${encodeURIComponent(fileId)}`, {
+      alt: 'media',
+      supportsAllDrives: true,
+    });
+  }
+
+  return {
+    request,
+    upload,
+    readText,
+    mediaUrl,
+    /** A current access token (for image requests that set their own headers). */
+    token: () => getToken(false),
+  };
 }
 
 export type DriveClient = ReturnType<typeof createDriveClient>;

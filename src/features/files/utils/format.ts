@@ -47,3 +47,9 @@ export function fileKind(mimeType: string, name: string): FileKind {
   }
   return 'other';
 }
+
+/** Drive thumbnail links end in `=s220`; ask for [px] instead. */
+export function sizedThumbnail(link: string, px: number): string {
+  const size = /[=]s\d+$/;
+  return size.test(link) ? link.replace(size, `=s${px}`) : link;
+}
