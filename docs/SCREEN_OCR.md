@@ -273,16 +273,18 @@ actions:
 scan → OCR (on device) → refine (if on) → translate the refined text (if on) → copy / speak
 ```
 
-- **Refine text** (Settings → Refine text): repairs OCR damage such as
+- **Refine text** (Settings → OCR → Refine text): repairs OCR damage such as
   broken or cut-off words, misread letters and stray symbols, which is
   common on old books. It is driven by an editable prompt. It must not add,
   summarise or translate.
-- **Apply translation** (Settings → Translation): translates into the target
+- **Apply translation** (Settings → OCR → Translation): translates into the target
   language using an editable prompt (`{target}`/`{source}` are substituted).
 - **Shared settings:** both steps use one API key, model (default
   `gemini-flash-latest`, Google's always-current Flash alias) and thinking
   level (default `low`, retried once without it if a model rejects it). All
-  three are set in the Translation card.
+  three are set in the shared **Settings → General → Gemini AI** card, which
+  any future AI feature uses too. They are stored with the translate settings
+  (`translate.model`, `translate.thinkingLevel`), where native reads them.
 - **What each action uses:** Copy copies the final text. Speak, Auto-scroll
   and Pagination speak it; a translation is spoken in the target language's
   voice. Auto-scroll's "same screen" check and Pagination's page check still
@@ -497,3 +499,16 @@ The emulator can run the UI, but the real capture path needs a device.
    - a banking app or DRM video gives "No readable text found"
    - revoking the overlay in system settings, then reopening the app, shows the revoked
      notice
+
+## Settings layout
+
+Settings has two tabs:
+
+- **General:** Gemini AI (API key, model, thinking level, project number and
+  connection test, shared by every AI feature), Speech & voice, Share voice
+  to Chrome, Appearance, Language and About.
+- **OCR:** OCR language, Floating button, Auto-scroll reading, Speak with
+  pagination, Refine text, Translation, and Clipboard & history.
+
+The home screen is titled **OCR**: it is the OCR part of the app.
+

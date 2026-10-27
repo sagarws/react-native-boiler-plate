@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { BrandLogo, Icon } from '@/shared/components';
 import { useTheme } from '@/theme';
@@ -11,7 +11,7 @@ export interface HomeTopBarProps {
 
 export function HomeTopBar({ onMenu, onSettings }: HomeTopBarProps) {
   const { t } = useTranslation();
-  const { colors, spacing } = useTheme();
+  const { colors, spacing, typography } = useTheme();
 
   const iconButton = (
     label: string,
@@ -36,7 +36,19 @@ export function HomeTopBar({ onMenu, onSettings }: HomeTopBarProps) {
   return (
     <View style={[styles.row, { paddingHorizontal: spacing.sm }]}>
       {iconButton(t('home.openMenu'), 'menu', onMenu, 'home-menu')}
-      <BrandLogo size={32} style={styles.brand} />
+      <View style={styles.brand}>
+        <BrandLogo size={32} variant="mark" />
+        <Text
+          accessibilityRole="header"
+          testID="home-title"
+          style={[
+            typography.h2,
+            { color: colors.textPrimary, marginLeft: spacing.sm },
+          ]}
+        >
+          {t('home.title')}
+        </Text>
+      </View>
       {iconButton(
         t('home.openSettings'),
         'settings',
@@ -49,7 +61,7 @@ export function HomeTopBar({ onMenu, onSettings }: HomeTopBarProps) {
 
 const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 56 },
-  brand: { flex: 1, marginLeft: 4 },
+  brand: { flex: 1, marginLeft: 4, flexDirection: 'row', alignItems: 'center' },
   iconButton: {
     width: 48,
     height: 48,

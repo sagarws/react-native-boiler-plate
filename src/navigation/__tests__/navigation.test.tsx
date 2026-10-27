@@ -196,14 +196,49 @@ describe('after onboarding', () => {
     expect(textsOf(renderer.root)).toContain('No extractions yet');
   });
 
+  it('splits Settings into General and OCR tabs', async () => {
+    const renderer = await renderApp();
+    // Home is the OCR part of the app.
+    expect(
+      renderer.root.findAll(n => n.props.testID === 'home-title')[0].props
+        .children,
+    ).toBe('OCR');
+    await pressLabel(renderer, 'Open settings');
+    // General (default): shared and app-wide settings.
+    let texts = textsOf(renderer.root);
+    for (const title of [
+      'Gemini AI',
+      'Speech & voice',
+      'Share voice to Chrome',
+    ]) {
+      expect(texts).toContain(title);
+    }
+    expect(texts).not.toContain('Clipboard & history');
+    // OCR: everything about capturing and processing screen text.
+    await pressId(renderer, 'settings-tab-ocr');
+    texts = textsOf(renderer.root);
+    for (const title of [
+      'OCR language',
+      'Floating button',
+      'Auto-scroll reading',
+      'Speak with pagination',
+      'Refine text',
+      'Translation',
+      'Clipboard & history',
+    ]) {
+      expect(texts).toContain(title);
+    }
+    expect(texts).not.toContain('Gemini AI');
+  });
+
   it('shows every settings group collapsed to a one-line summary', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-tab-ocr');
     const texts = textsOf(renderer.root);
     for (const title of [
       'OCR language',
       'Floating button',
-      'Speech & voice',
       'Auto-scroll reading',
       'Speak with pagination',
       'Clipboard & history',
@@ -221,6 +256,7 @@ describe('after onboarding', () => {
   it('keeps one settings group open at a time and never changes values when collapsing', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-ocr-header');
     await pressId(renderer, 'ocr-mode-gujarati');
     expect(captureSettingsStore.read().ocrMode).toBe('gujarati');
@@ -241,6 +277,7 @@ describe('after onboarding', () => {
   it('changes the OCR language from Settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-ocr-header');
 
     await pressId(renderer, 'ocr-mode-english');
@@ -251,6 +288,7 @@ describe('after onboarding', () => {
   it('offers all seven OCR modes, including Gujarati combinations', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-ocr-header');
     const texts = textsOf(renderer.root);
     for (const label of [
@@ -271,6 +309,7 @@ describe('after onboarding', () => {
   it('selects the floating-button click action and persists it', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-floating-header');
     expect(textsOf(renderer.root)).toContain('Action on floating button click');
 
@@ -285,6 +324,7 @@ describe('after onboarding', () => {
   it('offers Speak with pagination as the fourth action, with its settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-floating-header');
     const texts = textsOf(renderer.root);
     expect(texts).toContain('Copy text only');
@@ -307,6 +347,7 @@ describe('after onboarding', () => {
     // Without the native module the speech section says so instead of guessing.
     expect(textsOf(renderer.root)).toContain('Speech needs Android.');
 
+    await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-reading-header');
     expect(textsOf(renderer.root)).toContain(
       'Why auto-scroll needs accessibility access',
@@ -324,6 +365,7 @@ describe('after onboarding', () => {
   it('turns history off from Settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-clipboard-header');
     const toggle = renderer.root.findAll(
       n => n.props.testID === 'settings-save-history' && n.props.onValueChange,

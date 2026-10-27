@@ -54,10 +54,10 @@
     <!-- Apply translation (Gemini) -->
     <string name="translate_status_translating">Translating…</string>
     <string name="translate_status_translating_to">Translating to %1$s…</string>
-    <string name="translate_error_no_key">Refinement or translation is on but no Gemini API key is saved (Settings → Translation)</string>
+    <string name="translate_error_no_key">Refinement or translation is on but no Gemini API key is saved (Settings → General → Gemini AI)</string>
     <string name="refine_status_refining">Refining text…</string>
     <string name="translate_error_no_consent">Turn on Apply translation in Settings → Translation</string>
-    <string name="translate_error_model">The Gemini model isn\'t available for this key. Pick another in Settings → Translation.</string>
+    <string name="translate_error_model">The Gemini model isn\'t available for this key. Pick another in Settings → General → Gemini AI.</string>
     <string name="translate_error_no_internet">No internet connection — translation needs the network</string>
     <string name="translate_error_invalid_key">The Gemini API key was rejected. Check it in Settings.</string>
     <string name="translate_error_api_disabled">The Gemini API isn\'t enabled for this key\'s project</string>

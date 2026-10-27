@@ -33,6 +33,8 @@ import { SpeechSection } from '../components/SpeechSection';
 import { TranslateSection } from '../components/TranslateSection';
 import { RefineSection } from '../components/RefineSection';
 import { AudioShareSection } from '../components/AudioShareSection';
+import { GeminiSection } from '../components/GeminiSection';
+import { SettingsTabs, type SettingsTab } from '../components/SettingsTabs';
 
 type Toast = 'historyCleared' | 'resetPositionDone' | null;
 
@@ -46,14 +48,18 @@ type SectionKey =
   | 'refine'
   | 'audioShare'
   | 'translate'
+  | 'gemini'
   | 'clipboard';
 
 /**
- * Settings, grouped: OCR language · Floating button · Speech & voice ·
- * Auto-scroll reading · Speak with pagination · Clipboard & history ·
- * Appearance · About & privacy. The large groups are an accordion — one open
- * at a time, each collapsed to a one-line summary of its current state —
- * so everything fits without long scrolling.
+ * Settings in two tabs:
+ * - General: Gemini AI (shared by every AI feature) · Speech & voice ·
+ *   Share voice to Chrome · Appearance · Language · About.
+ * - OCR: OCR language · Floating button · Auto-scroll reading · Speak with
+ *   pagination · Refine text · Translation · Clipboard & history.
+ * The large groups are an accordion — one open at a time, each collapsed to
+ * a one-line summary of its current state — so everything fits without long
+ * scrolling.
  * Every control writes through the capture settings store, which persists
  * immediately and is mirrored to the native service.
  */
@@ -66,6 +72,11 @@ export default function SettingsScreen() {
   const overlay = useOverlayController();
   const [toast, setToast] = useState<Toast>(null);
   const [open, setOpen] = useState<SectionKey | null>(null);
+  const [tab, setTab] = useState<SettingsTab>('general');
+  const chooseTab = (next: SettingsTab) => {
+    setTab(next);
+    setOpen(null);
+  };
   const section = (key: SectionKey) => ({
     expanded: open === key,
     onToggle: () => setOpen(current => (current === key ? null : key)),
@@ -109,7 +120,17 @@ export default function SettingsScreen() {
       ]}
     >
       <Header label={t('settings.title')} />
+      <SettingsTabs
+        value={tab}
+        onChange={chooseTab}
+        accessibilityLabel={t('settings.tabsLabel')}
+        tabs={[
+          { value: 'general', label: t('settings.tabGeneral') },
+          { value: 'ocr', label: t('settings.tabOcr') },
+        ]}
+      />
       <ScrollView
+        key={tab}
         testID="settings-scroll"
         contentContainerStyle={{
           padding: spacing.lg,
@@ -125,131 +146,141 @@ export default function SettingsScreen() {
           />
         ) : null}
 
-        <ExpandableCard
-          title={t('ocrMode.label')}
-          summary={t(`ocrMode.${settings.ocrMode}`)}
-          icon="languages"
-          footer={`${t('settings.ocrHint')} ${t('ocrMode.engineNote')}`}
-          padded
-          testID="settings-ocr"
-          {...section('ocr')}
-        >
-          <OcrModePicker
-            value={settings.ocrMode}
-            onChange={ocrMode => update({ ocrMode })}
-          />
-        </ExpandableCard>
-
-        <FloatingButtonSection
-          overlay={overlay}
-          onResetPosition={() => setToast('resetPositionDone')}
-          {...section('floating')}
-        />
-
-        <SpeechSection {...section('speech')} />
-
-        <ReadingSection {...section('reading')} />
-
-        <PaginationSection {...section('pagination')} />
-
-        <RefineSection {...section('refine')} />
-
-        <TranslateSection {...section('translate')} />
-
-        <AudioShareSection {...section('audioShare')} />
-
-        <ExpandableCard
-          title={t('settings.sectionClipboard')}
-          summary={t('settings.summaryClipboard', {
-            copy: onOff(settings.autoCopy),
-            history: onOff(settings.saveHistory),
-          })}
-          icon="clipboardCheck"
-          footer={t('settings.privacyNote')}
-          testID="settings-clipboard"
-          {...section('clipboard')}
-        >
-          <ListRow
-            icon="clipboardCheck"
-            title={t('settings.autoCopy')}
-            subtitle={t('settings.autoCopyHint')}
-            right={
-              <SettingSwitch
-                testID="settings-auto-copy"
-                value={settings.autoCopy}
-                onChange={autoCopy => update({ autoCopy })}
-                label={t('settings.autoCopy')}
+        {tab === 'ocr' ? (
+          <>
+            <ExpandableCard
+              title={t('ocrMode.label')}
+              summary={t(`ocrMode.${settings.ocrMode}`)}
+              icon="languages"
+              footer={`${t('settings.ocrHint')} ${t('ocrMode.engineNote')}`}
+              padded
+              testID="settings-ocr"
+              {...section('ocr')}
+            >
+              <OcrModePicker
+                value={settings.ocrMode}
+                onChange={ocrMode => update({ ocrMode })}
               />
-            }
-          />
-          <ListRow
-            divider
-            icon="history"
-            title={t('settings.saveHistory')}
-            subtitle={t('settings.saveHistoryHint')}
-            right={
-              <SettingSwitch
-                testID="settings-save-history"
-                value={settings.saveHistory}
-                onChange={saveHistory => update({ saveHistory })}
-                label={t('settings.saveHistory')}
+            </ExpandableCard>
+
+            <FloatingButtonSection
+              overlay={overlay}
+              onResetPosition={() => setToast('resetPositionDone')}
+              {...section('floating')}
+            />
+
+            <ReadingSection {...section('reading')} />
+
+            <PaginationSection {...section('pagination')} />
+
+            <RefineSection {...section('refine')} />
+
+            <TranslateSection {...section('translate')} />
+
+            <ExpandableCard
+              title={t('settings.sectionClipboard')}
+              summary={t('settings.summaryClipboard', {
+                copy: onOff(settings.autoCopy),
+                history: onOff(settings.saveHistory),
+              })}
+              icon="clipboardCheck"
+              footer={t('settings.privacyNote')}
+              testID="settings-clipboard"
+              {...section('clipboard')}
+            >
+              <ListRow
+                icon="clipboardCheck"
+                title={t('settings.autoCopy')}
+                subtitle={t('settings.autoCopyHint')}
+                right={
+                  <SettingSwitch
+                    testID="settings-auto-copy"
+                    value={settings.autoCopy}
+                    onChange={autoCopy => update({ autoCopy })}
+                    label={t('settings.autoCopy')}
+                  />
+                }
               />
-            }
-          />
-          <ListRow
-            divider
-            destructive
-            icon="trash2"
-            title={t('settings.clearHistory')}
-            onPress={onClearHistory}
-            testID="settings-clear-history"
-          />
-        </ExpandableCard>
+              <ListRow
+                divider
+                icon="history"
+                title={t('settings.saveHistory')}
+                subtitle={t('settings.saveHistoryHint')}
+                right={
+                  <SettingSwitch
+                    testID="settings-save-history"
+                    value={settings.saveHistory}
+                    onChange={saveHistory => update({ saveHistory })}
+                    label={t('settings.saveHistory')}
+                  />
+                }
+              />
+              <ListRow
+                divider
+                destructive
+                icon="trash2"
+                title={t('settings.clearHistory')}
+                onPress={onClearHistory}
+                testID="settings-clear-history"
+              />
+            </ExpandableCard>
+          </>
+        ) : (
+          <>
+            <GeminiSection {...section('gemini')} />
 
-        <SettingsSection title={t('settings.sectionAppearance')}>
-          <ListRow
-            icon="palette"
-            title={t('settings.appearanceRow')}
-            subtitle={`${t(`appearance.preset_${preset}`)} · ${t(
-              `appearance.typography_${typographyPreset}`,
-            )}`}
-            onPress={() => navigation.navigate(ROUTES.APPEARANCE)}
-            testID="settings-appearance"
-          />
-        </SettingsSection>
+            <SpeechSection {...section('speech')} />
 
-        {FEATURES.languageSetting ? (
-          <SettingsSection title={t('settings.language')} padded>
-            <LanguageDropdown value={language} onChange={setLanguage} />
-          </SettingsSection>
-        ) : null}
+            <AudioShareSection {...section('audioShare')} />
 
-        <SettingsSection title={t('settings.sectionAbout')}>
-          <ListRow
-            icon="shieldCheck"
-            title={t('settings.aboutRow')}
-            onPress={() => navigation.navigate(ROUTES.ABOUT)}
-            testID="settings-about"
-          />
-          <ListRow
-            divider
-            icon="info"
-            title={t('settings.version')}
-            right={
-              <Text style={[typography.body, { color: colors.textSecondary }]}>
-                {appVersion}
-              </Text>
-            }
-          />
-        </SettingsSection>
+            <SettingsSection title={t('settings.sectionAppearance')}>
+              <ListRow
+                icon="palette"
+                title={t('settings.appearanceRow')}
+                subtitle={`${t(`appearance.preset_${preset}`)} · ${t(
+                  `appearance.typography_${typographyPreset}`,
+                )}`}
+                onPress={() => navigation.navigate(ROUTES.APPEARANCE)}
+                testID="settings-appearance"
+              />
+            </SettingsSection>
 
-        {FEATURES.auth ? (
-          <Button
-            label={t('settings.signOut')}
-            variant="danger"
-            onPress={onSignOut}
-          />
-        ) : null}
+            {FEATURES.languageSetting ? (
+              <SettingsSection title={t('settings.language')} padded>
+                <LanguageDropdown value={language} onChange={setLanguage} />
+              </SettingsSection>
+            ) : null}
+
+            <SettingsSection title={t('settings.sectionAbout')}>
+              <ListRow
+                icon="shieldCheck"
+                title={t('settings.aboutRow')}
+                onPress={() => navigation.navigate(ROUTES.ABOUT)}
+                testID="settings-about"
+              />
+              <ListRow
+                divider
+                icon="info"
+                title={t('settings.version')}
+                right={
+                  <Text
+                    style={[typography.body, { color: colors.textSecondary }]}
+                  >
+                    {appVersion}
+                  </Text>
+                }
+              />
+            </SettingsSection>
+
+            {FEATURES.auth ? (
+              <Button
+                label={t('settings.signOut')}
+                variant="danger"
+                onPress={onSignOut}
+              />
+            ) : null}
+          </>
+        )}
       </ScrollView>
     </View>
   );

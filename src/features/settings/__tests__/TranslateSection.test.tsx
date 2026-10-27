@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactTestRenderer, { type ReactTestInstance } from 'react-test-renderer';
+import ReactTestRenderer from 'react-test-renderer';
 import '@/i18n';
 import { captureSettingsStore } from '@/features/capture/store/captureSettings.store';
 import { storage } from '@/store/mmkv';
@@ -20,15 +20,6 @@ jest.mock('@/specs/NativeScreenOcr', () => ({
 const mockNative: Record<string, jest.Mock> = jest.requireMock(
   '@/specs/NativeScreenOcr',
 ).default;
-
-const KEY = 'AIzaSyFakeKeyForTests0123456789';
-
-function textsOf(root: ReactTestInstance): string[] {
-  return root
-    .findAllByType('Text' as never, { deep: true })
-    .flatMap(node => node.children)
-    .filter((child): child is string => typeof child === 'string');
-}
 
 function find(
   renderer: ReactTestRenderer.ReactTestRenderer,
@@ -89,99 +80,10 @@ describe('Translation card', () => {
       find(r, 'translate-enabled', 'onValueChange').props.onValueChange(true),
     );
     expect(captureSettingsStore.read().translate.enabled).toBe(true);
-    // On without a key: says so.
+    // On without a key: points to the shared Gemini AI settings.
     expect(
       r.root.findAll(n => n.props.testID === 'translate-needs-key').length,
     ).toBeGreaterThan(0);
-  });
-
-  it('saves the key to native storage and clears it from the input right away', async () => {
-    mockNative.setGeminiKey.mockResolvedValue(true);
-    const r = await render();
-    await act(() =>
-      find(r, 'translate-key-input', 'onChangeText').props.onChangeText(KEY),
-    );
-    mockNative.getGeminiKeyStatus.mockResolvedValue(
-      JSON.stringify({ hasKey: true, hint: '6789' }),
-    );
-    await act(() => find(r, 'translate-save-key', 'onPress').props.onPress());
-    expect(mockNative.setGeminiKey).toHaveBeenCalledWith(KEY);
-    expect(find(r, 'translate-key-input', 'value').props.value).toBe('');
-    expect(textsOf(r.root)).toContain('Saved key ending in …6789');
-    expect(JSON.stringify(r.toJSON())).not.toContain(KEY);
-    expect(
-      find(r, 'translate-key-input', 'secureTextEntry').props.secureTextEntry,
-    ).toBe(true);
-  });
-
-  it('Test connection lists models and shows Google’s exact error', async () => {
-    mockNative.getGeminiKeyStatus.mockResolvedValue(
-      JSON.stringify({ hasKey: true, hint: '6789' }),
-    );
-    mockNative.listGeminiModels.mockResolvedValue(
-      JSON.stringify({
-        outcome: 'ok',
-        models: [
-          { id: 'gemini-flash-latest', displayName: 'Gemini Flash Latest' },
-          { id: 'gemini-3-flash', displayName: 'Gemini 3 Flash' },
-        ],
-      }),
-    );
-    mockNative.testGeminiKey.mockResolvedValue(
-      JSON.stringify({
-        outcome: 'model_not_found',
-        status: 404,
-        detail: 'models/gemini-2.5-flash is not found',
-      }),
-    );
-    const r = await render();
-    await act(() => find(r, 'translate-test', 'onPress').props.onPress());
-    const result = find(r, 'translate-test-result', 'message');
-    expect(result.props.message).toContain(
-      'This model isn’t available for your key.',
-    );
-    expect(result.props.message).toContain(
-      'Google says (HTTP 404): models/gemini-2.5-flash is not found',
-    );
-
-    // Pick a listed model.
-    await act(() =>
-      find(r, 'translate-models-gemini-3-flash', 'onPress').props.onPress(),
-    );
-    expect(captureSettingsStore.read().translate.model).toBe('gemini-3-flash');
-  });
-
-  it('sets the thinking level', async () => {
-    const r = await render();
-    await act(() =>
-      find(r, 'translate-thinking-high', 'onPress').props.onPress(),
-    );
-    expect(captureSettingsStore.read().translate.thinkingLevel).toBe('high');
-  });
-
-  it('saves a valid project number and rejects anything else', async () => {
-    const r = await render();
-    expect(find(r, 'translate-project', 'value').props.value).toBe(
-      '49677894119',
-    );
-    await act(() =>
-      find(r, 'translate-project-save', 'onPress').props.onPress(),
-    );
-    expect(captureSettingsStore.read().translate.projectNumber).toBe(
-      '49677894119',
-    );
-    await act(() =>
-      find(r, 'translate-project', 'onChangeText').props.onChangeText('12'),
-    );
-    await act(() =>
-      find(r, 'translate-project-save', 'onPress').props.onPress(),
-    );
-    expect(find(r, 'translate-project-message', 'message').props.message).toBe(
-      'A project number has digits only.',
-    );
-    expect(captureSettingsStore.read().translate.projectNumber).toBe(
-      '49677894119',
-    );
   });
 
   it('chooses the target language, warns about a missing voice, edits the prompt', async () => {
