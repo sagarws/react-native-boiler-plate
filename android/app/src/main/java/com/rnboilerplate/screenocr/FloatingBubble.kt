@@ -154,6 +154,7 @@ class FloatingBubble(
         FloatingAction.COPY -> R.drawable.ic_copy
         FloatingAction.SPEAK -> R.drawable.ic_volume_2
         FloatingAction.SPEAK_SCROLL -> R.drawable.ic_scroll_text
+        FloatingAction.SPEAK_PAGINATION -> R.drawable.ic_book_open
       },
     )
     params.width = sizePx

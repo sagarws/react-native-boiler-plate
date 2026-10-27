@@ -238,6 +238,21 @@ describe('after onboarding', () => {
     expect(captureSettingsStore.read().action).toBe('speak_scroll');
   });
 
+  it('offers Speak with pagination as the fourth action, with its settings', async () => {
+    const renderer = await renderApp();
+    await pressLabel(renderer, 'Open settings');
+    const texts = textsOf(renderer.root);
+    expect(texts).toContain('Copy text only');
+    expect(texts).toContain('Start speaking');
+    expect(texts).toContain('Speak with auto-scroll');
+    expect(texts).toContain('Speak with pagination');
+    expect(texts).toContain('Next Page button');
+
+    await pressId(renderer, 'floating-action-speak_pagination');
+    expect(captureSettingsStore.read().action).toBe('speak_pagination');
+    expect(checked(renderer, 'floating-action-speak_pagination')).toBe(true);
+  });
+
   it('shows Speech & voice and Auto-scroll reading settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');

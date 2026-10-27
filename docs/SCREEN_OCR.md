@@ -101,6 +101,7 @@ use and reused until the service stops.
 | Copy text only | capture → OCR → clipboard + toast. No speech, no scrolling. |
 | Start speaking | capture → OCR → speak. A controller appears (Pause/Resume, Restart, Copy, Stop). No scrolling. |
 | Speak with auto-scroll | a reading session over the whole page (below) |
+| Speak with pagination | read a page, press the pinned Next button once, verify the page turned, continue (below) |
 
 The bubble carries a small badge for the current action (copy / speaker / scroll icon)
 and shows a speaker while reading. While a session runs, tapping the bubble pauses or
@@ -154,6 +155,112 @@ An overlay **cannot** scroll another app. Android allows that only through an
 - **Play Store:** the service is declared `isAccessibilityTool="false"`. Publishing
   requires the Play accessibility declaration and a prominent disclosure (in-app text:
   `reading.disclosure`).
+
+### Speak with pagination (`PaginationSession.kt`)
+
+For PDFs, e-books and viewers that change pages with a Next button instead of
+scrolling.
+
+```
+IDLE → CAPTURING_SCREEN → RUNNING_OCR → SPEAKING_PAGE ─(speech done)─► CLICKING_NEXT_PAGE
+         ▲                                                               │ exactly one click
+         │                                       WAITING_FOR_PAGE_CHANGE ◄┘
+         │                                               │ page-load delay
+         └── new page (that capture is spoken) ◄─ VERIFYING_PAGE_CHANGE ─(timeout)─► NEEDS_ATTENTION
+any active state ─► PAUSED / STOPPED / COMPLETED / ERROR
+```
+
+- **Read, then click.** Next is pressed only after the TTS queue for the page reports
+  completion (or the user chose "Next page now").
+- **One click per page.** After the click, the screen is re-captured every 1.5 s until
+  the timeout (default 6 s), but Next is never pressed again automatically.
+- **Recovery is explicit.** If no new page appears, the session stops in
+  `NEEDS_ATTENTION` ("The next page could not be detected"). The controller offers
+  **Retry once** (one per prompt), **Reposition** and **Stop**. An empty page offers
+  **Skip page**.
+- **Page-change test** (`PageChangeDetector`):
+  - the share of lines with a fuzzy match on the previous capture must fall below 75%;
+  - a clock, cursor or page counter changes one line, which stays above that;
+  - pages with little text use a 64-bit dHash of the frame instead.
+- **Ending.** A page matching one of the last five read means the viewer wrapped round
+  or stopped at the end, so the session completes. There is also a page limit
+  (default 50).
+- **Headers and footers.** Running headers, footers and bare page numbers ("12",
+  "Page 3 of 10", "पृष्ठ ५", "પાનું ૩") are trimmed, but only at the edges of the page.
+  Repeated sentences in the body are kept.
+- **Pause and stop.**
+  - Pause stops speech and resumes from the current sentence group. During a page
+    turn it holds before reading the new page.
+  - Stop cancels speech, timers and verification.
+  - A generation counter makes sure no late callback can press Next.
+- **Interruptions:** audio focus and screen-off behave as in the other read-aloud
+  modes.
+
+#### Pinning the Next button (`TargetPicker.kt`)
+
+1. Settings → Speak with pagination → **Locate Next Page Button** (the floating button
+   must be on). Tapping the bubble without a usable pin also opens the picker.
+2. A draggable crosshair and a control bar appear over whatever app is open. The user
+   switches to the document app and drags the crosshair onto the Next button. The
+   crosshair window consumes the drag, so the app underneath is never tapped.
+3. **Fixed position / Moves with page** chooses the anchor. **Save** stores it,
+   **Cancel** discards it. Nothing is saved without Save, and both windows are removed
+   before any later click.
+4. It can be repositioned from Settings or from the controller's Reposition button,
+   and cleared from Settings.
+
+#### How the target is stored (`PaginationTarget.kt`)
+
+The target is stored in native SharedPreferences as JSON. The fields:
+
+| Field | Meaning |
+|---|---|
+| `x`, `y` | crosshair centre from `View.getLocationOnScreen` |
+| `coordinateSpace` | `physical_screen_px`: full default display, current rotation. This is the space `dispatchGesture` and `getBoundsInScreen` use, so no conversion is needed. |
+| `geometry` | width, height, densityDpi, rotation, and system-bar/cutout insets at calibration |
+| `anchor` | `screen` (fixed) or `content` (moves with the page) |
+| `node` | accessibility identity of the control under the pin (view id, content description, text, class, size), when readable |
+| `packageName` | foreground app at calibration |
+| `calibratedAt` | timestamp |
+
+**Validation** (`TargetValidator`) runs on app start (Settings shows the status) and
+again **before every click**:
+- a change in rotation, size or density, or for fixed targets a system-bar height
+  change of more than 4 px, makes the target invalid;
+- an invalid target is never clicked; the user is asked to reposition;
+- no coordinate transform is guessed.
+
+**Resolution at click time** (`ScrollAccessibilityService.clickTarget`):
+- **Fixed:**
+  - find the clickable node at the pinned point; if it matches the recorded identity,
+    use its own `ACTION_CLICK`;
+  - otherwise tap at the pinned point with a 60 ms accessibility gesture;
+  - document scrolling does not move it, by design.
+- **Moves with page:**
+  - search the active window for the node whose identity matches best
+    (`NodeMatcher`: view id dominant, then description, then text);
+  - click it, or tap its current centre;
+  - if no node matches, the session stops with "The Next button isn't on screen".
+    It never taps the old point.
+- **Not identifiable:** a moving target with no readable identity is refused when
+  saving and stored as fixed instead, with a toast. A pinned point cannot follow
+  arbitrary layout changes, and the app does not pretend it can.
+- **App check:** if a different app is in the foreground than the one pinned, the
+  session stops instead of clicking.
+- **Our own overlays:** the bubble and controller are hidden for the click, as for
+  screenshots, so they are never under the tap.
+
+#### Permission
+
+Pressing a button in another app is only possible through an **accessibility
+service**:
+- it reuses the app's existing one, shown in Android settings as "Akshar page turner";
+- it is off until the user enables it; Settings shows its status and opens the
+  Accessibility page;
+- without it, the session doesn't start (toast), and a click attempt reports
+  "Turn on Akshar in Accessibility settings to press Next";
+- capabilities are unchanged: window content (to find the button or scroll container)
+  and gestures (to tap or swipe); no events are acted on.
 
 ---
 
@@ -239,10 +346,15 @@ android/app/src/main/java/com/rnboilerplate/screenocr/
   GujaratiRecognizer.kt          Tesseract guj+eng wrapper
   OcrTextAssembler.kt            pure multi-script merges + reading order     (JVM tests)
   ReadingSession.kt              read-aloud state machine                     (JVM tests)
+  PaginationSession.kt           speak-with-pagination state machine           (JVM tests)
+  PaginationTarget.kt            pinned-target model, validation, node matching (JVM tests)
+  PageChange.kt                  page-turn detection, header/footer trimming   (JVM tests)
+  TargetPicker.kt                crosshair overlay for pinning the Next button
+  ScreenGeometryReader.kt        current display geometry in gesture coordinates
   TextDedup.kt                   new-text detection between screenshots       (JVM tests)
   SpeechSegmenter.kt             sentence segmentation + per-script voice     (JVM tests)
   SpeechPlayer.kt                Android TextToSpeech wrapper, capability report
-  ScrollAccessibilityService.kt  optional, scroll-only accessibility service
+  ScrollAccessibilityService.kt  optional accessibility service: scroll + press pinned button
   OcrConfig.kt                   settings mirror (JSON), position, pending queue
   ScreenOcrBus.kt                in-process hand-off + clipboard helper
 

@@ -55,6 +55,7 @@ export function buildNativeConfig(
       resumeAfterInterruption: speech.resumeAfterInterruption,
     },
     reading,
+    pagination: settings.pagination,
   };
 }
 

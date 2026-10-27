@@ -34,12 +34,17 @@ export const OCR_MODE_SCRIPTS: Record<OcrMode, readonly SpeechLanguage[]> = {
 };
 
 /** What a tap on the floating button does. */
-export type FloatingAction = 'copy' | 'speak' | 'speak_scroll';
+export type FloatingAction =
+  | 'copy'
+  | 'speak'
+  | 'speak_scroll'
+  | 'speak_pagination';
 
 export const FLOATING_ACTIONS: readonly FloatingAction[] = [
   'copy',
   'speak',
   'speak_scroll',
+  'speak_pagination',
 ];
 
 export function isFloatingAction(value: unknown): value is FloatingAction {
@@ -74,6 +79,35 @@ export interface SpeechSettings {
   /** In-app reading stops when you leave the screen; overlay reading stops when the screen turns off. */
   stopOnLeave: boolean;
   resumeAfterInterruption: boolean;
+}
+
+/** Speak with pagination: timing and limits for page turns. */
+export interface PaginationSettings {
+  /** Wait after pressing Next before checking the page. */
+  pageLoadDelayMs: number;
+  /** Stop waiting for a new page after this long (never re-clicks). */
+  verifyTimeoutMs: number;
+  maxPages: number;
+}
+
+/** Where the pinned Next button is and whether it is still usable. */
+export type TargetProblem =
+  | 'none'
+  | 'rotated'
+  | 'resized'
+  | 'density_changed'
+  | 'out_of_bounds'
+  | 'not_identifiable';
+
+export interface PaginationTargetStatus {
+  x: number;
+  y: number;
+  anchor: 'screen' | 'content';
+  packageName: string;
+  calibratedAt: number;
+  /** A matching accessibility node was recorded (enables exact clicks). */
+  hasNode: boolean;
+  problem: TargetProblem;
 }
 
 export interface ReadingSettings {
@@ -112,6 +146,7 @@ export interface CaptureSettings {
   bubbleOpacity: number;
   speech: SpeechSettings;
   reading: ReadingSettings;
+  pagination: PaginationSettings;
 }
 
 export type LanguageStatus = 'available' | 'missing_data' | 'not_supported';

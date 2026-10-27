@@ -49,3 +49,19 @@ export {
   OCR_MODE_SCRIPTS,
 } from './capture.types';
 export { FloatingActionPicker } from './components/FloatingActionPicker';
+export { usePaginationTarget } from './hooks/usePaginationTarget';
+export type { UsePaginationTarget } from './hooks/usePaginationTarget';
+export {
+  paginationService,
+  parseTargetStatus,
+} from './services/pagination.service';
+export {
+  PAGE_LOAD_DELAY,
+  VERIFY_TIMEOUT,
+  MAX_PAGES,
+} from './store/captureSettings.store';
+export type {
+  PaginationSettings,
+  PaginationTargetStatus,
+  TargetProblem,
+} from './capture.types';

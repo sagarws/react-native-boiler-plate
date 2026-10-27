@@ -24,6 +24,7 @@ import {
 import { appVersion } from '@/shared/utils';
 import { useTheme } from '@/theme';
 import { FloatingButtonSection } from '../components/FloatingButtonSection';
+import { PaginationSection } from '../components/PaginationSection';
 import { ReadingSection } from '../components/ReadingSection';
 import { SettingsSection } from '../components/SettingsSection';
 import { SettingSwitch } from '../components/SettingControls';
@@ -119,6 +120,8 @@ export default function SettingsScreen() {
         <SpeechSection />
 
         <ReadingSection />
+
+        <PaginationSection />
 
         <SettingsSection
           title={t('settings.sectionClipboard')}

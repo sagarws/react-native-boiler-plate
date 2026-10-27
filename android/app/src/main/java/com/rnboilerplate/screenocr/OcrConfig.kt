@@ -31,7 +31,11 @@ enum class OcrMode(val id: String, val latin: Boolean, val devanagari: Boolean, 
 enum class FloatingAction(val id: String) {
   COPY("copy"),
   SPEAK("speak"),
-  SPEAK_SCROLL("speak_scroll");
+  SPEAK_SCROLL("speak_scroll"),
+  SPEAK_PAGINATION("speak_pagination");
+
+  val readsAloud: Boolean
+    get() = this != COPY
 
   companion object {
     fun from(id: String?): FloatingAction = entries.firstOrNull { it.id == id } ?: COPY
@@ -78,6 +82,7 @@ data class OcrConfig(
   val panelTextColor: Int = Color.parseColor("#F3F1F8"),
   val speech: SpeechConfig = SpeechConfig(),
   val reading: ReadingConfig = ReadingConfig(),
+  val pagination: PaginationConfig = PaginationConfig(),
 ) {
   companion object {
     const val MIN_SIZE_DP = 40
@@ -132,6 +137,16 @@ data class OcrConfig(
             maxNoNewText = r.optInt("maxNoNewText", dr.maxNoNewText).coerceIn(1, 10),
             manualFallback = r.optBoolean("manualFallback", dr.manualFallback),
           ),
+        pagination =
+          (json.optJSONObject("pagination") ?: JSONObject()).let { p ->
+            val dp = PaginationConfig()
+            PaginationConfig(
+              pageLoadDelayMs = p.optLong("pageLoadDelayMs", dp.pageLoadDelayMs).coerceIn(300, 10_000),
+              verifyTimeoutMs = p.optLong("verifyTimeoutMs", dp.verifyTimeoutMs).coerceIn(1_000, 30_000),
+              verifyIntervalMs = dp.verifyIntervalMs,
+              maxPages = p.optInt("maxPages", dp.maxPages).coerceIn(1, 500),
+            )
+          },
       )
     }
   }
@@ -172,6 +187,22 @@ class OcrPrefs(context: Context) {
       .putBoolean(K_ON_RIGHT, position.onRight)
       .putFloat(K_Y_RATIO, position.yRatio.coerceIn(0f, 1f))
       .apply()
+  }
+
+  /** The pinned pagination target, if one was saved and parses. */
+  fun readTarget(): PaginationTarget? =
+    try {
+      prefs.getString(K_TARGET, null)?.let { PaginationTarget.fromJson(JSONObject(it)) }
+    } catch (_: JSONException) {
+      null
+    }
+
+  fun writeTarget(target: PaginationTarget) {
+    prefs.edit().putString(K_TARGET, target.toJson().toString()).apply()
+  }
+
+  fun clearTarget() {
+    prefs.edit().remove(K_TARGET).apply()
   }
 
   fun resetPosition() {
@@ -215,6 +246,7 @@ class OcrPrefs(context: Context) {
     const val K_ON_RIGHT = "bubbleOnRight"
     const val K_Y_RATIO = "bubbleYRatio"
     const val K_PENDING = "pendingResults"
+    const val K_TARGET = "paginationTarget"
     const val MAX_PENDING = 50
     const val DEFAULT_Y_RATIO = 0.35f
   }

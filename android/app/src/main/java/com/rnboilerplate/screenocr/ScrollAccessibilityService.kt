@@ -12,15 +12,16 @@ import android.view.accessibility.AccessibilityNodeInfo
 import java.lang.ref.WeakReference
 
 /**
- * Optional accessibility service used **only** to scroll the app being read
- * aloud in "Speak with auto-scroll" mode. An overlay cannot scroll another
- * app; Android allows it only through an accessibility service the user
- * turns on explicitly in system settings (never enabled by this app).
+ * Optional accessibility service used **only** for the two read-aloud modes
+ * that move the page: scrolling ("Speak with auto-scroll") and pressing the
+ * user-pinned Next button ("Speak with pagination"). An overlay cannot
+ * scroll or tap inside another app; Android allows it only through an
+ * accessibility service the user turns on explicitly in system settings
+ * (never enabled by this app).
  *
- * It does not read, store or send screen content: it looks for the largest
- * visible scrollable container in the active window and asks it to scroll
- * forward, falling back to a swipe gesture (for apps that expose no
- * scrollable node). It receives no events it acts on.
+ * It does not read, store or send screen content. It inspects the active
+ * window only to find the scrollable container or the pinned button (by its
+ * view id / description / text), and receives no events it acts on.
  */
 class ScrollAccessibilityService : AccessibilityService() {
   override fun onServiceConnected() {
@@ -35,6 +36,116 @@ class ScrollAccessibilityService : AccessibilityService() {
   override fun onDestroy() {
     if (instance?.get() === this) instance = null
     super.onDestroy()
+  }
+
+  /** Package of the app in the foreground, or "" if unknown. */
+  fun activePackage(): String = rootInActiveWindow?.packageName?.toString().orEmpty()
+
+  private fun identity(node: AccessibilityNodeInfo): NodeIdentity {
+    val bounds = Rect().also { node.getBoundsInScreen(it) }
+    return NodeIdentity(
+      viewId = node.viewIdResourceName.orEmpty(),
+      contentDescription = node.contentDescription?.toString().orEmpty(),
+      text = node.text?.toString().orEmpty().take(MAX_TEXT),
+      className = node.className?.toString().orEmpty(),
+      widthPx = bounds.width(),
+      heightPx = bounds.height(),
+    )
+  }
+
+  /** Breadth-first walk of the active window, bounded. */
+  private fun nodes(): Sequence<AccessibilityNodeInfo> = sequence {
+    val root = rootInActiveWindow ?: return@sequence
+    val queue = ArrayDeque<AccessibilityNodeInfo>()
+    queue += root
+    var visited = 0
+    while (queue.isNotEmpty() && visited < MAX_NODES) {
+      val node = queue.removeFirst()
+      visited++
+      yield(node)
+      for (i in 0 until node.childCount) node.getChild(i)?.let { queue += it }
+    }
+  }
+
+  /** The smallest visible clickable node containing the point (the button under the pin). */
+  private fun clickableAt(x: Int, y: Int): AccessibilityNodeInfo? {
+    val bounds = Rect()
+    return nodes()
+      .filter { it.isVisibleToUser && (it.isClickable || it.isFocusable) }
+      .filter { node -> node.getBoundsInScreen(bounds).let { bounds.contains(x, y) } }
+      .minByOrNull { node -> node.getBoundsInScreen(bounds).let { bounds.width().toLong() * bounds.height() } }
+  }
+
+  /** Identity of the control under a pinned point, for calibration; null when none is readable. */
+  fun identifyAt(x: Int, y: Int): NodeIdentity? =
+    clickableAt(x, y)?.let(::identity)?.takeIf { it.isIdentifiable || it.widthPx > 0 }
+
+  /**
+   * Presses the pinned Next button, in order of preference:
+   * 1. the matching node's own click action (exact, works when the app
+   *    exposes the button to accessibility);
+   * 2. a short tap gesture at the pinned point (fixed targets) or at the
+   *    re-located node's centre (content-relative targets).
+   * A content-relative target whose node cannot be found is not tapped at
+   * the old point — that is how the wrong control gets pressed.
+   */
+  fun clickTarget(target: PaginationTarget, onResult: (ClickOutcome) -> Unit) {
+    if (target.packageName.isNotEmpty()) {
+      val active = activePackage()
+      if (active.isNotEmpty() && active != target.packageName) {
+        onResult(ClickOutcome.APP_CHANGED)
+        return
+      }
+    }
+    val pinned = target.node
+    val node: AccessibilityNodeInfo? =
+      when {
+        pinned == null -> null
+        target.anchor == TargetAnchor.CONTENT ->
+          nodes()
+            .filter { it.isVisibleToUser }
+            .map { it to NodeMatcher.score(identity(it), pinned) }
+            .filter { it.second >= NodeMatcher.MIN_SCORE }
+            .maxByOrNull { it.second }
+            ?.first
+        else ->
+          clickableAt(target.x, target.y)?.takeIf {
+            !pinned.isIdentifiable || NodeMatcher.score(identity(it), pinned) >= NodeMatcher.MIN_SCORE
+          }
+      }
+    if (target.anchor == TargetAnchor.CONTENT && node == null) {
+      onResult(ClickOutcome.TARGET_NOT_FOUND)
+      return
+    }
+    if (node != null) {
+      val clickable = generateSequence(node) { it.parent }.take(4).firstOrNull { it.isClickable }
+      if (clickable != null && clickable.performAction(AccessibilityNodeInfo.ACTION_CLICK)) {
+        onResult(ClickOutcome.NODE)
+        return
+      }
+    }
+    val point =
+      node?.let { Rect().also { r -> it.getBoundsInScreen(r) }.let { r -> r.centerX() to r.centerY() } }
+        ?: (target.x to target.y)
+    tap(point.first.toFloat(), point.second.toFloat(), onResult)
+  }
+
+  private fun tap(x: Float, y: Float, onResult: (ClickOutcome) -> Unit) {
+    val gesture =
+      GestureDescription.Builder()
+        .addStroke(GestureDescription.StrokeDescription(Path().apply { moveTo(x, y) }, 0, TAP_MS))
+        .build()
+    val dispatched =
+      dispatchGesture(
+        gesture,
+        object : GestureResultCallback() {
+          override fun onCompleted(gestureDescription: GestureDescription?) = onResult(ClickOutcome.GESTURE)
+
+          override fun onCancelled(gestureDescription: GestureDescription?) = onResult(ClickOutcome.FAILED)
+        },
+        null,
+      )
+    if (!dispatched) onResult(ClickOutcome.FAILED)
   }
 
   /** Scrolls the foreground app forward; [onResult] reports whether anything was asked to move. */
@@ -100,6 +211,8 @@ class ScrollAccessibilityService : AccessibilityService() {
   companion object {
     private const val MAX_NODES = 400
     private const val SWIPE_MS = 450L
+    private const val TAP_MS = 60L
+    private const val MAX_TEXT = 80
 
     @Volatile private var instance: WeakReference<ScrollAccessibilityService>? = null
 

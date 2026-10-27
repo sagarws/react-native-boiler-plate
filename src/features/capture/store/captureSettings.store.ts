@@ -4,6 +4,7 @@ import {
   isOcrMode,
   isSpeechLanguage,
   type CaptureSettings,
+  type PaginationSettings,
   type ReadingSettings,
   type SpeechSettings,
 } from '../capture.types';
@@ -14,6 +15,15 @@ export const SPEECH_RATE = { min: 0.5, max: 2, step: 0.1 } as const;
 export const SPEECH_PITCH = { min: 0.5, max: 2, step: 0.1 } as const;
 export const MAX_SECTIONS = { min: 1, max: 100, step: 1 } as const;
 export const MAX_NO_NEW_TEXT = { min: 1, max: 5, step: 1 } as const;
+export const PAGE_LOAD_DELAY = { min: 500, max: 5000, step: 250 } as const;
+export const VERIFY_TIMEOUT = { min: 2000, max: 20000, step: 1000 } as const;
+export const MAX_PAGES = { min: 1, max: 200, step: 1 } as const;
+
+export const DEFAULT_PAGINATION_SETTINGS: PaginationSettings = {
+  pageLoadDelayMs: 1250,
+  verifyTimeoutMs: 6000,
+  maxPages: 50,
+};
 
 export const DEFAULT_SPEECH_SETTINGS: SpeechSettings = {
   language: 'en',
@@ -43,6 +53,7 @@ export const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
   bubbleOpacity: 0.9,
   speech: DEFAULT_SPEECH_SETTINGS,
   reading: DEFAULT_READING_SETTINGS,
+  pagination: DEFAULT_PAGINATION_SETTINGS,
 };
 
 function clamp(
@@ -108,6 +119,32 @@ export function sanitizeReadingSettings(raw: unknown): ReadingSettings {
   };
 }
 
+export function sanitizePaginationSettings(raw: unknown): PaginationSettings {
+  const d = DEFAULT_PAGINATION_SETTINGS;
+  const r = record(raw);
+  return {
+    pageLoadDelayMs: Math.round(
+      clamp(
+        r.pageLoadDelayMs,
+        PAGE_LOAD_DELAY.min,
+        PAGE_LOAD_DELAY.max,
+        d.pageLoadDelayMs,
+      ),
+    ),
+    verifyTimeoutMs: Math.round(
+      clamp(
+        r.verifyTimeoutMs,
+        VERIFY_TIMEOUT.min,
+        VERIFY_TIMEOUT.max,
+        d.verifyTimeoutMs,
+      ),
+    ),
+    maxPages: Math.round(
+      clamp(r.maxPages, MAX_PAGES.min, MAX_PAGES.max, d.maxPages),
+    ),
+  };
+}
+
 /** Field-by-field validation: one bad value never resets the others. */
 export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
   const d = DEFAULT_CAPTURE_SETTINGS;
@@ -128,6 +165,7 @@ export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
     ),
     speech: sanitizeSpeechSettings(r.speech),
     reading: sanitizeReadingSettings(r.reading),
+    pagination: sanitizePaginationSettings(r.pagination),
   };
 }
 
@@ -162,6 +200,12 @@ export const captureSettingsStore = {
     const current = captureSettingsStore.read();
     return captureSettingsStore.update({
       reading: { ...current.reading, ...patch },
+    });
+  },
+  updatePagination(patch: Partial<PaginationSettings>): CaptureSettings {
+    const current = captureSettingsStore.read();
+    return captureSettingsStore.update({
+      pagination: { ...current.pagination, ...patch },
     });
   },
   update(patch: Partial<CaptureSettings>): CaptureSettings {

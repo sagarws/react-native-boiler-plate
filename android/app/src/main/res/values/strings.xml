@@ -50,8 +50,36 @@
     <string name="reading_end_of_page">Reached the end of the page</string>
     <string name="reading_limit_reached">Stopped at the reading limit</string>
 
-    <!-- Auto-scroll accessibility service (shown in Android settings) -->
-    <string name="scroll_service_label">Akshar auto-scroll</string>
-    <string name="scroll_service_summary">Scrolls the page while Akshar reads it aloud</string>
-    <string name="scroll_service_description">Used only by Akshar\'s \"Speak with auto-scroll\" mode: after a section has been read aloud, it scrolls the app you are reading to show the next part. It does not read, store or send screen content, and does nothing while you are not using auto-scroll reading. Turn it off here at any time.</string>
+    <!-- Speak with pagination -->
+    <string name="reading_mode_pagination">Speak + next page</string>
+    <string name="pagination_status_page">Page %1$d</string>
+    <string name="pagination_status_clicking">Opening next page…</string>
+    <string name="pagination_status_waiting">Waiting for the page…</string>
+    <string name="pagination_recalibrate">Reposition Next button</string>
+    <string name="pagination_retry_once">Retry once</string>
+    <string name="pagination_skip_page">Skip this page</string>
+    <string name="pagination_next_now">Next page now</string>
+    <string name="pagination_issue_no_target">Pin the Next Page button first</string>
+    <string name="pagination_issue_target_invalid">The screen changed. Reposition the Next button.</string>
+    <string name="pagination_issue_target_not_found">The Next button isn\'t on screen</string>
+    <string name="pagination_issue_app_changed">A different app is open</string>
+    <string name="pagination_issue_no_permission">Turn on Akshar in Accessibility settings to press Next</string>
+    <string name="pagination_issue_click_failed">Couldn\'t press the Next button</string>
+    <string name="pagination_issue_page_not_changed">The next page could not be detected</string>
+    <string name="pagination_issue_empty_page">No readable text on this page</string>
+    <string name="pagination_issue_page_limit">Stopped at the page limit</string>
+    <string name="pagination_issue_last_page">Reached the last page</string>
+    <string name="pagination_target_saved">Next button position saved</string>
+    <string name="pagination_content_unavailable">This button can\'t be tracked as it moves, so its fixed screen position was saved</string>
+    <string name="picker_hint">Drag the crosshair onto the Next Page button, then tap Save.</string>
+    <string name="picker_marker">Next button marker. Drag to position.</string>
+    <string name="picker_cancel">Cancel</string>
+    <string name="picker_save">Save</string>
+    <string name="picker_anchor_screen">Fixed position</string>
+    <string name="picker_anchor_content">Moves with page</string>
+
+    <!-- Accessibility service (shown in Android settings) -->
+    <string name="scroll_service_label">Akshar page turner</string>
+    <string name="scroll_service_summary">Scrolls or turns the page while Akshar reads it aloud</string>
+    <string name="scroll_service_description">Used only by Akshar\'s read-aloud modes: \"Speak with auto-scroll\" scrolls the app you are reading after a section is read, and \"Speak with pagination\" presses the Next Page button you pinned after a page is read. It looks only for that scrollable area or button, does not read, store or send screen content, and does nothing while you are not using these modes. Turn it off here at any time.</string>
 </resources>

@@ -51,6 +51,19 @@ export interface Spec extends TurboModule {
   /** The auto-scroll accessibility service is enabled in system settings. */
   isScrollServiceEnabled(): Promise<boolean>;
   openAccessibilitySettings(): void;
+
+  /**
+   * JSON of the pinned pagination target plus `problem` (none / rotated /
+   * resized / density_changed / out_of_bounds / not_identifiable) checked
+   * against the current screen; '' when none is saved.
+   */
+  getPaginationTarget(): Promise<string>;
+  clearPaginationTarget(): void;
+  /**
+   * Shows the Next-button picker over other apps. Resolves 'started', or
+   * 'not_running' when the floating button is off.
+   */
+  startTargetCalibration(): Promise<string>;
 }
 
 export default TurboModuleRegistry.get<Spec>('ScreenOcr');

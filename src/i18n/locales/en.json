@@ -203,7 +203,7 @@
     "tipBattery": "The button does nothing in the background: some phones restrict background apps — allow this app to run unrestricted in battery settings.",
     "versionLine": "Version {{version}}",
     "permAccessibility": "Accessibility (optional)",
-    "permAccessibilityWhy": "Only for “Speak with auto-scroll”, and only if you turn it on in Android settings: scrolls the page being read. It reads, stores and sends nothing.",
+    "permAccessibilityWhy": "Optional, and only if you turn it on in Android settings: scrolls the page in “Speak with auto-scroll” and presses your pinned Next button in “Speak with pagination”. It reads, stores and sends nothing.",
     "ttsTitle": "Text-to-speech",
     "ttsBody": "Speech uses your phone's own text-to-speech engine (Google Speech Services when installed). Offline voices run on the device; voices marked “Needs internet” are processed by the engine provider. No API keys or accounts are involved.",
     "tipVoice": "No sound or a wrong accent: install the voice for that language in Settings → Speech & voice → Install voice data."
@@ -285,7 +285,9 @@
     "speak_scroll": "Speak with auto-scroll",
     "copy_description": "Extract the text and copy it to the clipboard.",
     "speak_description": "Extract the text and read it aloud, with a playback controller.",
-    "speak_scroll_description": "Read long pages: speak, scroll to the next part when speech ends, continue."
+    "speak_scroll_description": "Read long pages: speak, scroll to the next part when speech ends, continue.",
+    "speak_pagination": "Speak with pagination",
+    "speak_pagination_description": "For PDFs and e-books: read the page, press the Next button you pinned, continue on the next page."
   },
   "speech": {
     "section": "Speech & voice",
@@ -359,5 +361,40 @@
     "maxNoNewTextValue": "{{value}}",
     "manualFallback": "Manual scroll fallback",
     "manualFallbackHint": "Without auto-scroll: you scroll, then tap ▶ to continue"
+  },
+  "pagination": {
+    "section": "Speak with pagination",
+    "intro": "Reads one page, presses your pinned Next Page button once, checks that the page changed, then reads the next page.",
+    "howTo": "1. Turn on the floating button. 2. Tap “Locate Next Page Button”. 3. Open your document app, drag the crosshair onto its Next button and tap Save.",
+    "target": "Next Page button",
+    "notSet": "Not pinned yet",
+    "configured": "Pinned · {{anchor}}",
+    "anchor_screen": "fixed screen position",
+    "anchor_content": "moves with the page",
+    "exactClick": "Exact button found — it is pressed directly.",
+    "pointClick": "Pressed by tapping the pinned point.",
+    "savedFor": "Pinned in {{app}}",
+    "problem_rotated": "The screen was rotated since pinning. Reposition the button.",
+    "problem_resized": "The screen size or navigation bar changed since pinning. Reposition the button.",
+    "problem_density_changed": "Display size changed since pinning. Reposition the button.",
+    "problem_out_of_bounds": "The pinned point is off screen. Reposition the button.",
+    "problem_not_identifiable": "This button can’t be tracked as it moves. Pin it again with “Fixed position”.",
+    "locate": "Locate Next Page Button",
+    "reposition": "Reposition",
+    "clear": "Clear",
+    "clearConfirmTitle": "Clear the pinned button?",
+    "clearConfirm": "Speak with pagination will ask you to pin it again.",
+    "needsOverlay": "Turn on the floating button first; the crosshair appears over your document app.",
+    "pickerShown": "The crosshair is on screen. Switch to your document app, drag it onto the Next button and tap Save.",
+    "modesTitle": "Fixed or moving?",
+    "modes": "“Fixed position” suits toolbars and bottom bars that stay put while the document scrolls. “Moves with page” finds the button again by its accessibility label before each press — only possible when the app exposes one. A pin never follows unpredictable layout changes; if the screen changes, the app stops and asks you to reposition instead of pressing the wrong spot.",
+    "pageLoadDelay": "Wait after pressing Next",
+    "verifyTimeout": "Give up if the page doesn’t change after",
+    "seconds": "{{value}} s",
+    "maxPages": "Page limit",
+    "maxPagesValue": "{{value}} pages",
+    "permission": "Page-turn permission",
+    "permissionWhy": "Pressing a button in another app needs Akshar’s accessibility service (Settings → Accessibility → Installed apps → Akshar page turner). It is used only to press the button you pinned and to scroll in auto-scroll mode.",
+    "controls": "While reading: tap the bubble to pause or resume. The controller has Pause, Restart page, Next page now (Retry once / Skip page when stuck), Reposition and Stop. A failed page turn is never retried automatically."
   }
 }

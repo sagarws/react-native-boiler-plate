@@ -35,6 +35,8 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
     fun onPanelCopy()
 
     fun onPanelStop()
+
+    fun onPanelRecalibrate()
   }
 
   private val wm = context.getSystemService(WindowManager::class.java)
@@ -51,6 +53,8 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
   private val next = button(R.drawable.ic_skip_forward, R.string.reading_next) { listener.onPanelNext() }
   private val copy = button(R.drawable.ic_copy, R.string.reading_copy) { listener.onPanelCopy() }
   private val stop = button(R.drawable.ic_square, R.string.reading_stop) { listener.onPanelStop() }
+  private val recalibrate =
+    button(R.drawable.ic_crosshair, R.string.pagination_recalibrate) { listener.onPanelRecalibrate() }
 
   private val root =
     LinearLayout(context).apply {
@@ -67,7 +71,7 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
         }
       addView(modeIcon, LinearLayout.LayoutParams(dp(20), dp(20)).apply { marginEnd = dp(8) })
       addView(texts, LinearLayout.LayoutParams(dp(112), LinearLayout.LayoutParams.WRAP_CONTENT))
-      for (b in listOf(playPause, restart, next, copy, stop)) {
+      for (b in listOf(playPause, restart, next, recalibrate, copy, stop)) {
         addView(b, LinearLayout.LayoutParams(dp(44), dp(44)).apply { marginStart = dp(2) })
       }
       playPause.background = playBackground
@@ -120,12 +124,21 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
     status.setTextColor(config.panelTextColor)
     status.alpha = 0.75f
     modeIcon.imageTintList = ColorStateList.valueOf(config.bubbleColor)
-    for (b in listOf(restart, next, copy, stop)) b.imageTintList = text
+    for (b in listOf(restart, next, recalibrate, copy, stop)) b.imageTintList = text
     playPause.imageTintList = ColorStateList.valueOf(config.bubbleIconColor)
     modeIcon.setImageResource(
-      if (config.action == FloatingAction.SPEAK_SCROLL) R.drawable.ic_scroll_text else R.drawable.ic_volume_2,
+      when (config.action) {
+        FloatingAction.SPEAK_SCROLL -> R.drawable.ic_scroll_text
+        FloatingAction.SPEAK_PAGINATION -> R.drawable.ic_book_open
+        else -> R.drawable.ic_volume_2
+      },
     )
-    next.visibility = if (config.action == FloatingAction.SPEAK_SCROLL) View.VISIBLE else View.GONE
+    val pagination = config.action == FloatingAction.SPEAK_PAGINATION
+    next.visibility =
+      if (config.action == FloatingAction.SPEAK_SCROLL || pagination) View.VISIBLE else View.GONE
+    recalibrate.visibility = if (pagination) View.VISIBLE else View.GONE
+    // Keep the bar compact: in pagination mode Copy makes way for Recalibrate.
+    copy.visibility = if (pagination) View.GONE else View.VISIBLE
   }
 
   fun show(config: OcrConfig) {
@@ -149,6 +162,68 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
   fun setHiddenForCapture(hidden: Boolean) {
     root.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
   }
+
+  /** Status and controls for a Speak-with-pagination session. */
+  fun updatePagination(state: PaginationState, info: PaginationInfo) {
+    val res = context.resources
+    title.text = context.getString(R.string.reading_mode_pagination)
+    status.text =
+      when (state) {
+        PaginationState.CAPTURING_SCREEN -> context.getString(R.string.reading_status_capturing)
+        PaginationState.RUNNING_OCR -> context.getString(R.string.reading_status_ocr)
+        PaginationState.SPEAKING_PAGE -> context.getString(R.string.pagination_status_page, info.page)
+        PaginationState.PAUSED -> context.getString(R.string.reading_status_paused)
+        PaginationState.CLICKING_NEXT_PAGE -> context.getString(R.string.pagination_status_clicking)
+        PaginationState.WAITING_FOR_PAGE_CHANGE,
+        PaginationState.VERIFYING_PAGE_CHANGE -> context.getString(R.string.pagination_status_waiting)
+        PaginationState.NEEDS_ATTENTION -> context.getString(issueText(info.issue))
+        PaginationState.COMPLETED -> context.getString(R.string.reading_status_complete)
+        PaginationState.STOPPED -> context.getString(R.string.reading_status_stopped)
+        PaginationState.ERROR, PaginationState.IDLE -> context.getString(issueText(info.issue))
+      }
+    val paused = state == PaginationState.PAUSED
+    playPause.setImageResource(if (paused) R.drawable.ic_play else R.drawable.ic_pause)
+    playPause.contentDescription = res.getString(if (paused) R.string.reading_resume else R.string.reading_pause)
+    setEnabled(playPause, state == PaginationState.SPEAKING_PAGE || paused)
+    // Next: skip to the next page while reading; "Retry once" / "Skip page" when stuck.
+    val attention = state == PaginationState.NEEDS_ATTENTION
+    val canAct = attention && (info.canRetry || info.issue == PaginationIssue.EMPTY_PAGE)
+    next.setImageResource(if (attention) R.drawable.ic_rotate_ccw else R.drawable.ic_skip_forward)
+    next.contentDescription =
+      res.getString(
+        when {
+          attention && info.issue == PaginationIssue.EMPTY_PAGE -> R.string.pagination_skip_page
+          attention -> R.string.pagination_retry_once
+          else -> R.string.pagination_next_now
+        },
+      )
+    setEnabled(next, canAct || state == PaginationState.SPEAKING_PAGE || paused)
+    setEnabled(restart, state == PaginationState.SPEAKING_PAGE || paused)
+  }
+
+  private fun setEnabled(button: ImageButton, enabled: Boolean) {
+    button.isEnabled = enabled
+    button.alpha = if (enabled) 1f else 0.4f
+  }
+
+  private fun issueText(issue: PaginationIssue): Int =
+    when (issue) {
+      PaginationIssue.NO_TARGET -> R.string.pagination_issue_no_target
+      PaginationIssue.TARGET_INVALID -> R.string.pagination_issue_target_invalid
+      PaginationIssue.TARGET_NOT_FOUND -> R.string.pagination_issue_target_not_found
+      PaginationIssue.APP_CHANGED -> R.string.pagination_issue_app_changed
+      PaginationIssue.NO_PERMISSION -> R.string.pagination_issue_no_permission
+      PaginationIssue.CLICK_FAILED -> R.string.pagination_issue_click_failed
+      PaginationIssue.PAGE_NOT_CHANGED -> R.string.pagination_issue_page_not_changed
+      PaginationIssue.EMPTY_PAGE -> R.string.pagination_issue_empty_page
+      PaginationIssue.CAPTURE_FAILED -> R.string.screen_ocr_capture_failed
+      PaginationIssue.OCR_FAILED -> R.string.screen_ocr_failed
+      PaginationIssue.SPEECH_FAILED -> R.string.reading_error_speech
+      PaginationIssue.VOICE_MISSING -> R.string.reading_error_voice
+      PaginationIssue.PAGE_LIMIT -> R.string.pagination_issue_page_limit
+      PaginationIssue.LAST_PAGE -> R.string.pagination_issue_last_page
+      PaginationIssue.NONE -> R.string.reading_status_error
+    }
 
   fun update(state: ReadingState, info: ReadingInfo, autoScroll: Boolean) {
     val res = context.resources

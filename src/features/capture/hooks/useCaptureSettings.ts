@@ -2,6 +2,7 @@ import { useCallback, useSyncExternalStore } from 'react';
 import { captureSettingsStore } from '../store/captureSettings.store';
 import type {
   CaptureSettings,
+  PaginationSettings,
   ReadingSettings,
   SpeechSettings,
 } from '../capture.types';
@@ -11,6 +12,7 @@ export interface UseCaptureSettings {
   update: (patch: Partial<CaptureSettings>) => void;
   updateSpeech: (patch: Partial<SpeechSettings>) => void;
   updateReading: (patch: Partial<ReadingSettings>) => void;
+  updatePagination: (patch: Partial<PaginationSettings>) => void;
 }
 
 /** Live capture settings; `update` persists and notifies every subscriber. */
@@ -28,5 +30,8 @@ export function useCaptureSettings(): UseCaptureSettings {
   const updateReading = useCallback((patch: Partial<ReadingSettings>) => {
     captureSettingsStore.updateReading(patch);
   }, []);
-  return { settings, update, updateSpeech, updateReading };
+  const updatePagination = useCallback((patch: Partial<PaginationSettings>) => {
+    captureSettingsStore.updatePagination(patch);
+  }, []);
+  return { settings, update, updateSpeech, updateReading, updatePagination };
 }

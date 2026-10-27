@@ -224,6 +224,26 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     promise.resolve(ScrollAccessibilityService.isEnabled(reactApplicationContext))
   }
 
+  override fun getPaginationTarget(promise: Promise) {
+    val target = prefs.readTarget()
+    if (target == null) {
+      promise.resolve("")
+      return
+    }
+    val problem = TargetValidator.validate(target, ScreenGeometryReader.current(reactApplicationContext))
+    promise.resolve(target.toJson().put("problem", problem.id).toString())
+  }
+
+  override fun clearPaginationTarget() {
+    prefs.clearTarget()
+  }
+
+  override fun startTargetCalibration(promise: Promise) {
+    promise.resolve(
+      if (OverlayCaptureService.startCalibration(reactApplicationContext)) "started" else "not_running",
+    )
+  }
+
   override fun openAccessibilitySettings() {
     startSettings(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
   }

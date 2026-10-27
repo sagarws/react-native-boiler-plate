@@ -50,14 +50,17 @@ import org.json.JSONObject
  * - SPEAK — capture → OCR → speak, with the controller panel;
  * - SPEAK_SCROLL — a [ReadingSession] that speaks, scrolls (accessibility
  *   service, if the user enabled it) or waits for a manual scroll, and
- *   continues with the new text only.
+ *   continues with the new text only;
+ * - SPEAK_PAGINATION — a [PaginationSession] that speaks the page, presses
+ *   the user-pinned Next button once (accessibility service), verifies the
+ *   page turned and continues. The pin is set with [TargetPicker].
  *
  * One operation at a time: while a capture or a reading session is running,
  * further taps control it instead of starting another. Idle cost is one
  * window and an unattached virtual display: no polling, no frames rendered.
  */
 class OverlayCaptureService :
-  Service(), FloatingBubble.Listener, ReadingPanel.Listener, ReadingPorts {
+  Service(), FloatingBubble.Listener, ReadingPanel.Listener, ReadingPorts, TargetPicker.Listener {
   private val main = Handler(Looper.getMainLooper())
   private lateinit var prefs: OcrPrefs
   private var capturer: ScreenCapturer? = null
@@ -72,11 +75,16 @@ class OverlayCaptureService :
   private var focusRequest: AudioFocusRequest? = null
   private var pausedByFocusLoss = false
   private var lastText: String? = null
+  private var picker: TargetPicker? = null
+  private var pagination: PaginationSession? = null
 
   private val screenOffReceiver =
     object : BroadcastReceiver() {
       override fun onReceive(context: Context, intent: Intent) {
-        if (sessionConfig?.speech?.stopOnScreenOff == true) session?.stop()
+        if (sessionConfig?.speech?.stopOnScreenOff == true) {
+          session?.stop()
+          pagination?.stop()
+        }
       }
     }
 
@@ -112,6 +120,7 @@ class OverlayCaptureService :
         )
       }
       ACTION_RESET_POSITION -> bubble?.resetPosition()
+      ACTION_CALIBRATE -> startCalibration()
       else -> if (capturer == null) shutdown()
     }
     return START_NOT_STICKY
@@ -195,6 +204,13 @@ class OverlayCaptureService :
 
   override fun onBubbleTap() {
     if (capturer == null || bubble == null) return
+    if (picker?.isShowing == true) return
+    pagination?.let { current ->
+      if (current.state.isActive) {
+        current.togglePause()
+        return
+      }
+    }
     // A running session owns the button: a tap pauses/resumes it (or
     // continues after a manual scroll).
     session?.let { current ->
@@ -209,6 +225,7 @@ class OverlayCaptureService :
     when (config.action) {
       FloatingAction.COPY -> copyOnce(config)
       FloatingAction.SPEAK, FloatingAction.SPEAK_SCROLL -> startReading(config)
+      FloatingAction.SPEAK_PAGINATION -> startPagination(config)
     }
   }
 
@@ -237,10 +254,30 @@ class OverlayCaptureService :
     config: OcrConfig,
     onOcr: () -> Unit,
     onResult: (Result<String>, Long) -> Unit,
+  ) = captureAndRecognize(config, onOcr) { result, duration, _ -> onResult(result, duration) }
+
+  /** 9×8 difference hash of a frame, for detecting page turns on image-only pages. */
+  private fun fingerprint(bitmap: android.graphics.Bitmap): Long {
+    val small = android.graphics.Bitmap.createScaledBitmap(bitmap, 9, 8, true)
+    val pixels = IntArray(72)
+    small.getPixels(pixels, 0, 9, 0, 0, 9, 8)
+    if (small !== bitmap) small.recycle()
+    val grey =
+      IntArray(72) { i ->
+        val c = pixels[i]
+        (((c shr 16) and 0xFF) * 299 + ((c shr 8) and 0xFF) * 587 + (c and 0xFF) * 114) / 1000
+      }
+    return PageChangeDetector.dHash(grey)
+  }
+
+  private fun captureAndRecognize(
+    config: OcrConfig,
+    onOcr: () -> Unit,
+    onResult: (Result<String>, Long, Long) -> Unit,
   ) {
     val activeCapturer = capturer
     if (activeCapturer == null || capturing) {
-      onResult(Result.failure(CaptureFailed()), 0)
+      onResult(Result.failure(CaptureFailed()), 0, 0)
       return
     }
     capturing = true
@@ -259,9 +296,10 @@ class OverlayCaptureService :
           if (bitmap == null) {
             capturing = false
             bubble?.setProcessing(false)
-            onResult(Result.failure(CaptureFailed()), 0)
+            onResult(Result.failure(CaptureFailed()), 0, 0)
             return@capture
           }
+          val hash = fingerprint(bitmap)
           onOcr()
           val startedAt = SystemClock.elapsedRealtime()
           val ocr = engine ?: OcrEngine(this).also { engine = it }
@@ -271,7 +309,7 @@ class OverlayCaptureService :
             bubble?.setProcessing(false)
             // Never log recognised content — only the failure type.
             result.exceptionOrNull()?.let { Log.w(TAG, "OCR failed: ${it.javaClass.simpleName}") }
-            onResult(result, SystemClock.elapsedRealtime() - startedAt)
+            onResult(result, SystemClock.elapsedRealtime() - startedAt, hash)
           }
         }
       },
@@ -280,7 +318,7 @@ class OverlayCaptureService :
   }
 
   private fun copyOnce(config: OcrConfig) {
-    captureAndRecognize(config, onOcr = {}) { result, duration ->
+    captureAndRecognize(config, onOcr = {}) { result: Result<String>, duration: Long ->
       val text = result.getOrNull()
       val message =
         when {
@@ -318,7 +356,8 @@ class OverlayCaptureService :
 
   // ── Read aloud ─────────────────────────────────────────────────────────
 
-  private fun startReading(config: OcrConfig) {
+  /** Speech engine and controller panel for a read-aloud session. */
+  private fun prepareReadAloud(config: OcrConfig) {
     sessionConfig = config
     val wantedEngine =
       if (config.speech.preferGoogle && SpeechPlayer.isGoogleInstalled(this)) SpeechPlayer.GOOGLE_TTS else ""
@@ -333,13 +372,17 @@ class OverlayCaptureService :
       Log.w(TAG, "Panel window rejected: ${e.javaClass.simpleName}")
     }
     bubble?.setReading(true)
+  }
+
+  private fun startReading(config: OcrConfig) {
+    prepareReadAloud(config)
     val autoScroll = config.action == FloatingAction.SPEAK_SCROLL
     session = ReadingSession(autoScroll, config.reading, this).also { it.start() }
   }
 
   override fun captureText(onOcr: () -> Unit, onResult: (Result<String>) -> Unit) {
     val config = sessionConfig ?: return onResult(Result.failure(CaptureFailed()))
-    captureAndRecognize(config, onOcr) { result, duration ->
+    captureAndRecognize(config, onOcr) { result: Result<String>, duration: Long ->
       result.getOrNull()?.takeIf { it.isNotBlank() }?.let { text ->
         store(text, config, duration)
         if (config.speech.copyBeforeSpeaking) ClipboardHelper.copy(this, text, sensitive = true)
@@ -411,21 +454,32 @@ class OverlayCaptureService :
 
   // ── Panel ──────────────────────────────────────────────────────────────
 
+  private val paginationActive: Boolean
+    get() = pagination?.state?.isActive == true
+
   override fun onPanelPlayPause() {
     pausedByFocusLoss = false
-    session?.togglePause()
+    if (paginationActive) pagination?.togglePause() else session?.togglePause()
   }
 
   override fun onPanelRestart() {
-    session?.restartSection()
+    if (paginationActive) pagination?.restartPage() else session?.restartSection()
   }
 
   override fun onPanelNext() {
-    session?.next()
+    if (paginationActive) pagination?.next() else session?.next()
+  }
+
+  override fun onPanelRecalibrate() {
+    pagination?.stop()
+    panel?.remove()
+    startCalibration()
   }
 
   override fun onPanelCopy() {
-    val text = session?.currentText?.takeIf { it.isNotBlank() } ?: lastText
+    val text =
+      (if (paginationActive) pagination?.currentText else session?.currentText)?.takeIf { it.isNotBlank() }
+        ?: lastText
     if (text.isNullOrBlank()) return
     toast(
       if (ClipboardHelper.copy(this, text, sensitive = true)) R.string.screen_ocr_copied
@@ -435,6 +489,7 @@ class OverlayCaptureService :
 
   override fun onPanelStop() {
     session?.stop()
+    pagination?.stop()
     panel?.remove()
   }
 
@@ -442,17 +497,22 @@ class OverlayCaptureService :
 
   private val focusListener =
     AudioManager.OnAudioFocusChangeListener { change ->
-      val current = session ?: return@OnAudioFocusChangeListener
+      val paged = pagination?.takeIf { it.state.isActive }
+      val reading = session?.takeIf { it.state.isActive }
       when (change) {
         AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-          if (current.state == ReadingState.SPEAKING) {
-            current.pause()
+          val speaking =
+            paged?.state == PaginationState.SPEAKING_PAGE || reading?.state == ReadingState.SPEAKING
+          if (speaking) {
+            paged?.pause()
+            reading?.pause()
             pausedByFocusLoss = change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
           }
         }
         AudioManager.AUDIOFOCUS_GAIN -> {
           if (pausedByFocusLoss && sessionConfig?.speech?.resumeAfterInterruption == true) {
-            current.resume()
+            paged?.resume()
+            reading?.resume()
           }
           pausedByFocusLoss = false
         }
@@ -483,6 +543,155 @@ class OverlayCaptureService :
     focusRequest = null
   }
 
+  // ── Speak with pagination ─────────────────────────────────────────────
+
+  private fun startPagination(config: OcrConfig) {
+    val target = prefs.readTarget()
+    val problem = target?.let { TargetValidator.validate(it, ScreenGeometryReader.current(this)) }
+    if (target == null || problem != TargetProblem.NONE) {
+      // No usable pin: open the picker rather than click somewhere stale.
+      toast(if (target == null) R.string.pagination_issue_no_target else R.string.pagination_issue_target_invalid)
+      startCalibration()
+      return
+    }
+    if (ScrollAccessibilityService.running() == null) {
+      toast(R.string.pagination_issue_no_permission)
+      return
+    }
+    prepareReadAloud(config)
+    pagination = PaginationSession(config.pagination, paginationPorts).also { it.start() }
+  }
+
+  private val paginationPorts =
+    object : PaginationPorts {
+      override fun capture(onOcr: () -> Unit, onResult: (Result<PageSnapshot>) -> Unit) {
+        val config = sessionConfig ?: return onResult(Result.failure(CaptureFailed()))
+        captureAndRecognize(config, onOcr) { result: Result<String>, duration: Long, hash: Long ->
+          val text = result.getOrNull()
+          if (text == null) {
+            onResult(Result.failure(result.exceptionOrNull() ?: CaptureFailed()))
+          } else {
+            if (text.isNotBlank()) store(text, config, duration)
+            onResult(Result.success(PageSnapshot(text, hash)))
+          }
+        }
+      }
+
+      override fun speak(
+        text: String,
+        fromSegment: Int,
+        onProgress: (Int, Int) -> Unit,
+        onDone: () -> Unit,
+        onError: (ReadingReason) -> Unit,
+      ) {
+        val config = sessionConfig
+        if (config?.speech?.copyBeforeSpeaking == true) ClipboardHelper.copy(this@OverlayCaptureService, text, true)
+        this@OverlayCaptureService.speak(text, fromSegment, onProgress, onDone, onError)
+      }
+
+      override fun stopSpeech() = this@OverlayCaptureService.stopSpeech()
+
+      override fun clickNext(onResult: (ClickOutcome) -> Unit) {
+        val target = prefs.readTarget() ?: return onResult(ClickOutcome.TARGET_INVALID)
+        // Re-validated before every click: rotation / resize mid-session stops here.
+        if (TargetValidator.validate(target, ScreenGeometryReader.current(this@OverlayCaptureService)) !=
+          TargetProblem.NONE
+        ) {
+          return onResult(ClickOutcome.TARGET_INVALID)
+        }
+        val service = ScrollAccessibilityService.running() ?: return onResult(ClickOutcome.NO_PERMISSION)
+        // Our own windows must not be under the tap.
+        bubble?.setHiddenForCapture(true)
+        panel?.setHiddenForCapture(true)
+        main.postDelayed(
+          {
+            service.clickTarget(target) { outcome ->
+              main.post {
+                bubble?.setHiddenForCapture(false)
+                panel?.setHiddenForCapture(false)
+                onResult(outcome)
+              }
+            }
+          },
+          HIDE_BEFORE_CAPTURE_MS,
+        )
+      }
+
+      override fun schedule(delayMs: Long, block: () -> Unit) {
+        main.postDelayed(block, delayMs)
+      }
+
+      override fun onStateChanged(state: PaginationState, info: PaginationInfo) {
+        panel?.updatePagination(state, info)
+        if (state == PaginationState.NEEDS_ATTENTION) abandonAudioFocus()
+        if (state.isActive) return
+        abandonAudioFocus()
+        bubble?.setReading(false)
+        when (info.issue) {
+          PaginationIssue.PAGE_LIMIT -> toast(R.string.pagination_issue_page_limit)
+          PaginationIssue.LAST_PAGE -> toast(R.string.pagination_issue_last_page)
+          PaginationIssue.EMPTY_PAGE -> toast(R.string.screen_ocr_no_text)
+          PaginationIssue.CAPTURE_FAILED -> toast(R.string.screen_ocr_capture_failed)
+          PaginationIssue.SPEECH_FAILED -> toast(R.string.reading_error_speech)
+          PaginationIssue.VOICE_MISSING -> toast(R.string.reading_error_voice)
+          else -> Unit
+        }
+        val ended = pagination
+        main.postDelayed(
+          { if (pagination === ended && pagination?.state?.isActive != true) panel?.remove() },
+          PANEL_LINGER_MS,
+        )
+      }
+    }
+
+  /** Shows the crosshair picker (from Settings, the panel, or a tap with no valid pin). */
+  private fun startCalibration() {
+    if (bubble == null) return
+    session?.stop()
+    pagination?.stop()
+    panel?.remove()
+    val config = prefs.readConfig()
+    val saved = prefs.readTarget()
+    val created = picker ?: TargetPicker(overlayContext(), this).also { picker = it }
+    try {
+      bubble?.setHiddenForCapture(true)
+      created.show(config, saved?.x, saved?.y)
+    } catch (e: RuntimeException) {
+      Log.w(TAG, "Picker window rejected: ${e.javaClass.simpleName}")
+      bubble?.setHiddenForCapture(false)
+    }
+  }
+
+  override fun onPinned(x: Int, y: Int, anchor: TargetAnchor) {
+    bubble?.setHiddenForCapture(false)
+    val access = ScrollAccessibilityService.running()
+    // Identity of the control under the pin (needs the accessibility service).
+    val node = access?.identifyAt(x, y)
+    var chosen = anchor
+    if (chosen == TargetAnchor.CONTENT && node?.isIdentifiable != true) {
+      chosen = TargetAnchor.SCREEN
+      toast(R.string.pagination_content_unavailable)
+    } else {
+      toast(R.string.pagination_target_saved)
+    }
+    prefs.writeTarget(
+      PaginationTarget(
+        x = x,
+        y = y,
+        anchor = chosen,
+        geometry = ScreenGeometryReader.current(this),
+        node = node,
+        packageName = access?.activePackage().orEmpty(),
+        calibratedAt = System.currentTimeMillis(),
+      ),
+    )
+    ScreenOcrBus.notifyStatus()
+  }
+
+  override fun onPickerCancelled() {
+    bubble?.setHiddenForCapture(false)
+  }
+
   // ── Lifecycle ──────────────────────────────────────────────────────────
 
   private fun onProjectionStopped() {
@@ -506,6 +715,10 @@ class OverlayCaptureService :
     main.removeCallbacksAndMessages(null)
     session?.stop()
     session = null
+    pagination?.stop()
+    pagination = null
+    picker?.remove()
+    picker = null
     abandonAudioFocus()
     speech?.shutdown()
     speech = null
@@ -602,6 +815,7 @@ class OverlayCaptureService :
     private const val ACTION_STOP = "com.rnboilerplate.screenocr.STOP"
     private const val ACTION_CONFIG_CHANGED = "com.rnboilerplate.screenocr.CONFIG_CHANGED"
     private const val ACTION_RESET_POSITION = "com.rnboilerplate.screenocr.RESET_POSITION"
+    private const val ACTION_CALIBRATE = "com.rnboilerplate.screenocr.CALIBRATE"
     private const val EXTRA_RESULT_CODE = "resultCode"
     private const val EXTRA_RESULT_DATA = "resultData"
     private const val CHANNEL_ID = "screen_capture"
@@ -631,6 +845,13 @@ class OverlayCaptureService :
     fun notifyConfigChanged(context: Context) = sendIfRunning(context, ACTION_CONFIG_CHANGED)
 
     fun resetPosition(context: Context) = sendIfRunning(context, ACTION_RESET_POSITION)
+
+    /** Opens the Next-button picker; false when the floating button is not running. */
+    fun startCalibration(context: Context): Boolean {
+      if (!isRunning) return false
+      sendIfRunning(context, ACTION_CALIBRATE)
+      return true
+    }
 
     private fun sendIfRunning(context: Context, action: String) {
       if (!isRunning) return

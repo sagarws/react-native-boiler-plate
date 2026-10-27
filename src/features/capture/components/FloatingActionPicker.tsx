@@ -8,6 +8,7 @@ const ICONS: Record<FloatingAction, IconName> = {
   copy: 'copy',
   speak: 'volume2',
   speak_scroll: 'scrollText',
+  speak_pagination: 'bookOpen',
 };
 
 export interface FloatingActionPickerProps {
