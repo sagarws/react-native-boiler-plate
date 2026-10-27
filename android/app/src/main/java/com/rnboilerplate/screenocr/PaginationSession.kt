@@ -35,6 +35,7 @@ enum class PaginationIssue {
   VOICE_MISSING,
   PAGE_LIMIT,
   LAST_PAGE,
+  TRANSLATE_FAILED,
 }
 
 enum class ClickOutcome {
@@ -199,7 +200,11 @@ class PaginationSession(private val config: PaginationConfig, private val ports:
         if (gen == generation) {
           move(
             PaginationState.ERROR,
-            if (reason == ReadingReason.VOICE_MISSING) PaginationIssue.VOICE_MISSING else PaginationIssue.SPEECH_FAILED,
+            when (reason) {
+              ReadingReason.VOICE_MISSING -> PaginationIssue.VOICE_MISSING
+              ReadingReason.TRANSLATE_FAILED -> PaginationIssue.TRANSLATE_FAILED
+              else -> PaginationIssue.SPEECH_FAILED
+            },
           )
         }
       },

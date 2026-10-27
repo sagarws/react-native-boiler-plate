@@ -14,6 +14,7 @@ export type GeminiTestOutcome =
   | 'no_internet'
   | 'invalid_key'
   | 'api_disabled'
+  | 'model_not_found'
   | 'quota'
   | 'safety_blocked'
   | 'server'
@@ -27,6 +28,7 @@ const OUTCOMES: readonly GeminiTestOutcome[] = [
   'no_internet',
   'invalid_key',
   'api_disabled',
+  'model_not_found',
   'quota',
   'safety_blocked',
   'server',
@@ -35,6 +37,63 @@ const OUTCOMES: readonly GeminiTestOutcome[] = [
 ];
 
 const NO_KEY: GeminiKeyStatus = { hasKey: false, hint: '' };
+
+/** A Test connection / model-list result with Google's own explanation. */
+export interface GeminiReport {
+  outcome: GeminiTestOutcome;
+  /** HTTP status, 0 when none. */
+  status: number;
+  /** Google's error message (redacted natively), or ''. */
+  detail: string;
+}
+
+export interface GeminiModelInfo {
+  id: string;
+  displayName: string;
+}
+
+function outcomeOf(value: unknown): GeminiTestOutcome {
+  return OUTCOMES.includes(value as GeminiTestOutcome)
+    ? (value as GeminiTestOutcome)
+    : 'bad_response';
+}
+
+export function parseReport(json: string): GeminiReport {
+  try {
+    const r = JSON.parse(json) as Record<string, unknown>;
+    return {
+      outcome: outcomeOf(r.outcome),
+      status: typeof r.status === 'number' ? r.status : 0,
+      detail: typeof r.detail === 'string' ? r.detail.slice(0, 300) : '',
+    };
+  } catch {
+    return { outcome: 'bad_response', status: 0, detail: '' };
+  }
+}
+
+export function parseModels(json: string): GeminiModelInfo[] {
+  try {
+    const r = JSON.parse(json) as Record<string, unknown>;
+    if (!Array.isArray(r.models)) return [];
+    return r.models.flatMap(m => {
+      const o = (m && typeof m === 'object' ? m : {}) as Record<
+        string,
+        unknown
+      >;
+      return typeof o.id === 'string' && /^[A-Za-z0-9._-]+$/.test(o.id)
+        ? [
+            {
+              id: o.id,
+              displayName:
+                typeof o.displayName === 'string' ? o.displayName : o.id,
+            },
+          ]
+        : [];
+    });
+  } catch {
+    return [];
+  }
+}
 
 export function parseKeyStatus(json: string): GeminiKeyStatus {
   try {
@@ -87,15 +146,35 @@ export const translateService = {
     NativeScreenOcr?.clearGeminiKey();
   },
 
-  async test(): Promise<GeminiTestOutcome> {
-    if (!NativeScreenOcr) return 'unsupported';
+  async test(): Promise<GeminiReport> {
+    if (!NativeScreenOcr)
+      return { outcome: 'unsupported', status: 0, detail: '' };
     try {
-      const outcome = await NativeScreenOcr.testGeminiKey();
-      return OUTCOMES.includes(outcome as GeminiTestOutcome)
-        ? (outcome as GeminiTestOutcome)
-        : 'bad_response';
+      return parseReport(await NativeScreenOcr.testGeminiKey());
     } catch {
-      return 'server';
+      return { outcome: 'server', status: 0, detail: '' };
+    }
+  },
+
+  /** Models this key can call; empty with the report when listing failed. */
+  async listModels(): Promise<{
+    report: GeminiReport;
+    models: GeminiModelInfo[];
+  }> {
+    if (!NativeScreenOcr) {
+      return {
+        report: { outcome: 'unsupported', status: 0, detail: '' },
+        models: [],
+      };
+    }
+    try {
+      const json = await NativeScreenOcr.listGeminiModels();
+      return { report: parseReport(json), models: parseModels(json) };
+    } catch {
+      return {
+        report: { outcome: 'server', status: 0, detail: '' },
+        models: [],
+      };
     }
   },
 };

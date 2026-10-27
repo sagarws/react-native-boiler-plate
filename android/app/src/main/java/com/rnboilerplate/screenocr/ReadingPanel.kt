@@ -130,7 +130,6 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
       when (config.action) {
         FloatingAction.SPEAK_SCROLL -> R.drawable.ic_scroll_text
         FloatingAction.SPEAK_PAGINATION -> R.drawable.ic_book_open
-        FloatingAction.SPEAK_TRANSLATE -> R.drawable.ic_languages
         else -> R.drawable.ic_volume_2
       },
     )
@@ -164,49 +163,12 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
     root.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
   }
 
-  /** Status and controls for a Speak-with-translation session. */
-  fun updateTranslate(state: TranslateState, info: TranslateInfo, target: String) {
-    val res = context.resources
-    title.text = context.getString(R.string.reading_mode_translate, TranslationPrompt.languageName(target))
-    status.text =
-      when (state) {
-        TranslateState.CAPTURING -> context.getString(R.string.reading_status_capturing)
-        TranslateState.RUNNING_OCR -> context.getString(R.string.reading_status_ocr)
-        TranslateState.TRANSLATING -> context.getString(R.string.translate_status_translating)
-        TranslateState.SPEAKING ->
-          if (info.detectedLanguage.isNotEmpty()) {
-            context.getString(R.string.translate_status_from, TranslationPrompt.languageName(info.detectedLanguage))
-          } else {
-            context.getString(R.string.reading_status_speaking)
-          }
-        TranslateState.PAUSED -> context.getString(R.string.reading_status_paused)
-        TranslateState.COMPLETE -> context.getString(R.string.reading_status_complete)
-        TranslateState.STOPPED -> context.getString(R.string.reading_status_stopped)
-        TranslateState.ERROR, TranslateState.IDLE ->
-          context.getString(info.error?.let { translateErrorText(it) } ?: R.string.reading_status_error)
-      }
-    val paused = state == TranslateState.PAUSED
-    playPause.setImageResource(if (paused) R.drawable.ic_play else R.drawable.ic_pause)
-    playPause.contentDescription = res.getString(if (paused) R.string.reading_resume else R.string.reading_pause)
-    setEnabled(playPause, state == TranslateState.SPEAKING || paused)
-    setEnabled(restart, state == TranslateState.SPEAKING || paused || state == TranslateState.COMPLETE)
-    setEnabled(copy, state == TranslateState.SPEAKING || paused || state == TranslateState.COMPLETE)
-  }
-
-  fun translateErrorText(error: TranslateError): Int =
-    when (error) {
-      TranslateError.NO_KEY -> R.string.translate_error_no_key
-      TranslateError.NO_CONSENT -> R.string.translate_error_no_consent
-      TranslateError.NO_INTERNET -> R.string.translate_error_no_internet
-      TranslateError.INVALID_KEY -> R.string.translate_error_invalid_key
-      TranslateError.API_DISABLED -> R.string.translate_error_api_disabled
-      TranslateError.QUOTA -> R.string.translate_error_quota
-      TranslateError.SAFETY_BLOCKED -> R.string.translate_error_safety
-      TranslateError.SERVER -> R.string.translate_error_server
-      TranslateError.TIMEOUT -> R.string.translate_error_timeout
-      TranslateError.BAD_RESPONSE -> R.string.translate_error_bad_response
-      TranslateError.CANCELLED -> R.string.reading_status_stopped
+  /** While a translation is in flight the status line says so (any read-aloud mode). */
+  fun setTranslating(target: String?) {
+    if (target != null) {
+      status.text = context.getString(R.string.translate_status_translating_to, TranslationPrompt.languageName(target))
     }
+  }
 
   /** Status and controls for a Speak-with-pagination session. */
   fun updatePagination(state: PaginationState, info: PaginationInfo) {
@@ -267,6 +229,7 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
       PaginationIssue.VOICE_MISSING -> R.string.reading_error_voice
       PaginationIssue.PAGE_LIMIT -> R.string.pagination_issue_page_limit
       PaginationIssue.LAST_PAGE -> R.string.pagination_issue_last_page
+      PaginationIssue.TRANSLATE_FAILED -> R.string.translate_error_server
       PaginationIssue.NONE -> R.string.reading_status_error
     }
 
@@ -304,3 +267,20 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
     restart.alpha = if (canRestart) 1f else 0.4f
   }
 }
+
+/** Message for a translation failure (toasts, panel). */
+fun translateErrorRes(error: TranslateError): Int =
+  when (error) {
+    TranslateError.NO_KEY -> R.string.translate_error_no_key
+    TranslateError.NO_CONSENT -> R.string.translate_error_no_consent
+    TranslateError.NO_INTERNET -> R.string.translate_error_no_internet
+    TranslateError.INVALID_KEY -> R.string.translate_error_invalid_key
+    TranslateError.API_DISABLED -> R.string.translate_error_api_disabled
+    TranslateError.MODEL_NOT_FOUND -> R.string.translate_error_model
+    TranslateError.QUOTA -> R.string.translate_error_quota
+    TranslateError.SAFETY_BLOCKED -> R.string.translate_error_safety
+    TranslateError.SERVER -> R.string.translate_error_server
+    TranslateError.TIMEOUT -> R.string.translate_error_timeout
+    TranslateError.BAD_RESPONSE -> R.string.translate_error_bad_response
+    TranslateError.CANCELLED -> R.string.reading_status_stopped
+  }

@@ -83,11 +83,12 @@ export interface Spec extends TurboModule {
   getGeminiKeyStatus(): Promise<string>;
   /**
    * Sends a tiny translation request with the saved key and current
-   * settings. Resolves 'ok' or an error code (no_key, no_internet,
-   * invalid_key, api_disabled, quota, safety_blocked, server, timeout,
-   * bad_response).
+   * settings. Resolves JSON {"outcome": "ok" | error code, "status": HTTP
+   * status, "detail": Google's error message (redacted), "sample"}.
    */
   testGeminiKey(): Promise<string>;
+  /** JSON {"outcome", "models": [{"id", "displayName"}]} — the models this key can call. */
+  listGeminiModels(): Promise<string>;
   clearPaginationTarget(): void;
   /**
    * Shows the Next-button picker over other apps. Resolves 'started', or

@@ -121,6 +121,11 @@ android {
             }
         }
     }
+    // JVM unit tests: Android framework stubs (e.g. Color.parseColor in
+    // config defaults) return defaults instead of throwing.
+    testOptions {
+        unitTests.returnDefaultValues = true
+    }
     buildTypes {
         debug {
             signingConfig signingConfigs.debug

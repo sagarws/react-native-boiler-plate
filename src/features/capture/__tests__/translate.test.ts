@@ -4,6 +4,8 @@ import { buildNativeConfig } from '../services/screenOcr.service';
 import {
   looksLikeApiKey,
   parseKeyStatus,
+  parseModels,
+  parseReport,
   translateService,
 } from '../services/translate.service';
 import {
@@ -22,6 +24,7 @@ jest.mock('@/specs/NativeScreenOcr', () => ({
     clearGeminiKey: jest.fn(),
     getGeminiKeyStatus: jest.fn(),
     testGeminiKey: jest.fn(),
+    listGeminiModels: jest.fn(),
   },
 }));
 
@@ -37,74 +40,105 @@ afterEach(() => {
   captureSettingsStore.resetCacheForTest();
 });
 
-describe('fifth action', () => {
-  it('adds Speak with translation after the existing four, unchanged', () => {
+describe('translation is a switch, not an action', () => {
+  it('keeps exactly the four tap actions', () => {
     expect(FLOATING_ACTIONS).toEqual([
       'copy',
       'speak',
       'speak_scroll',
       'speak_pagination',
-      'speak_translate',
     ]);
   });
 
-  it('persists translation settings, and consent is off by default', () => {
-    expect(captureSettingsStore.read().translate.consent).toBe(false);
-    captureSettingsStore.update({ action: 'speak_translate' });
-    captureSettingsStore.updateTranslate({
-      consent: true,
-      target: 'gu',
-      source: 'en',
-      prompt: 'Formal {target}',
-    });
-    captureSettingsStore.resetCacheForTest();
-    const s = captureSettingsStore.read();
-    expect(s.action).toBe('speak_translate');
-    expect(s.translate).toEqual({
-      ...DEFAULT_TRANSLATE_SETTINGS,
-      consent: true,
-      target: 'gu',
-      source: 'en',
-      prompt: 'Formal {target}',
+  it('defaults: off, Hindi, auto-detect, gemini-flash-latest, low thinking', () => {
+    expect(DEFAULT_TRANSLATE_SETTINGS).toMatchObject({
+      enabled: false,
+      target: 'hi',
+      source: 'auto',
+      model: 'gemini-flash-latest',
+      thinkingLevel: 'low',
+      projectNumber: '',
     });
   });
 
-  it('validates translation settings field by field', () => {
+  it('migrates the short-lived fifth action and the old consent flag', () => {
+    const migrated = sanitizeCaptureSettings({
+      action: 'speak_translate',
+      translate: { target: 'gu' },
+    });
+    expect(migrated.action).toBe('speak');
+    expect(migrated.translate.enabled).toBe(true);
+    expect(migrated.translate.target).toBe('gu');
+    expect(
+      sanitizeCaptureSettings({ translate: { consent: true } }).translate
+        .enabled,
+    ).toBe(true);
+  });
+
+  it('persists every translation setting across restarts', () => {
+    captureSettingsStore.updateTranslate({
+      enabled: true,
+      target: 'en',
+      source: 'gu',
+      prompt: 'Formal {target}',
+      model: 'gemini-3-flash',
+      thinkingLevel: 'medium',
+      projectNumber: '49677894119',
+    });
+    captureSettingsStore.resetCacheForTest();
+    expect(captureSettingsStore.read().translate).toEqual({
+      enabled: true,
+      target: 'en',
+      source: 'gu',
+      prompt: 'Formal {target}',
+      model: 'gemini-3-flash',
+      thinkingLevel: 'medium',
+      projectNumber: '49677894119',
+    });
+  });
+
+  it('validates field by field', () => {
     const s = sanitizeCaptureSettings({
       translate: {
-        consent: 'yes',
+        enabled: 'yes',
         target: 'fr',
         source: 'xx',
         prompt: 'x'.repeat(5000),
         model: 'bad model!',
+        thinkingLevel: 'max',
+        projectNumber: 'proj-1',
       },
     });
-    expect(s.translate.consent).toBe(false);
-    expect(s.translate.target).toBe('hi');
-    expect(s.translate.source).toBe('auto');
+    expect(s.translate).toMatchObject({
+      enabled: false,
+      target: 'hi',
+      source: 'auto',
+      model: 'gemini-flash-latest',
+      thinkingLevel: 'low',
+      projectNumber: '',
+    });
     expect(s.translate.prompt).toHaveLength(MAX_TRANSLATE_PROMPT);
-    expect(s.translate.model).toBe('gemini-2.5-flash');
-    expect(
-      sanitizeCaptureSettings({ translate: { prompt: '   ' } }).translate
-        .prompt,
-    ).toBe(DEFAULT_TRANSLATE_SETTINGS.prompt);
   });
 
-  it('sends translation settings — but never a key — to native', () => {
+  it('sends translation settings — never a key — to native', () => {
     const config = buildNativeConfig(
       {
         ...DEFAULT_CAPTURE_SETTINGS,
-        translate: { ...DEFAULT_TRANSLATE_SETTINGS, consent: true },
+        translate: { ...DEFAULT_TRANSLATE_SETTINGS, enabled: true },
       },
       { background: '#000', icon: '#fff', panel: '#000', panelText: '#fff' },
     );
-    expect(config.translate.consent).toBe(true);
+    expect(config.translate).toMatchObject({
+      enabled: true,
+      model: 'gemini-flash-latest',
+      thinkingLevel: 'low',
+    });
     expect(JSON.stringify(config)).not.toMatch(/apiKey|AIza/);
   });
 });
 
 describe('Gemini key handling', () => {
-  it('JS only ever learns whether a key exists and its last four characters', async () => {
+  it('JS only learns whether a key exists and its last four characters', async () => {
     mockNative.getGeminiKeyStatus.mockResolvedValue(
       JSON.stringify({ hasKey: true, hint: '6789' }),
     );
@@ -126,15 +160,12 @@ describe('Gemini key handling', () => {
     expect(mockNative.setGeminiKey).not.toHaveBeenCalled();
   });
 
-  it('hands a trimmed key to native storage once', async () => {
+  it('hands a trimmed key to native once and never logs failures', async () => {
     mockNative.setGeminiKey.mockResolvedValue(true);
     await expect(translateService.saveKey(`  ${FAKE_KEY}  `)).resolves.toBe(
       true,
     );
     expect(mockNative.setGeminiKey).toHaveBeenCalledWith(FAKE_KEY);
-  });
-
-  it('never logs a failure that could contain the key', async () => {
     const spy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
@@ -145,12 +176,53 @@ describe('Gemini key handling', () => {
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
+});
 
-  it('maps test outcomes and treats unknown answers as bad responses', async () => {
-    mockNative.testGeminiKey.mockResolvedValue('invalid_key');
-    await expect(translateService.test()).resolves.toBe('invalid_key');
-    mockNative.testGeminiKey.mockResolvedValue('weird');
-    await expect(translateService.test()).resolves.toBe('bad_response');
+describe('connection test reports', () => {
+  it("passes Google's own error through, so a bad model is diagnosable", async () => {
+    mockNative.testGeminiKey.mockResolvedValue(
+      JSON.stringify({
+        outcome: 'model_not_found',
+        status: 404,
+        detail: 'models/gemini-2.5-flash is not found',
+      }),
+    );
+    await expect(translateService.test()).resolves.toEqual({
+      outcome: 'model_not_found',
+      status: 404,
+      detail: 'models/gemini-2.5-flash is not found',
+    });
+  });
+
+  it('treats unknown or malformed reports as unexpected answers', () => {
+    expect(parseReport(JSON.stringify({ outcome: 'weird' })).outcome).toBe(
+      'bad_response',
+    );
+    expect(parseReport('not json')).toEqual({
+      outcome: 'bad_response',
+      status: 0,
+      detail: '',
+    });
+  });
+
+  it('lists the models the key can use', async () => {
+    mockNative.listGeminiModels.mockResolvedValue(
+      JSON.stringify({
+        outcome: 'ok',
+        models: [
+          { id: 'gemini-flash-latest', displayName: 'Gemini Flash Latest' },
+          { id: 'gemini-3-flash', displayName: 'Gemini 3 Flash' },
+          { id: 'bad id!', displayName: 'x' },
+        ],
+      }),
+    );
+    const { report, models } = await translateService.listModels();
+    expect(report.outcome).toBe('ok');
+    expect(models.map(m => m.id)).toEqual([
+      'gemini-flash-latest',
+      'gemini-3-flash',
+    ]);
+    expect(parseModels('{}')).toEqual([]);
   });
 });
 

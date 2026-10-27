@@ -12,6 +12,7 @@ jest.mock('@/specs/NativeScreenOcr', () => ({
     clearGeminiKey: jest.fn(),
     getGeminiKeyStatus: jest.fn(),
     testGeminiKey: jest.fn(),
+    listGeminiModels: jest.fn(),
     getSpeechInfo: jest.fn(),
   },
 }));
@@ -37,6 +38,12 @@ function find(
   return renderer.root.findAll(
     n => n.props.testID === id && prop in n.props,
   )[0];
+}
+
+async function act(fn: () => void) {
+  await ReactTestRenderer.act(async () => {
+    fn();
+  });
 }
 
 const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
@@ -74,80 +81,127 @@ afterEach(async () => {
   captureSettingsStore.resetCacheForTest();
 });
 
-describe('Translate & speak settings', () => {
-  it('requires explicit consent before anything can be sent', async () => {
+describe('Translation card', () => {
+  it('Apply translation is an explicit, persisted switch (off by default)', async () => {
     const r = await render();
-    expect(captureSettingsStore.read().translate.consent).toBe(false);
-    await ReactTestRenderer.act(async () => {
-      find(r, 'translate-consent', 'onValueChange').props.onValueChange(true);
-    });
-    expect(captureSettingsStore.read().translate.consent).toBe(true);
+    expect(captureSettingsStore.read().translate.enabled).toBe(false);
+    await act(() =>
+      find(r, 'translate-enabled', 'onValueChange').props.onValueChange(true),
+    );
+    expect(captureSettingsStore.read().translate.enabled).toBe(true);
+    // On without a key: says so.
+    expect(
+      r.root.findAll(n => n.props.testID === 'translate-needs-key').length,
+    ).toBeGreaterThan(0);
   });
 
   it('saves the key to native storage and clears it from the input right away', async () => {
     mockNative.setGeminiKey.mockResolvedValue(true);
     const r = await render();
-    await ReactTestRenderer.act(async () => {
-      find(r, 'translate-key-input', 'onChangeText').props.onChangeText(KEY);
-    });
+    await act(() =>
+      find(r, 'translate-key-input', 'onChangeText').props.onChangeText(KEY),
+    );
     mockNative.getGeminiKeyStatus.mockResolvedValue(
       JSON.stringify({ hasKey: true, hint: '6789' }),
     );
-    await ReactTestRenderer.act(async () => {
-      find(r, 'translate-save-key', 'onPress').props.onPress();
-    });
+    await act(() => find(r, 'translate-save-key', 'onPress').props.onPress());
     expect(mockNative.setGeminiKey).toHaveBeenCalledWith(KEY);
     expect(find(r, 'translate-key-input', 'value').props.value).toBe('');
     expect(textsOf(r.root)).toContain('Saved key ending in …6789');
-    // The full key is not rendered anywhere.
     expect(JSON.stringify(r.toJSON())).not.toContain(KEY);
-  });
-
-  it('masks the key input by default', async () => {
-    const r = await render();
     expect(
       find(r, 'translate-key-input', 'secureTextEntry').props.secureTextEntry,
     ).toBe(true);
   });
 
-  it('reports the connection test result', async () => {
+  it('Test connection lists models and shows Google’s exact error', async () => {
     mockNative.getGeminiKeyStatus.mockResolvedValue(
       JSON.stringify({ hasKey: true, hint: '6789' }),
     );
-    mockNative.testGeminiKey.mockResolvedValue('api_disabled');
+    mockNative.listGeminiModels.mockResolvedValue(
+      JSON.stringify({
+        outcome: 'ok',
+        models: [
+          { id: 'gemini-flash-latest', displayName: 'Gemini Flash Latest' },
+          { id: 'gemini-3-flash', displayName: 'Gemini 3 Flash' },
+        ],
+      }),
+    );
+    mockNative.testGeminiKey.mockResolvedValue(
+      JSON.stringify({
+        outcome: 'model_not_found',
+        status: 404,
+        detail: 'models/gemini-2.5-flash is not found',
+      }),
+    );
     const r = await render();
-    await ReactTestRenderer.act(async () => {
-      find(r, 'translate-test', 'onPress').props.onPress();
-    });
-    expect(textsOf(r.root)).toContain(
-      'The Generative Language API isn’t enabled for this key’s Google Cloud project.',
+    await act(() => find(r, 'translate-test', 'onPress').props.onPress());
+    const result = find(r, 'translate-test-result', 'message');
+    expect(result.props.message).toContain(
+      'This model isn’t available for your key.',
+    );
+    expect(result.props.message).toContain(
+      'Google says (HTTP 404): models/gemini-2.5-flash is not found',
+    );
+
+    // Pick a listed model.
+    await act(() =>
+      find(r, 'translate-models-gemini-3-flash', 'onPress').props.onPress(),
+    );
+    expect(captureSettingsStore.read().translate.model).toBe('gemini-3-flash');
+  });
+
+  it('sets the thinking level', async () => {
+    const r = await render();
+    await act(() =>
+      find(r, 'translate-thinking-high', 'onPress').props.onPress(),
+    );
+    expect(captureSettingsStore.read().translate.thinkingLevel).toBe('high');
+  });
+
+  it('saves a valid project number and rejects anything else', async () => {
+    const r = await render();
+    expect(find(r, 'translate-project', 'value').props.value).toBe(
+      '49677894119',
+    );
+    await act(() =>
+      find(r, 'translate-project-save', 'onPress').props.onPress(),
+    );
+    expect(captureSettingsStore.read().translate.projectNumber).toBe(
+      '49677894119',
+    );
+    await act(() =>
+      find(r, 'translate-project', 'onChangeText').props.onChangeText('12'),
+    );
+    await act(() =>
+      find(r, 'translate-project-save', 'onPress').props.onPress(),
+    );
+    expect(find(r, 'translate-project-message', 'message').props.message).toBe(
+      'A project number has digits only.',
+    );
+    expect(captureSettingsStore.read().translate.projectNumber).toBe(
+      '49677894119',
     );
   });
 
-  it('chooses the target language and warns when its voice is missing', async () => {
+  it('chooses the target language, warns about a missing voice, edits the prompt', async () => {
     const r = await render();
-    await ReactTestRenderer.act(async () => {
-      find(r, 'translate-target-gu', 'onPress').props.onPress();
-    });
+    await act(() => find(r, 'translate-target-gu', 'onPress').props.onPress());
     expect(captureSettingsStore.read().translate.target).toBe('gu');
     expect(
       r.root.findAll(n => n.props.testID === 'translate-voice-missing').length,
     ).toBeGreaterThan(0);
-  });
-
-  it('edits and resets the translation instructions', async () => {
-    const r = await render();
-    await ReactTestRenderer.act(async () => {
+    await act(() =>
       find(r, 'translate-prompt', 'onChangeText').props.onChangeText(
-        'Translate into {target}, casual tone.',
-      );
-    });
-    expect(captureSettingsStore.read().translate.prompt).toBe(
-      'Translate into {target}, casual tone.',
+        'Into {target}, casual.',
+      ),
     );
-    await ReactTestRenderer.act(async () => {
-      find(r, 'translate-reset-prompt', 'onPress').props.onPress();
-    });
+    expect(captureSettingsStore.read().translate.prompt).toBe(
+      'Into {target}, casual.',
+    );
+    await act(() =>
+      find(r, 'translate-reset-prompt', 'onPress').props.onPress(),
+    );
     expect(captureSettingsStore.read().translate.prompt).toMatch(
       /^Translate the text naturally/,
     );

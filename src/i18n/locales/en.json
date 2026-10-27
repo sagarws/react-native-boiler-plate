@@ -292,9 +292,7 @@
     "speak_description": "Extract the text and read it aloud, with a playback controller.",
     "speak_scroll_description": "Read long pages: speak, scroll to the next part when speech ends, continue.",
     "speak_pagination": "Speak with pagination",
-    "speak_pagination_description": "For PDFs and e-books: read the page, press the Next button you pinned, continue on the next page.",
-    "speak_translate": "Speak with translation",
-    "speak_translate_description": "Translate the screen text with Google Gemini (your API key) and read the translation aloud."
+    "speak_pagination_description": "For PDFs and e-books: read the page, press the Next button you pinned, continue on the next page."
   },
   "speech": {
     "section": "Speech & voice",
@@ -433,13 +431,10 @@
     "summaryNotSet": "Next button not pinned"
   },
   "translate": {
-    "section": "Translate & speak",
-    "summaryReady": "→ {{target}} · Gemini key saved",
-    "summaryNoKey": "→ {{target}} · add your Gemini key",
-    "summaryNoConsent": "Not set up",
-    "intro": "Reads the screen on your phone, sends only the extracted text to Google Gemini for translation, then speaks the translation.",
-    "consent": "Send extracted text to Google Gemini",
-    "consentHint": "Required for Speak with translation. Off = nothing is ever sent.",
+    "section": "Translation",
+    "summaryReady": "On · → {{target}} · key saved",
+    "summaryNoKey": "On · → {{target}} · add your Gemini key",
+    "intro": "When Apply translation is on, the text recognised on your phone is translated with Google Gemini before it is copied or read aloud.",
     "privacy": "When you use Speak with translation, the text recognised on screen (never the screenshot) and your translation instructions are sent to the Google Gemini API using your own API key, under Google’s terms. All other modes stay fully on your phone.",
     "target": "Translate into",
     "source": "Source language",
@@ -472,13 +467,31 @@
     "test_safety_blocked": "Gemini declined the test request.",
     "test_server": "Gemini had a problem. Try again later.",
     "test_timeout": "The request timed out.",
-    "test_bad_response": "Unexpected answer from Gemini — check the model name.",
+    "test_bad_response": "Gemini answered in an unexpected format.",
     "test_unsupported": "Translation needs Android.",
     "model": "Model",
     "modelHint": "Default: {{model}}",
     "security": "An API key used from an app can be extracted by someone with access to the phone. For a public release, use a backend proxy or Firebase App Check, and restrict the key to this app in Google Cloud.",
     "translationLabel": "Translation ({{language}})",
     "originalLabel": "Original text",
-    "copyTranslation": "Copy translation"
+    "copyTranslation": "Copy translation",
+    "apply": "Apply translation",
+    "applyHint": "Copy and every read-aloud mode use the translation. Sends the extracted text to Google Gemini.",
+    "summaryOff": "Off",
+    "test_model_not_found": "This model isn’t available for your key. Pick one from the list below, or use gemini-flash-latest.",
+    "testDetail": "Google says (HTTP {{status}}): {{detail}}",
+    "modelsTitle": "Available models for your key",
+    "modelsHint": "Filled in when you tap Test connection.",
+    "thinking": "Thinking level",
+    "thinking_low": "Low",
+    "thinking_medium": "Medium",
+    "thinking_high": "High",
+    "thinkingHint": "Low is quick and efficient — best for translation. Models without thinking levels ignore this.",
+    "project": "Google Cloud project number",
+    "projectHint": "For your reference. Requests are always billed and counted in the project that owns the API key — create the key in project {{project}} and usage lands there. The API keeps no chat history.",
+    "projectPlaceholder": "e.g. 123456789012",
+    "projectSave": "Save project number",
+    "projectSaved": "Saved project {{project}}",
+    "projectInvalid": "A project number has digits only."
   }
 }

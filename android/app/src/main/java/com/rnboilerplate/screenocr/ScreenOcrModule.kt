@@ -303,12 +303,45 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     }
     val client = gemini ?: GeminiClient().also { gemini = it }
     client.test(key, prefs.readConfig().translate) { result ->
-      promise.resolve(
-        result.fold(
-          onSuccess = { "ok" },
-          onFailure = { ((it as? TranslateException)?.error ?: TranslateError.SERVER).name.lowercase() },
-        ),
+      val report = JSONObject()
+      result.fold(
+        onSuccess = { report.put("outcome", "ok").put("sample", it.text.take(120)) },
+        onFailure = {
+          val failure = it as? TranslateException
+          report
+            .put("outcome", (failure?.error ?: TranslateError.SERVER).name.lowercase())
+            .put("status", failure?.status ?: 0)
+            .put("detail", failure?.detail.orEmpty())
+        },
       )
+      promise.resolve(report.toString())
+    }
+  }
+
+  override fun listGeminiModels(promise: Promise) {
+    val key = keyStore.read()
+    if (key == null) {
+      promise.resolve(JSONObject().put("outcome", "no_key").toString())
+      return
+    }
+    val client = gemini ?: GeminiClient().also { gemini = it }
+    client.listModels(key) { result ->
+      val report = JSONObject()
+      result.fold(
+        onSuccess = { models ->
+          val array = org.json.JSONArray()
+          models.forEach { array.put(JSONObject().put("id", it.id).put("displayName", it.displayName)) }
+          report.put("outcome", "ok").put("models", array)
+        },
+        onFailure = {
+          val failure = it as? TranslateException
+          report
+            .put("outcome", (failure?.error ?: TranslateError.SERVER).name.lowercase())
+            .put("status", failure?.status ?: 0)
+            .put("detail", failure?.detail.orEmpty())
+        },
+      )
+      promise.resolve(report.toString())
     }
   }
 

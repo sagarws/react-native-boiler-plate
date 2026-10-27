@@ -13,15 +13,17 @@ import {
   DEFAULT_TRANSLATE_PROMPT,
   MAX_TRANSLATE_PROMPT,
   SPEECH_LANGUAGES,
+  THINKING_LEVELS,
   looksLikeApiKey,
   useCaptureSettings,
   useGeminiKey,
   useSpeechInfo,
-  type GeminiTestOutcome,
+  type GeminiReport,
   type SpeechLanguage,
 } from '@/features/capture';
 import {
   Button,
+  ChoiceList,
   ExpandableCard,
   Icon,
   ListRow,
@@ -39,10 +41,14 @@ export interface TranslateSectionProps {
 
 type KeyMessage = 'keySaveFailed' | 'keyTooShort' | null;
 
+/** The project this app's translation key is meant to belong to (pre-filled, editable). */
+const SUGGESTED_PROJECT = '49677894119';
+
 /**
- * Translate & speak: opt-in consent, target/source language, translation
- * instructions, the Gemini API key (write-only from JS) and a connection
- * test. Nothing is sent anywhere until consent is on and a key is saved.
+ * Translation: the "Apply translation" switch (also the consent to send
+ * extracted text to Gemini), languages, instructions, model + thinking level,
+ * the API key (write-only from JS), project number and a connection test
+ * that reports Google's own error text.
  */
 export function TranslateSection({
   expanded,
@@ -57,12 +63,18 @@ export function TranslateSection({
   const [keyInput, setKeyInput] = useState('');
   const [showKey, setShowKey] = useState(false);
   const [keyMessage, setKeyMessage] = useState<KeyMessage>(null);
-  const [testResult, setTestResult] = useState<GeminiTestOutcome | null>(null);
+  const [report, setReport] = useState<GeminiReport | null>(null);
+  const [projectInput, setProjectInput] = useState(
+    tr.projectNumber || SUGGESTED_PROJECT,
+  );
+  const [projectMessage, setProjectMessage] = useState<
+    'projectSaved' | 'projectInvalid' | null
+  >(null);
 
   const langName = (l: SpeechLanguage) => t(`speech.lang_${l}_name`);
   const targetName = langName(tr.target);
-  const summary = !tr.consent
-    ? t('translate.summaryNoConsent')
+  const summary = !tr.enabled
+    ? t('translate.summaryOff')
     : key.status.hasKey
     ? t('translate.summaryReady', { target: targetName })
     : t('translate.summaryNoKey', { target: targetName });
@@ -70,7 +82,7 @@ export function TranslateSection({
     info?.ready === true && info.languages[tr.target] !== 'available';
 
   const onSaveKey = useCallback(async () => {
-    setTestResult(null);
+    setReport(null);
     if (!looksLikeApiKey(keyInput)) {
       setKeyMessage('keyTooShort');
       return;
@@ -93,7 +105,7 @@ export function TranslateSection({
           style: 'destructive',
           onPress: () => {
             key.remove();
-            setTestResult(null);
+            setReport(null);
           },
         },
       ],
@@ -101,8 +113,18 @@ export function TranslateSection({
   }, [key, t]);
 
   const onTest = useCallback(async () => {
-    setTestResult(await key.test());
+    setReport(await key.test());
   }, [key]);
+
+  const onSaveProject = useCallback(() => {
+    const value = projectInput.trim();
+    if (!/^\d{6,20}$/.test(value)) {
+      setProjectMessage('projectInvalid');
+      return;
+    }
+    updateTranslate({ projectNumber: value });
+    setProjectMessage('projectSaved');
+  }, [projectInput, updateTranslate]);
 
   const inputStyle = [
     typography.body,
@@ -115,6 +137,12 @@ export function TranslateSection({
       padding: spacing.md,
     },
   ];
+  const block = [
+    styles.block,
+    { padding: spacing.lg, gap: spacing.sm, borderTopColor: colors.divider },
+  ];
+  const label = [typography.label, { color: colors.textPrimary }];
+  const caption = [typography.caption, { color: colors.textSecondary }];
 
   return (
     <ExpandableCard
@@ -126,47 +154,38 @@ export function TranslateSection({
       footer={t('translate.security')}
       testID="settings-translate"
     >
-      <View style={{ padding: spacing.lg, gap: spacing.sm }}>
-        <Text style={[typography.body, { color: colors.textSecondary }]}>
-          {t('translate.intro')}
-        </Text>
-      </View>
-
       <ListRow
-        divider
-        icon="shieldCheck"
-        title={t('translate.consent')}
-        subtitle={t('translate.consentHint')}
+        icon="languages"
+        title={t('translate.apply')}
+        subtitle={t('translate.applyHint')}
         right={
           <SettingSwitch
-            testID="translate-consent"
-            value={tr.consent}
-            onChange={consent => updateTranslate({ consent })}
-            label={t('translate.consent')}
+            testID="translate-enabled"
+            value={tr.enabled}
+            onChange={enabled => updateTranslate({ enabled })}
+            label={t('translate.apply')}
           />
         }
       />
       <View
-        style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.lg }}
+        style={{
+          paddingHorizontal: spacing.lg,
+          paddingBottom: spacing.lg,
+          gap: spacing.sm,
+        }}
       >
-        <Text style={[typography.caption, { color: colors.textSecondary }]}>
-          {t('translate.privacy')}
-        </Text>
+        <Text style={caption}>{t('translate.privacy')}</Text>
+        {tr.enabled && !key.status.hasKey ? (
+          <Notice
+            testID="translate-needs-key"
+            tone="warning"
+            message={t('translate.summaryNoKey', { target: targetName })}
+          />
+        ) : null}
       </View>
 
-      <View
-        style={[
-          styles.block,
-          {
-            padding: spacing.lg,
-            gap: spacing.sm,
-            borderTopColor: colors.divider,
-          },
-        ]}
-      >
-        <Text style={[typography.label, { color: colors.textPrimary }]}>
-          {t('translate.target')}
-        </Text>
+      <View style={block}>
+        <Text style={label}>{t('translate.target')}</Text>
         <SegmentedControl
           testID="translate-target"
           accessibilityLabel={t('translate.target')}
@@ -184,12 +203,7 @@ export function TranslateSection({
             message={t('translate.voiceMissing', { language: targetName })}
           />
         ) : null}
-        <Text
-          style={[
-            typography.label,
-            { color: colors.textPrimary, marginTop: spacing.sm },
-          ]}
-        >
+        <Text style={[label, { marginTop: spacing.sm }]}>
           {t('translate.source')}
         </Text>
         <SegmentedControl
@@ -207,19 +221,8 @@ export function TranslateSection({
         />
       </View>
 
-      <View
-        style={[
-          styles.block,
-          {
-            padding: spacing.lg,
-            gap: spacing.sm,
-            borderTopColor: colors.divider,
-          },
-        ]}
-      >
-        <Text style={[typography.label, { color: colors.textPrimary }]}>
-          {t('translate.prompt')}
-        </Text>
+      <View style={block}>
+        <Text style={label}>{t('translate.prompt')}</Text>
         <TextInput
           testID="translate-prompt"
           accessibilityLabel={t('translate.prompt')}
@@ -230,17 +233,10 @@ export function TranslateSection({
           multiline
           maxLength={MAX_TRANSLATE_PROMPT}
           textAlignVertical="top"
-          placeholderTextColor={colors.placeholder}
           style={[inputStyle, styles.prompt]}
         />
         <View style={styles.row}>
-          <Text
-            style={[
-              typography.caption,
-              styles.flex,
-              { color: colors.textSecondary },
-            ]}
-          >
+          <Text style={[caption, styles.flex]}>
             {t('translate.promptHint', {
               count: tr.prompt.length,
               max: MAX_TRANSLATE_PROMPT,
@@ -260,26 +256,9 @@ export function TranslateSection({
         </View>
       </View>
 
-      <View
-        style={[
-          styles.block,
-          {
-            padding: spacing.lg,
-            gap: spacing.sm,
-            borderTopColor: colors.divider,
-          },
-        ]}
-      >
+      <View style={block}>
         <View style={styles.row}>
-          <Text
-            style={[
-              typography.label,
-              styles.flex,
-              { color: colors.textPrimary },
-            ]}
-          >
-            {t('translate.apiKey')}
-          </Text>
+          <Text style={[label, styles.flex]}>{t('translate.apiKey')}</Text>
           <StatusPill
             testID="translate-key-status"
             label={
@@ -290,9 +269,7 @@ export function TranslateSection({
             tone={key.status.hasKey ? 'success' : 'neutral'}
           />
         </View>
-        <Text style={[typography.caption, { color: colors.textSecondary }]}>
-          {t('translate.apiKeyHint')}
-        </Text>
+        <Text style={caption}>{t('translate.apiKeyHint')}</Text>
         <View style={styles.row}>
           <TextInput
             testID="translate-key-input"
@@ -368,28 +345,27 @@ export function TranslateSection({
           disabled={!key.status.hasKey}
           testID="translate-test"
         />
-        {testResult ? (
+        {report ? (
           <Notice
             testID="translate-test-result"
-            tone={testResult === 'ok' ? 'success' : 'warning'}
-            message={t(`translate.test_${testResult}`)}
+            tone={report.outcome === 'ok' ? 'success' : 'warning'}
+            message={[
+              t(`translate.test_${report.outcome}`),
+              report.detail
+                ? t('translate.testDetail', {
+                    status: report.status,
+                    detail: report.detail,
+                  })
+                : null,
+            ]
+              .filter(Boolean)
+              .join('\n')}
           />
         ) : null}
       </View>
 
-      <View
-        style={[
-          styles.block,
-          {
-            padding: spacing.lg,
-            gap: spacing.xs,
-            borderTopColor: colors.divider,
-          },
-        ]}
-      >
-        <Text style={[typography.label, { color: colors.textPrimary }]}>
-          {t('translate.model')}
-        </Text>
+      <View style={block}>
+        <Text style={label}>{t('translate.model')}</Text>
         <TextInput
           testID="translate-model"
           accessibilityLabel={t('translate.model')}
@@ -399,8 +375,78 @@ export function TranslateSection({
           autoCorrect={false}
           style={inputStyle}
         />
-        <Text style={[typography.caption, { color: colors.textSecondary }]}>
+        <Text style={caption}>
           {t('translate.modelHint', { model: DEFAULT_TRANSLATE_MODEL })}
+        </Text>
+        <Text style={[label, { marginTop: spacing.sm }]}>
+          {t('translate.modelsTitle')}
+        </Text>
+        {key.models.length > 0 ? (
+          <ChoiceList
+            testID="translate-models"
+            accessibilityLabel={t('translate.modelsTitle')}
+            value={tr.model}
+            onChange={model => updateTranslate({ model })}
+            choices={key.models.slice(0, 12).map(m => ({
+              value: m.id,
+              title: m.displayName,
+              description: m.id,
+            }))}
+          />
+        ) : (
+          <Text style={caption}>{t('translate.modelsHint')}</Text>
+        )}
+        <Text style={[label, { marginTop: spacing.sm }]}>
+          {t('translate.thinking')}
+        </Text>
+        <SegmentedControl
+          testID="translate-thinking"
+          accessibilityLabel={t('translate.thinking')}
+          value={tr.thinkingLevel}
+          onChange={thinkingLevel => updateTranslate({ thinkingLevel })}
+          options={THINKING_LEVELS.map(level => ({
+            value: level,
+            label: t(`translate.thinking_${level}`),
+          }))}
+        />
+        <Text style={caption}>{t('translate.thinkingHint')}</Text>
+      </View>
+
+      <View style={block}>
+        <Text style={label}>{t('translate.project')}</Text>
+        <TextInput
+          testID="translate-project"
+          accessibilityLabel={t('translate.project')}
+          value={projectInput}
+          onChangeText={value => {
+            setProjectInput(value.replace(/[^0-9]/g, ''));
+            setProjectMessage(null);
+          }}
+          placeholder={t('translate.projectPlaceholder')}
+          placeholderTextColor={colors.placeholder}
+          keyboardType="number-pad"
+          style={inputStyle}
+        />
+        <Button
+          size="sm"
+          variant="soft"
+          label={t('translate.projectSave')}
+          onPress={onSaveProject}
+          testID="translate-project-save"
+        />
+        {projectMessage ? (
+          <Notice
+            testID="translate-project-message"
+            tone={projectMessage === 'projectSaved' ? 'success' : 'error'}
+            message={t(`translate.${projectMessage}`, {
+              project: tr.projectNumber,
+            })}
+          />
+        ) : null}
+        <Text style={caption}>
+          {t('translate.projectHint', {
+            project: tr.projectNumber || projectInput || SUGGESTED_PROJECT,
+          })}
         </Text>
       </View>
     </ExpandableCard>

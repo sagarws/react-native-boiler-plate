@@ -51,12 +51,12 @@
     <string name="reading_end_of_page">Reached the end of the page</string>
     <string name="reading_limit_reached">Stopped at the reading limit</string>
 
-    <!-- Speak with translation -->
-    <string name="reading_mode_translate">Translate → %1$s</string>
+    <!-- Apply translation (Gemini) -->
     <string name="translate_status_translating">Translating…</string>
-    <string name="translate_status_from">Speaking (from %1$s)</string>
-    <string name="translate_error_no_key">Add your Gemini API key in Settings → Translate &amp; speak</string>
-    <string name="translate_error_no_consent">Set up translation in Settings → Translate &amp; speak</string>
+    <string name="translate_status_translating_to">Translating to %1$s…</string>
+    <string name="translate_error_no_key">Translation is on but no Gemini API key is saved (Settings → Translation)</string>
+    <string name="translate_error_no_consent">Turn on Apply translation in Settings → Translation</string>
+    <string name="translate_error_model">The Gemini model isn\'t available for this key. Pick another in Settings → Translation.</string>
     <string name="translate_error_no_internet">No internet connection — translation needs the network</string>
     <string name="translate_error_invalid_key">The Gemini API key was rejected. Check it in Settings.</string>
     <string name="translate_error_api_disabled">The Gemini API isn\'t enabled for this key\'s project</string>

@@ -32,14 +32,15 @@ enum class FloatingAction(val id: String) {
   COPY("copy"),
   SPEAK("speak"),
   SPEAK_SCROLL("speak_scroll"),
-  SPEAK_PAGINATION("speak_pagination"),
-  SPEAK_TRANSLATE("speak_translate");
+  SPEAK_PAGINATION("speak_pagination");
 
   val readsAloud: Boolean
     get() = this != COPY
 
   companion object {
-    fun from(id: String?): FloatingAction = entries.firstOrNull { it.id == id } ?: COPY
+    fun from(id: String?): FloatingAction =
+      // "speak_translate" was briefly its own action; translation is now a switch.
+      if (id == "speak_translate") SPEAK else entries.firstOrNull { it.id == id } ?: COPY
   }
 }
 
@@ -144,8 +145,11 @@ data class OcrConfig(
             val dt = TranslateConfig()
             val target = t.optString("target", dt.target)
             val source = t.optString("source", dt.source)
+            val thinking = t.optString("thinkingLevel", dt.thinkingLevel)
             TranslateConfig(
-              consent = t.optBoolean("consent", dt.consent),
+              // "consent" is the earlier name of the switch.
+              enabled = t.optBoolean("enabled", t.optBoolean("consent", dt.enabled)),
+              thinkingLevel = if (thinking in TranslationPrompt.THINKING_LEVELS) thinking else dt.thinkingLevel,
               target = if (target in SPEECH_LANGUAGES) target else dt.target,
               source = if (source == "auto" || source in SPEECH_LANGUAGES) source else dt.source,
               prompt = t.optString("prompt", dt.prompt).take(TranslationPrompt.MAX_PROMPT),

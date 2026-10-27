@@ -84,3 +84,4 @@ yarn-error.log
 # Claude Code — local session state, never shared
 .claude/projects/
 .claude/settings.local.json
+graphify-out

@@ -83,7 +83,11 @@ export {
 export type {
   GeminiKeyStatus,
   GeminiTestOutcome,
+  GeminiReport,
+  GeminiModelInfo,
 } from './services/translate.service';
+export { THINKING_LEVELS } from './capture.types';
+export type { ThinkingLevel } from './capture.types';
 export {
   DEFAULT_TRANSLATE_MODEL,
   DEFAULT_TRANSLATE_PROMPT,

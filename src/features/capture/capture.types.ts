@@ -38,15 +38,13 @@ export type FloatingAction =
   | 'copy'
   | 'speak'
   | 'speak_scroll'
-  | 'speak_pagination'
-  | 'speak_translate';
+  | 'speak_pagination';
 
 export const FLOATING_ACTIONS: readonly FloatingAction[] = [
   'copy',
   'speak',
   'speak_scroll',
   'speak_pagination',
-  'speak_translate',
 ];
 
 export function isFloatingAction(value: unknown): value is FloatingAction {
@@ -83,15 +81,32 @@ export interface SpeechSettings {
   resumeAfterInterruption: boolean;
 }
 
-/** Speak with Translation (Google Gemini, user's own key). The key is not stored here. */
+export type ThinkingLevel = 'low' | 'medium' | 'high';
+
+export const THINKING_LEVELS: readonly ThinkingLevel[] = [
+  'low',
+  'medium',
+  'high',
+];
+
+/**
+ * "Apply translation" (Google Gemini, user's own key — not stored here).
+ * When enabled, every mode works on the translation.
+ */
 export interface TranslateSettings {
-  /** The user allowed sending extracted text to Google Gemini. */
-  consent: boolean;
+  /** Apply translation — also the user's consent to send extracted text to Gemini. */
+  enabled: boolean;
   target: SpeechLanguage;
   source: 'auto' | SpeechLanguage;
   /** Instructions; {target} and {source} are substituted. */
   prompt: string;
   model: string;
+  thinkingLevel: ThinkingLevel;
+  /**
+   * The user's Google Cloud project number, kept for reference. Not sent:
+   * requests are billed to whichever project owns the API key.
+   */
+  projectNumber: string;
 }
 
 /** Speak with pagination: timing and limits for page turns. */

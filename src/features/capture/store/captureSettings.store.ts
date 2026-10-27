@@ -23,14 +23,16 @@ export const MAX_PAGES = { min: 1, max: 200, step: 1 } as const;
 export const DEFAULT_TRANSLATE_PROMPT =
   'Translate the text naturally into {target}. Keep names, numbers, prices and URLs unchanged. Keep paragraph breaks. Output only the translation.';
 export const MAX_TRANSLATE_PROMPT = 1000;
-export const DEFAULT_TRANSLATE_MODEL = 'gemini-2.5-flash';
+export const DEFAULT_TRANSLATE_MODEL = 'gemini-flash-latest';
 
 export const DEFAULT_TRANSLATE_SETTINGS: TranslateSettings = {
-  consent: false,
+  enabled: false,
   target: 'hi',
   source: 'auto',
   prompt: DEFAULT_TRANSLATE_PROMPT,
   model: DEFAULT_TRANSLATE_MODEL,
+  thinkingLevel: 'low',
+  projectNumber: '',
 };
 
 export const DEFAULT_PAGINATION_SETTINGS: PaginationSettings = {
@@ -168,7 +170,8 @@ export function sanitizeTranslateSettings(raw: unknown): TranslateSettings {
       ? r.model.trim()
       : d.model;
   return {
-    consent: bool(r.consent, d.consent),
+    // "consent" was the earlier name of the switch.
+    enabled: bool(r.enabled, bool(r.consent, d.enabled)),
     target: isSpeechLanguage(r.target) ? r.target : d.target,
     source:
       r.source === 'auto' || isSpeechLanguage(r.source) ? r.source : d.source,
@@ -177,6 +180,17 @@ export function sanitizeTranslateSettings(raw: unknown): TranslateSettings {
         ? r.prompt.slice(0, MAX_TRANSLATE_PROMPT)
         : d.prompt,
     model,
+    thinkingLevel:
+      r.thinkingLevel === 'low' ||
+      r.thinkingLevel === 'medium' ||
+      r.thinkingLevel === 'high'
+        ? r.thinkingLevel
+        : d.thinkingLevel,
+    projectNumber:
+      typeof r.projectNumber === 'string' &&
+      /^\d{0,20}$/.test(r.projectNumber.trim())
+        ? r.projectNumber.trim()
+        : d.projectNumber,
   };
 }
 
@@ -184,9 +198,16 @@ export function sanitizeTranslateSettings(raw: unknown): TranslateSettings {
 export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
   const d = DEFAULT_CAPTURE_SETTINGS;
   const r = record(raw);
+  // "speak_translate" was briefly a fifth action; translation is now a switch.
+  const legacyTranslate = r.action === 'speak_translate';
+  const translate = sanitizeTranslateSettings(r.translate);
   return {
     ocrMode: isOcrMode(r.ocrMode) ? r.ocrMode : d.ocrMode,
-    action: isFloatingAction(r.action) ? r.action : d.action,
+    action: legacyTranslate
+      ? 'speak'
+      : isFloatingAction(r.action)
+      ? r.action
+      : d.action,
     autoCopy: bool(r.autoCopy, d.autoCopy),
     saveHistory: bool(r.saveHistory, d.saveHistory),
     bubbleSizeDp: Math.round(
@@ -201,7 +222,7 @@ export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
     speech: sanitizeSpeechSettings(r.speech),
     reading: sanitizeReadingSettings(r.reading),
     pagination: sanitizePaginationSettings(r.pagination),
-    translate: sanitizeTranslateSettings(r.translate),
+    translate: legacyTranslate ? { ...translate, enabled: true } : translate,
   };
 }
 

@@ -27,6 +27,7 @@ enum class ReadingReason {
   OCR_FAILED,
   SPEECH_FAILED,
   VOICE_MISSING,
+  TRANSLATE_FAILED,
 }
 
 data class ReadingInfo(
