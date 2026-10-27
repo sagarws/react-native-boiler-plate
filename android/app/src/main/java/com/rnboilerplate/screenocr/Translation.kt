@@ -142,7 +142,22 @@ data class GeminiModel(val id: String, val displayName: String)
 /** Parses Gemini responses and maps failures. Pure. */
 object GeminiResponse {
   /** A successful `generateContent` body → translation, or the reason it can't be used. */
-  fun parse(body: String): Result<TranslationResult> {
+  fun parse(body: String): Result<TranslationResult> =
+    answerText(body).mapCatching { raw ->
+      // Structured output: {"detectedLanguage": "...", "translation": "..."}.
+      // Fall back to the raw text if a model ignores the schema.
+      try {
+        val json = JSONObject(stripCodeFence(raw))
+        val translation = json.optString("translation").trim()
+        if (translation.isEmpty()) throw TranslateException(TranslateError.BAD_RESPONSE, detail = "Empty translation")
+        TranslationResult(translation, json.optString("detectedLanguage").trim().lowercase())
+      } catch (_: JSONException) {
+        TranslationResult(raw, "")
+      }
+    }
+
+  /** The answer text of a `generateContent` body (thought parts skipped), or why there is none. */
+  fun answerText(body: String): Result<String> {
     val root =
       try {
         JSONObject(body)
@@ -172,19 +187,10 @@ object GeminiResponse {
         TranslateException(TranslateError.BAD_RESPONSE, detail = "Empty answer (finishReason: ${finish.ifEmpty { "none" }})"),
       )
     }
-    // Structured output: {"detectedLanguage": "...", "translation": "..."}.
-    // Fall back to the raw text if a model ignores the schema.
-    return try {
-      val json = JSONObject(stripCodeFence(raw))
-      val translation = json.optString("translation").trim()
-      if (translation.isEmpty()) Result.failure(TranslateException(TranslateError.BAD_RESPONSE, detail = "Empty translation"))
-      else Result.success(TranslationResult(translation, json.optString("detectedLanguage").trim().lowercase()))
-    } catch (_: JSONException) {
-      Result.success(TranslationResult(raw, ""))
-    }
+    return Result.success(raw)
   }
 
-  private fun stripCodeFence(text: String): String =
+  fun stripCodeFence(text: String): String =
     text.removePrefix("```json").removePrefix("```").removeSuffix("```").trim()
 
   /** Google's `error.message` from an error body, or "". */

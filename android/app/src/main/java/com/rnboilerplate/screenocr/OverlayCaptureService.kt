@@ -55,9 +55,10 @@ import org.json.JSONObject
  *   the user-pinned Next button once (accessibility service), verifies the
  *   page turned and continues. The pin is set with [TargetPicker];
  *
- * "Apply translation" (opt-in, user's own Gemini key) is a layer over every
- * action: Copy copies the translation and the read-aloud modes speak it. Only
- * the extracted text is sent — never the screenshot.
+ * "Refine text" and "Apply translation" (opt-in, user's own Gemini key) are a
+ * [TextPipeline] over every action: OCR text → refine → translate → then Copy
+ * copies, and the read-aloud modes speak, the final text. Only extracted text
+ * is sent — never the screenshot.
  *
  * One operation at a time: while a capture or a reading session is running,
  * further taps control it instead of starting another. Idle cost is one
@@ -84,8 +85,8 @@ class OverlayCaptureService :
   private var picker: TargetPicker? = null
   private var pagination: PaginationSession? = null
   private var gemini: GeminiClient? = null
-  /** Last original → translation, so pause/resume/restart don't re-translate. */
-  private var translationCache: Pair<String, TranslationResult>? = null
+  /** Last original → processed text, so pause/resume/restart don't re-send it. */
+  private var processedCache: Pair<String, ProcessedText>? = null
   private var lastTranslateError: TranslateError = TranslateError.SERVER
   private var lastCaptureDuration = 0L
   private val keyStore by lazy { SecureKeyStore(this) }
@@ -235,12 +236,12 @@ class OverlayCaptureService :
     // One capture at a time; repeated taps while busy are ignored.
     if (capturing) return
     val config = prefs.readConfig()
-    // Translation on but no key: nothing is captured or sent.
-    if (config.translate.enabled && !keyStore.hasKey) {
+    // A Gemini step is on but no key is saved: nothing is captured or sent.
+    if ((config.translate.enabled || config.refine.enabled) && !keyStore.hasKey) {
       toast(R.string.translate_error_no_key)
       return
     }
-    translationCache = null
+    processedCache = null
     when (config.action) {
       FloatingAction.COPY -> copyOnce(config)
       FloatingAction.SPEAK, FloatingAction.SPEAK_SCROLL -> startReading(config)
@@ -355,8 +356,8 @@ class OverlayCaptureService :
           result.exceptionOrNull() is CaptureFailed -> R.string.screen_ocr_capture_failed
           text == null -> R.string.screen_ocr_failed
           text.isBlank() -> R.string.screen_ocr_no_text
-          config.translate.enabled -> {
-            translateThenCopy(text, config, duration)
+          config.translate.enabled || config.refine.enabled -> {
+            processThenCopy(text, config, duration)
             return@captureAndRecognize
           }
           else -> {
@@ -375,34 +376,62 @@ class OverlayCaptureService :
       else -> R.string.screen_ocr_clipboard_failed
     }
 
-  /** Copy mode with "Apply translation": the translation is what gets copied. */
-  private fun translateThenCopy(text: String, config: OcrConfig, duration: Long) {
-    val key = keyStore.read() ?: return toast(R.string.translate_error_no_key)
-    toast(R.string.translate_status_translating)
+  /** Copy mode with refinement/translation: the final text is what gets copied. */
+  private fun processThenCopy(text: String, config: OcrConfig, duration: Long) {
     bubble?.setProcessing(true)
-    (gemini ?: GeminiClient().also { gemini = it }).translate(key, config.translate, text) { result ->
+    process(text, config, onStage = { stage ->
+      toast(if (stage == PipelineStage.REFINING) R.string.refine_status_refining else R.string.translate_status_translating)
+    }) { result ->
       bubble?.setProcessing(false)
       result.fold(
-        onSuccess = { translated ->
-          store(text, config, duration, translated)
-          toast(copyResultMessage(translated.text, config))
+        onSuccess = { processed ->
+          store(processed, config, duration)
+          toast(copyResultMessage(processed.finalText, config))
         },
         onFailure = { error ->
-          // The original is still useful: keep it, but say why there is no translation.
-          store(text, config, duration)
+          // The original is still useful: keep it, but say why it wasn't processed.
+          store(ProcessedText(text), config, duration)
           toast(translateErrorRes((error as? TranslateException)?.error ?: TranslateError.SERVER))
         },
       )
     }
   }
 
-  /** Keeps a finished extraction: in memory always, queued for history if enabled. */
-  private fun store(
+  /** Runs the enabled Gemini steps over OCR text. */
+  private fun process(
     text: String,
     config: OcrConfig,
-    durationMs: Long,
-    translated: TranslationResult? = null,
+    onStage: (PipelineStage) -> Unit,
+    onResult: (Result<ProcessedText>) -> Unit,
   ) {
+    val key = keyStore.read() ?: return onResult(Result.failure(TranslateException(TranslateError.NO_KEY)))
+    val client = gemini ?: GeminiClient().also { gemini = it }
+    val pipeline =
+      TextPipeline(
+        object : PipelinePorts {
+          override fun refine(text: String, onResult: (Result<TranslationResult>) -> Unit) =
+            client.refine(key, config.translate, config.refine, text, onResult)
+
+          override fun translate(text: String, onResult: (Result<TranslationResult>) -> Unit) {
+            // Same language as the target: nothing to translate.
+            if (config.translate.source != "auto" && config.translate.source == config.translate.target) {
+              onResult(Result.success(TranslationResult(text, config.translate.source)))
+            } else {
+              client.translate(key, config.translate, text, onResult)
+            }
+          }
+        },
+      )
+    pipeline.process(text, config.refine.enabled, config.translate.enabled, onStage, onResult)
+  }
+
+  /** Keeps a finished extraction: in memory always, queued for history if enabled. */
+  private fun store(text: String, config: OcrConfig, durationMs: Long) =
+    store(ProcessedText(text), config, durationMs)
+
+  private fun store(processed: ProcessedText, config: OcrConfig, durationMs: Long) {
+    val text = processed.original
+    val translated = processed.translation
     val entry =
       JSONObject()
         .put("id", UUID.randomUUID().toString())
@@ -411,13 +440,14 @@ class OverlayCaptureService :
         .put("createdAt", System.currentTimeMillis())
         .put("durationMs", durationMs)
         .put("lineCount", text.lines().size)
+    processed.refined?.let { entry.put("refined", it) }
     if (translated != null) {
       entry
         .put("translation", translated.text)
         .put("targetLanguage", config.translate.target)
         .put("sourceLanguage", translated.detectedLanguage)
     }
-    lastText = translated?.text ?: text
+    lastText = processed.finalText
     ScreenOcrBus.latest = entry
     if (config.saveHistory) prefs.appendPending(entry)
     ScreenOcrBus.notifyResult()
@@ -453,8 +483,8 @@ class OverlayCaptureService :
     val config = sessionConfig ?: return onResult(Result.failure(CaptureFailed()))
     captureAndRecognize(config, onOcr) { result: Result<String>, duration: Long ->
       lastCaptureDuration = duration
-      // With translation on, the entry is stored (and copied) once translated.
-      if (!config.translate.enabled) {
+      // With refinement/translation on, the entry is stored (and copied) once processed.
+      if (!config.translate.enabled && !config.refine.enabled) {
         result.getOrNull()?.takeIf { it.isNotBlank() }?.let { text ->
           store(text, config, duration)
           if (config.speech.copyBeforeSpeaking) ClipboardHelper.copy(this, text, sensitive = true)
@@ -473,34 +503,32 @@ class OverlayCaptureService :
   ) {
     val config = sessionConfig ?: return onError(ReadingReason.SPEECH_FAILED)
     val tr = config.translate
-    if (!tr.enabled) {
+    if (!tr.enabled && !config.refine.enabled) {
       speakNow(text, config.speech, fromSegment, onProgress, onDone, onError)
       return
     }
-    // "Apply translation": speak the translation, in the target language.
-    val speechInTarget =
-      config.speech.copy(
-        language = tr.target,
-        voiceName = if (config.speech.language == tr.target) config.speech.voiceName else "",
-      )
-    translationCache?.takeIf { it.first == text }?.let { (_, cached) ->
-      speakNow(cached.text, speechInTarget, fromSegment, onProgress, onDone, onError)
+    // A translation is spoken in the target language; refined text in the usual one.
+    val speechFor = { processed: ProcessedText ->
+      if (processed.translation == null) {
+        config.speech
+      } else {
+        config.speech.copy(
+          language = tr.target,
+          voiceName = if (config.speech.language == tr.target) config.speech.voiceName else "",
+        )
+      }
+    }
+    processedCache?.takeIf { it.first == text }?.let { (_, cached) ->
+      speakNow(cached.finalText, speechFor(cached), fromSegment, onProgress, onDone, onError)
       return
     }
-    val key = keyStore.read()
-    if (key == null) {
-      lastTranslateError = TranslateError.NO_KEY
-      onError(ReadingReason.TRANSLATE_FAILED)
-      return
-    }
-    panel?.setTranslating(tr.target)
-    (gemini ?: GeminiClient().also { gemini = it }).translate(key, tr, text) { result ->
+    process(text, config, onStage = { stage -> panel?.setStage(stage, tr.target) }) { result ->
       result.fold(
-        onSuccess = { translated ->
-          translationCache = text to translated
-          store(text, config, lastCaptureDuration, translated)
-          if (config.speech.copyBeforeSpeaking) ClipboardHelper.copy(this, translated.text, sensitive = true)
-          speakNow(translated.text, speechInTarget, fromSegment, onProgress, onDone, onError)
+        onSuccess = { processed ->
+          processedCache = text to processed
+          store(processed, config, lastCaptureDuration)
+          if (config.speech.copyBeforeSpeaking) ClipboardHelper.copy(this, processed.finalText, sensitive = true)
+          speakNow(processed.finalText, speechFor(processed), fromSegment, onProgress, onDone, onError)
         },
         onFailure = { error ->
           lastTranslateError = (error as? TranslateException)?.error ?: TranslateError.SERVER
@@ -605,7 +633,7 @@ class OverlayCaptureService :
 
   override fun onPanelCopy() {
     val text =
-      translationCache?.second?.text
+      processedCache?.second?.finalText
         ?: (if (paginationActive) pagination?.currentText else session?.currentText)?.takeIf { it.isNotBlank() }
         ?: lastText
     if (text.isNullOrBlank()) return
@@ -701,7 +729,7 @@ class OverlayCaptureService :
             onResult(Result.failure(result.exceptionOrNull() ?: CaptureFailed()))
           } else {
             lastCaptureDuration = duration
-            if (text.isNotBlank() && !config.translate.enabled) store(text, config, duration)
+            if (text.isNotBlank() && !config.translate.enabled && !config.refine.enabled) store(text, config, duration)
             onResult(Result.success(PageSnapshot(text, hash)))
           }
         }
@@ -715,7 +743,7 @@ class OverlayCaptureService :
         onError: (ReadingReason) -> Unit,
       ) {
         val config = sessionConfig
-        if (config?.speech?.copyBeforeSpeaking == true && !config.translate.enabled) {
+        if (config?.speech?.copyBeforeSpeaking == true && !config.translate.enabled && !config.refine.enabled) {
           ClipboardHelper.copy(this@OverlayCaptureService, text, true)
         }
         this@OverlayCaptureService.speak(text, fromSegment, onProgress, onDone, onError)

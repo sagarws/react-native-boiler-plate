@@ -46,9 +46,11 @@ export function useExtractedText(source: ExtractedSource): UseExtractedText {
         setState('missing');
         return;
       }
-      setBaseline(found.text);
+      // Refined text is what copy, translation and speech used.
+      const shown = found.refined ?? found.text;
+      setBaseline(shown);
       setResult(found);
-      setText(found.text);
+      setText(shown);
       setState('ready');
     };
 

@@ -109,6 +109,18 @@ export interface TranslateSettings {
   projectNumber: string;
 }
 
+/**
+ * "Refine text" (Google Gemini, same key/model/thinking as translation):
+ * repairs OCR damage — broken words, cut-off letters in old books — before
+ * the text is copied, translated or spoken.
+ */
+export interface RefineSettings {
+  /** Refine text — also the user's consent to send extracted text to Gemini. */
+  enabled: boolean;
+  /** Instructions for the repair. */
+  prompt: string;
+}
+
 /** Speak with pagination: timing and limits for page turns. */
 export interface PaginationSettings {
   /** Wait after pressing Next before checking the page. */
@@ -162,7 +174,9 @@ export interface OcrResult {
   /** Time spent in OCR, excluding the screen grab. */
   durationMs: number;
   lineCount: number;
-  /** Speak with Translation: the translated text and its languages. */
+  /** Refine text: the repaired text, when refinement ran. */
+  refined?: string;
+  /** Apply translation: the translated text and its languages. */
   translation?: string;
   targetLanguage?: string;
   sourceLanguage?: string;
@@ -180,6 +194,7 @@ export interface CaptureSettings {
   reading: ReadingSettings;
   pagination: PaginationSettings;
   translate: TranslateSettings;
+  refine: RefineSettings;
 }
 
 export type LanguageStatus = 'available' | 'missing_data' | 'not_supported';

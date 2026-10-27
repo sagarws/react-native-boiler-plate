@@ -31,6 +31,7 @@ import { SettingsSection } from '../components/SettingsSection';
 import { SettingSwitch } from '../components/SettingControls';
 import { SpeechSection } from '../components/SpeechSection';
 import { TranslateSection } from '../components/TranslateSection';
+import { RefineSection } from '../components/RefineSection';
 
 type Toast = 'historyCleared' | 'resetPositionDone' | null;
 
@@ -41,6 +42,7 @@ type SectionKey =
   | 'speech'
   | 'reading'
   | 'pagination'
+  | 'refine'
   | 'translate'
   | 'clipboard';
 
@@ -147,6 +149,8 @@ export default function SettingsScreen() {
         <ReadingSection {...section('reading')} />
 
         <PaginationSection {...section('pagination')} />
+
+        <RefineSection {...section('refine')} />
 
         <TranslateSection {...section('translate')} />
 

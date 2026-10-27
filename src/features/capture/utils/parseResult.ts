@@ -20,6 +20,9 @@ export function parseOcrResult(raw: unknown): OcrResult | null {
     mode: r.mode,
     createdAt: finiteNumber(r.createdAt, 0),
     durationMs: Math.max(0, finiteNumber(r.durationMs, 0)),
+    ...(typeof r.refined === 'string' && r.refined.length > 0
+      ? { refined: r.refined }
+      : {}),
     ...(typeof r.translation === 'string' && r.translation.length > 0
       ? {
           translation: r.translation,

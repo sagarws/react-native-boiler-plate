@@ -5,6 +5,7 @@ import {
   isSpeechLanguage,
   type CaptureSettings,
   type PaginationSettings,
+  type RefineSettings,
   type TranslateSettings,
   type ReadingSettings,
   type SpeechSettings,
@@ -33,6 +34,14 @@ export const DEFAULT_TRANSLATE_SETTINGS: TranslateSettings = {
   model: DEFAULT_TRANSLATE_MODEL,
   thinkingLevel: 'low',
   projectNumber: '',
+};
+
+export const DEFAULT_REFINE_PROMPT =
+  'This text was extracted by OCR from a screen or a scanned page, possibly an old book. Repair OCR damage: fix misrecognised characters, broken or split words, missing spaces and stray symbols; rejoin words hyphenated across lines; restore a cut-off letter or word only when it is unambiguous from the surrounding text. Do not add, remove, summarise, translate or rephrase content. Keep the original language, names, numbers and paragraph breaks. Leave anything you cannot repair with confidence exactly as it is.';
+
+export const DEFAULT_REFINE_SETTINGS: RefineSettings = {
+  enabled: false,
+  prompt: DEFAULT_REFINE_PROMPT,
 };
 
 export const DEFAULT_PAGINATION_SETTINGS: PaginationSettings = {
@@ -71,6 +80,7 @@ export const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
   reading: DEFAULT_READING_SETTINGS,
   pagination: DEFAULT_PAGINATION_SETTINGS,
   translate: DEFAULT_TRANSLATE_SETTINGS,
+  refine: DEFAULT_REFINE_SETTINGS,
 };
 
 function clamp(
@@ -194,6 +204,18 @@ export function sanitizeTranslateSettings(raw: unknown): TranslateSettings {
   };
 }
 
+export function sanitizeRefineSettings(raw: unknown): RefineSettings {
+  const d = DEFAULT_REFINE_SETTINGS;
+  const r = record(raw);
+  return {
+    enabled: bool(r.enabled, d.enabled),
+    prompt:
+      typeof r.prompt === 'string' && r.prompt.trim().length > 0
+        ? r.prompt.slice(0, MAX_TRANSLATE_PROMPT)
+        : d.prompt,
+  };
+}
+
 /** Field-by-field validation: one bad value never resets the others. */
 export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
   const d = DEFAULT_CAPTURE_SETTINGS;
@@ -223,6 +245,7 @@ export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
     reading: sanitizeReadingSettings(r.reading),
     pagination: sanitizePaginationSettings(r.pagination),
     translate: legacyTranslate ? { ...translate, enabled: true } : translate,
+    refine: sanitizeRefineSettings(r.refine),
   };
 }
 
@@ -263,6 +286,12 @@ export const captureSettingsStore = {
     const current = captureSettingsStore.read();
     return captureSettingsStore.update({
       translate: { ...current.translate, ...patch },
+    });
+  },
+  updateRefine(patch: Partial<RefineSettings>): CaptureSettings {
+    const current = captureSettingsStore.read();
+    return captureSettingsStore.update({
+      refine: { ...current.refine, ...patch },
     });
   },
   updatePagination(patch: Partial<PaginationSettings>): CaptureSettings {

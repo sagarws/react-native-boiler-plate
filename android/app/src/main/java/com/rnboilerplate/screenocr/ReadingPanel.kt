@@ -163,11 +163,14 @@ class ReadingPanel(private val context: Context, private val listener: Listener)
     root.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
   }
 
-  /** While a translation is in flight the status line says so (any read-aloud mode). */
-  fun setTranslating(target: String?) {
-    if (target != null) {
-      status.text = context.getString(R.string.translate_status_translating_to, TranslationPrompt.languageName(target))
-    }
+  /** While a Gemini step is in flight the status line says which (any read-aloud mode). */
+  fun setStage(stage: PipelineStage, target: String) {
+    status.text =
+      when (stage) {
+        PipelineStage.REFINING -> context.getString(R.string.refine_status_refining)
+        PipelineStage.TRANSLATING ->
+          context.getString(R.string.translate_status_translating_to, TranslationPrompt.languageName(target))
+      }
   }
 
   /** Status and controls for a Speak-with-pagination session. */

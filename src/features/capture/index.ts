@@ -93,4 +93,5 @@ export {
   DEFAULT_TRANSLATE_PROMPT,
   MAX_TRANSLATE_PROMPT,
 } from './store/captureSettings.store';
-export type { TranslateSettings } from './capture.types';
+export type { TranslateSettings, RefineSettings } from './capture.types';
+export { DEFAULT_REFINE_PROMPT } from './store/captureSettings.store';

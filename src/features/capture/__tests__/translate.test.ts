@@ -245,4 +245,18 @@ describe('translated results', () => {
       parseOcrResult({ id: '2', text: 'x', mode: 'english' })?.translation,
     ).toBeUndefined();
   });
+
+  it('keeps the refined text when refinement ran', () => {
+    const r = parseOcrResult({
+      id: '3',
+      text: 'Tbe olcl bo-\nok',
+      mode: 'english',
+      refined: 'The old book',
+    });
+    expect(r?.refined).toBe('The old book');
+    expect(
+      parseOcrResult({ id: '4', text: 'x', mode: 'english', refined: '' })
+        ?.refined,
+    ).toBeUndefined();
+  });
 });

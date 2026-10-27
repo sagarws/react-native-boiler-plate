@@ -264,67 +264,49 @@ service**:
 - capabilities are unchanged: window content (to find the button or scroll container)
   and gestures (to tap or swipe); no events are acted on.
 
-### Speak with translation (`TranslateSession.kt`, `GeminiClient.kt`)
+### Refine text and Apply translation (`TextPipeline.kt`, `GeminiClient.kt`)
+
+Two opt-in Gemini steps that work with every tap action, not as separate
+actions:
 
 ```
-IDLE → CAPTURING → RUNNING_OCR → TRANSLATING → SPEAKING → COMPLETE
-any active state → PAUSED / STOPPED / ERROR
+scan → OCR (on device) → refine (if on) → translate the refined text (if on) → copy / speak
 ```
 
-**Gate.** A tap does nothing (just a toast) until the user has turned on "Send
-extracted text to Google Gemini" and saved an API key. Without both, nothing is
-captured or sent.
+- **Refine text** (Settings → Refine text): repairs OCR damage such as
+  broken or cut-off words, misread letters and stray symbols, which is
+  common on old books. It is driven by an editable prompt. It must not add,
+  summarise or translate.
+- **Apply translation** (Settings → Translation): translates into the target
+  language using an editable prompt (`{target}`/`{source}` are substituted).
+- **Shared settings:** both steps use one API key, model (default
+  `gemini-flash-latest`, Google's always-current Flash alias) and thinking
+  level (default `low`, retried once without it if a model rejects it). All
+  three are set in the Translation card.
+- **What each action uses:** Copy copies the final text. Speak, Auto-scroll
+  and Pagination speak it; a translation is spoken in the target language's
+  voice. Auto-scroll's "same screen" check and Pagination's page check still
+  compare the original OCR text.
+- **Gate.** If either switch is on but no key is saved, the tap only shows a
+  toast. Nothing is captured or sent.
+- **Failure.** A failed step fails the run with a specific message (quota,
+  invalid key, model not found, …). Unprocessed text is never used silently.
+  In Copy mode the original is still saved to history.
+- **Caching.** Pause, resume and restart reuse the processed text. Stop
+  cancels the in-flight request.
+- **History.** Entries store `text` (original), `refined` and `translation`.
+  The result screen shows the refined text.
+- **Test connection** lists the models the key can call and shows Google's
+  own error message with its HTTP status.
+- **Project number** is kept for reference only and is not sent. Usage and
+  billing go to the project that owns the API key, and the API keeps no chat
+  history.
 
-**Request.**
-- `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
-- The key goes in the `x-goog-api-key` header, never in the URL.
-- `systemInstruction` is the user's prompt with `{target}` and `{source}` filled in,
-  plus fixed output rules.
-- `contents` is the OCR text with paragraphs separated by blank lines.
-- `generationConfig` sets temperature 0.2 and asks for JSON output
-  `{detectedLanguage, translation}`. If a model ignores that, plain text is accepted.
-- Long text is sent in paragraph chunks of at most 4,000 characters, in order.
-- Default model: `gemini-2.5-flash`, editable in Settings.
-
-**What is sent:** only the extracted text and the instructions. Screenshots never leave
-the device.
-
-**Errors.**
-- No internet, invalid key, API disabled, quota (HTTP 429 gets exactly one retry after
-  2 s), safety block, server error, timeout, unexpected response: each shows its own
-  message.
-- Nothing else is retried.
-- Requests, responses and the key are never logged.
-
-**Cancellation.** Stop disconnects the in-flight request, and a generation counter
-drops any late result, so nothing is spoken after Stop.
-
-**Speech.** The translation is spoken paragraph by paragraph with the target language's
-voice. If the source language is fixed and equals the target, the Gemini call is
-skipped.
-
-**Results.** The translation is stored with the capture (if history is on) and shown
-above the original on the Extracted Text screen.
-
-**The API key** (`SecureKeyStore.kt`):
-- It is encrypted with AES-256-GCM using a key held in the Android Keystore
-  (hardware-backed where available). The ciphertext lives in private
-  SharedPreferences, and backups are off.
-- JS hands the key over once on save and then only learns `hasKey` and the last four
-  characters.
-- It is never in the repo, `.env`, Gradle or logs.
-- Limitation: a key used directly from an app can be extracted by someone with access
-  to the device. For a public release, put a backend proxy or Firebase App Check in
-  front, and restrict the key in Google Cloud (Generative Language API only, Android
-  app restriction with package name + SHA-1).
-
-**Network policy** (`src/release/AndroidManifest.xml`):
-- Release builds keep `INTERNET` for this feature only.
-- ML Kit's bundled datatransport usage-logging uploader (backend discovery, job
-  scheduler, alarm receiver) is removed from the manifest, so it can't send anything
-  even with the permission present.
-
----
+**Privacy and security.** Only the recognised text is sent, never the
+screenshot. The key is encrypted with AES-GCM using an Android Keystore key
+(`SecureKeyStore`) and sent only in the `x-goog-api-key` header. JS can only
+see whether a key exists and its last four characters. Nothing about
+requests, responses or the key is logged, and error details are redacted.
 
 ## Speech (text-to-speech)
 

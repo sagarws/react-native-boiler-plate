@@ -34,6 +34,30 @@ class GeminiClient {
     config: TranslateConfig,
     text: String,
     onResult: (Result<TranslationResult>) -> Unit,
+  ) =
+    run(apiKey, config, text, onResult, { chunk, thinking -> TranslationPrompt.requestBody(config, chunk, thinking) }) {
+      GeminiResponse.parse(it)
+    }
+
+  /** Repairs OCR damage (refinement) with the same key, model and thinking level. */
+  fun refine(
+    apiKey: String,
+    gemini: TranslateConfig,
+    refine: RefineConfig,
+    text: String,
+    onResult: (Result<TranslationResult>) -> Unit,
+  ) =
+    run(apiKey, gemini, text, onResult, { chunk, thinking -> RefinePrompt.requestBody(refine, gemini, chunk, thinking) }) {
+      RefinePrompt.parse(it)
+    }
+
+  private fun run(
+    apiKey: String,
+    config: TranslateConfig,
+    text: String,
+    onResult: (Result<TranslationResult>) -> Unit,
+    body: (chunk: String, withThinking: Boolean) -> org.json.JSONObject,
+    parse: (String) -> Result<TranslationResult>,
   ) {
     val gen = generation.incrementAndGet()
     executor.execute {
@@ -43,7 +67,7 @@ class GeminiClient {
           val parts =
             TranslationPrompt.chunks(text).map { chunk ->
               if (gen != generation.get()) throw TranslateException(TranslateError.CANCELLED)
-              val part = request(apiKey, config, chunk, gen).getOrThrow()
+              val part = request(apiKey, config.model, chunk, gen, body, parse).getOrThrow()
               if (detected.isEmpty()) detected = part.detectedLanguage
               part.text
             }
@@ -99,18 +123,25 @@ class GeminiClient {
     executor.shutdownNow()
   }
 
-  private fun request(apiKey: String, config: TranslateConfig, text: String, gen: Int): Result<TranslationResult> {
+  private fun request(
+    apiKey: String,
+    modelName: String,
+    text: String,
+    gen: Int,
+    body: (String, Boolean) -> org.json.JSONObject,
+    parse: (String) -> Result<TranslationResult>,
+  ): Result<TranslationResult> {
     var withThinking = true
     var quotaRetried = false
     while (true) {
-      val model = config.model.filter { it.isLetterOrDigit() || it in ".-_" }.ifEmpty { TranslationPrompt.DEFAULT_MODEL }
-      val (status, body) =
+      val model = modelName.filter { it.isLetterOrDigit() || it in ".-_" }.ifEmpty { TranslationPrompt.DEFAULT_MODEL }
+      val (status, responseBody) =
         try {
           call(
             apiKey,
             "POST",
             "https://generativelanguage.googleapis.com/v1beta/models/$model:generateContent",
-            TranslationPrompt.requestBody(config, text, withThinking).toString(),
+            body(text, withThinking).toString(),
           )
         } catch (_: UnknownHostException) {
           return Result.failure(TranslateException(TranslateError.NO_INTERNET))
@@ -121,20 +152,20 @@ class GeminiClient {
             TranslateException(if (gen != generation.get()) TranslateError.CANCELLED else TranslateError.NO_INTERNET),
           )
         }
-      if (status in 200..299) return GeminiResponse.parse(body)
-      if (withThinking && GeminiResponse.isThinkingRejected(status, body)) {
+      if (status in 200..299) return parse(responseBody)
+      if (withThinking && GeminiResponse.isThinkingRejected(status, responseBody)) {
         // Older models (or a level a model lacks) reject thinkingLevel: retry once without it.
         withThinking = false
         continue
       }
-      val error = GeminiResponse.errorFor(status, body)
+      val error = GeminiResponse.errorFor(status, responseBody)
       if (error == TranslateError.QUOTA && !quotaRetried && gen == generation.get()) {
         quotaRetried = true
         Thread.sleep(RETRY_BACKOFF_MS)
         continue
       }
       return Result.failure(
-        TranslateException(error, status, GeminiResponse.redact(GeminiResponse.errorMessage(body), apiKey)),
+        TranslateException(error, status, GeminiResponse.redact(GeminiResponse.errorMessage(responseBody), apiKey)),
       )
     }
   }

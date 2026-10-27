@@ -86,6 +86,7 @@ data class OcrConfig(
   val reading: ReadingConfig = ReadingConfig(),
   val pagination: PaginationConfig = PaginationConfig(),
   val translate: TranslateConfig = TranslateConfig(),
+  val refine: RefineConfig = RefineConfig(),
 ) {
   companion object {
     const val MIN_SIZE_DP = 40
@@ -140,6 +141,13 @@ data class OcrConfig(
             maxNoNewText = r.optInt("maxNoNewText", dr.maxNoNewText).coerceIn(1, 10),
             manualFallback = r.optBoolean("manualFallback", dr.manualFallback),
           ),
+        refine =
+          (json.optJSONObject("refine") ?: JSONObject()).let { r ->
+            RefineConfig(
+              enabled = r.optBoolean("enabled", false),
+              prompt = r.optString("prompt", RefinePrompt.DEFAULT_PROMPT).take(TranslationPrompt.MAX_PROMPT),
+            )
+          },
         translate =
           (json.optJSONObject("translate") ?: JSONObject()).let { t ->
             val dt = TranslateConfig()

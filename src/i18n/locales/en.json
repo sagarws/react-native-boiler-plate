@@ -476,7 +476,7 @@
     "originalLabel": "Original text",
     "copyTranslation": "Copy translation",
     "apply": "Apply translation",
-    "applyHint": "Copy and every read-aloud mode use the translation. Sends the extracted text to Google Gemini.",
+    "applyHint": "Copy and every read-aloud mode use the translation (of the refined text, if Refine text is on). Sends the extracted text to Google Gemini.",
     "summaryOff": "Off",
     "test_model_not_found": "This model isn’t available for your key. Pick one from the list below, or use gemini-flash-latest.",
     "testDetail": "Google says (HTTP {{status}}): {{detail}}",
@@ -493,5 +493,19 @@
     "projectSave": "Save project number",
     "projectSaved": "Saved project {{project}}",
     "projectInvalid": "A project number has digits only."
+  },
+  "refine": {
+    "section": "Refine text",
+    "apply": "Refine text",
+    "applyHint": "Repairs OCR damage — broken or cut-off words, stray symbols — before the text is copied, translated or read aloud. Sends the extracted text to Google Gemini.",
+    "summaryOff": "Off",
+    "summaryReady": "On · runs before copy, translation and speech",
+    "summaryNoKey": "On · add your Gemini key in Translation",
+    "needsKey": "Refinement uses the Gemini API key, model and thinking level from the Translation card. Add a key there.",
+    "order": "Order: scan → refine → translate (if on) → copy or speak.",
+    "prompt": "Refining instructions",
+    "promptHint": "{{count}} / {{max}} characters",
+    "resetPrompt": "Reset",
+    "footer": "Uses your own Gemini key. Only the recognised text is sent — never the screenshot."
   }
 }
