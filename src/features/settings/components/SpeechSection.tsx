@@ -1,34 +1,32 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   engineLabel,
   OCR_MODE_SCRIPTS,
-  SPEECH_LANGUAGES,
   SPEECH_PITCH,
   SPEECH_RATE,
+  savedVoiceStatus,
   speechService,
   unspeakableScripts,
   useCaptureSettings,
   useSpeechInfo,
+  useVoicePreview,
+  voicesFor,
   type SpeechInfo,
   type SpeechLanguage,
   type SpeechOutcome,
 } from '@/features/capture';
 import {
   Button,
-  Card,
-  ChoiceList,
+  ExpandableCard,
   ListRow,
   Notice,
-  SegmentedControl,
   StatusPill,
 } from '@/shared/components';
 import { useTheme } from '@/theme';
-import { SettingsSection } from './SettingsSection';
 import { SettingSwitch, SliderRow } from './SettingControls';
-
-const DEFAULT_VOICE = '';
+import { TtsLanguageSection } from './TtsLanguageSection';
 
 function EngineCard({
   info,
@@ -127,20 +125,30 @@ function EngineCard({
   );
 }
 
-/** Engine, speech language, voice, Test Voice, speed/pitch and behaviour toggles. */
-export function SpeechSection() {
+export interface SpeechSectionProps {
+  expanded: boolean;
+  onToggle: () => void;
+}
+
+/**
+ * Speech & voice: engine, language-first voice picker with per-voice
+ * previews, Test Voice, speed/pitch and behaviour toggles. Collapses to a
+ * one-line summary of the language and voice in use.
+ */
+export function SpeechSection({ expanded, onToggle }: SpeechSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const { settings, updateSpeech } = useCaptureSettings();
   const speech = settings.speech;
   const { info, loading } = useSpeechInfo(speech.preferGoogle);
+  const preview = useVoicePreview(speech.rate, speech.pitch);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<SpeechOutcome | null>(null);
 
   const language = speech.language;
-  const status = info?.languages[language];
-  const voices = (info?.voices ?? []).filter(v => v.language === language);
   const langName = (l: SpeechLanguage) => t(`speech.lang_${l}_name`);
+  const voiceCount = voicesFor(info, language).length;
+  const savedStatus = savedVoiceStatus(info, speech);
   const missing = info
     ? unspeakableScripts(
         OCR_MODE_SCRIPTS[settings.ocrMode],
@@ -150,12 +158,25 @@ export function SpeechSection() {
       )
     : [];
 
+  const summary = t(info?.ready ? 'speech.summaryVoices' : 'speech.summary', {
+    language: langName(language),
+    voice: speech.voiceName || t('speech.defaultVoiceShort'),
+    count: voiceCount,
+  });
+
+  // Collapsing the card ends any sample that is still playing.
+  const { stop: stopPreview } = preview;
+  useEffect(() => {
+    if (!expanded) stopPreview();
+  }, [expanded, stopPreview]);
+
   const onTest = useCallback(async () => {
     if (testing) {
       speechService.stop();
       setTesting(false);
       return;
     }
+    stopPreview();
     setTesting(true);
     setTestResult(null);
     const result = await speechService.testVoice(
@@ -166,17 +187,30 @@ export function SpeechSection() {
     );
     setTesting(false);
     setTestResult(result);
-  }, [language, speech.pitch, speech.rate, speech.voiceName, testing]);
+  }, [
+    language,
+    speech.pitch,
+    speech.rate,
+    speech.voiceName,
+    stopPreview,
+    testing,
+  ]);
 
-  const onLanguage = (next: SpeechLanguage) => {
-    // A voice belongs to one language; switching resets to that language's default.
-    updateSpeech({ language: next, voiceName: DEFAULT_VOICE });
-    setTestResult(null);
-  };
+  const onSelect = useCallback(
+    (nextLanguage: SpeechLanguage, voiceName: string) => {
+      updateSpeech({ language: nextLanguage, voiceName });
+      setTestResult(null);
+    },
+    [updateSpeech],
+  );
 
   return (
-    <SettingsSection
+    <ExpandableCard
       title={t('speech.section')}
+      summary={summary}
+      icon="volume2"
+      expanded={expanded}
+      onToggle={onToggle}
       footer={t('speech.mixedNote')}
       testID="settings-speech"
     >
@@ -219,50 +253,18 @@ export function SpeechSection() {
             ]}
           >
             <Text style={[typography.label, { color: colors.textPrimary }]}>
-              {t('speech.language')}
+              {t('speech.voicesTitle')}
             </Text>
-            <SegmentedControl
-              testID="speech-language"
-              accessibilityLabel={t('speech.language')}
-              value={language}
-              onChange={onLanguage}
-              options={SPEECH_LANGUAGES.map(l => ({
-                value: l,
-                label: t(`speech.lang_${l}`),
-              }))}
-            />
-            <View style={styles.engineRow}>
-              <Text
-                style={[
-                  typography.caption,
-                  styles.flex,
-                  { color: colors.textSecondary },
-                ]}
-              >
-                {t('speech.languageHint')}
-              </Text>
-              {status ? (
-                <StatusPill
-                  testID="speech-language-status"
-                  label={t(`speech.status_${status}`)}
-                  tone={status === 'available' ? 'success' : 'warning'}
-                />
-              ) : null}
-            </View>
-            {status && status !== 'available' ? (
+            <Text style={[typography.caption, { color: colors.textSecondary }]}>
+              {t('speech.voicesHint')} {t('speech.languageHint')}
+            </Text>
+            {savedStatus === 'unavailable' ? (
               <Notice
-                testID="speech-voice-missing"
+                testID="speech-saved-voice-unavailable"
                 tone="warning"
-                title={t('speech.voiceMissingTitle', {
-                  language: langName(language),
+                message={t('speech.savedVoiceUnavailable', {
+                  name: speech.voiceName,
                 })}
-                message={t('speech.voiceMissingBody', {
-                  language: langName(language),
-                })}
-                action={{
-                  label: t('speech.installVoices'),
-                  onPress: speechService.installVoiceData,
-                }}
               />
             ) : null}
             {missing.length > 0 ? (
@@ -274,64 +276,34 @@ export function SpeechSection() {
                 })}
               />
             ) : null}
+            <TtsLanguageSection
+              info={info}
+              speech={speech}
+              preview={preview}
+              onSelect={onSelect}
+            />
+            <Button
+              testID="speech-test"
+              size="sm"
+              iconName={testing ? 'square' : 'play'}
+              label={testing ? t('speech.stop') : t('speech.test')}
+              onPress={() => {
+                void onTest();
+              }}
+              disabled={!info.ready}
+            />
+            {testResult && testResult !== 'ok' ? (
+              <Notice
+                testID="speech-test-result"
+                tone="warning"
+                message={t(`speech.test_${testResult}`)}
+              />
+            ) : null}
           </View>
 
-          {status === 'available' ? (
-            <View
-              style={[
-                styles.block,
-                {
-                  padding: spacing.lg,
-                  gap: spacing.sm,
-                  borderTopColor: colors.divider,
-                },
-              ]}
-            >
-              <Text style={[typography.label, { color: colors.textPrimary }]}>
-                {t('speech.voice')}
-              </Text>
-              <ChoiceList
-                testID="speech-voice"
-                accessibilityLabel={t('speech.voice')}
-                value={
-                  voices.some(v => v.name === speech.voiceName)
-                    ? speech.voiceName
-                    : DEFAULT_VOICE
-                }
-                onChange={voiceName => updateSpeech({ voiceName })}
-                choices={[
-                  {
-                    value: DEFAULT_VOICE,
-                    title: t('speech.defaultVoice'),
-                    icon: 'sparkles' as const,
-                  },
-                  ...voices.map(v => ({
-                    value: v.name,
-                    title: v.name,
-                    description: [
-                      v.locale,
-                      v.networkRequired
-                        ? t('speech.voiceNetwork')
-                        : t('speech.voiceOffline'),
-                      v.installed ? null : t('speech.voiceNotInstalled'),
-                    ]
-                      .filter(Boolean)
-                      .join(' · '),
-                  })),
-                ]}
-              />
-              {voices.length === 0 ? (
-                <Text
-                  style={[typography.caption, { color: colors.textSecondary }]}
-                >
-                  {t('speech.noVoices')}
-                </Text>
-              ) : null}
-            </View>
-          ) : null}
-
-          <Card flat style={styles.noBorder}>
+          <View style={[styles.block, { borderTopColor: colors.divider }]}>
             <SliderRow
+              divider={false}
               testID="speech-rate"
               label={t('speech.rate')}
               valueText={t('speech.rateValue', {
@@ -355,30 +327,6 @@ export function SpeechSection() {
               step={SPEECH_PITCH.step * 10}
               onChange={v => updateSpeech({ pitch: v / 10 })}
             />
-          </Card>
-
-          <View
-            style={{
-              padding: spacing.lg,
-              gap: spacing.sm,
-              borderTopColor: colors.divider,
-              borderTopWidth: StyleSheet.hairlineWidth,
-            }}
-          >
-            <Button
-              testID="speech-test"
-              iconName={testing ? 'square' : 'play'}
-              label={testing ? t('speech.stop') : t('speech.test')}
-              onPress={() => void onTest()}
-              disabled={!info.ready}
-            />
-            {testResult && testResult !== 'ok' ? (
-              <Notice
-                testID="speech-test-result"
-                tone="warning"
-                message={t(`speech.test_${testResult}`)}
-              />
-            ) : null}
           </View>
 
           <ListRow
@@ -439,7 +387,7 @@ export function SpeechSection() {
           />
         </>
       ) : null}
-    </SettingsSection>
+    </ExpandableCard>
   );
 }
 
@@ -449,5 +397,4 @@ const styles = StyleSheet.create({
   engineRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   buttons: { flexDirection: 'row' },
   block: { borderTopWidth: StyleSheet.hairlineWidth },
-  noBorder: { borderWidth: 0, borderRadius: 0 },
 });

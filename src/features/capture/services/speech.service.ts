@@ -4,6 +4,9 @@ import {
   isSpeechLanguage,
   SPEECH_LANGUAGES,
   type LanguageStatus,
+  type PreviewOutcome,
+  type SavedVoiceStatus,
+  type SpeechSettings,
   type SpeechInfo,
   type SpeechLanguage,
   type SpeechOutcome,
@@ -18,6 +21,67 @@ export const VOICE_SAMPLES: Record<SpeechLanguage, string> = {
   hi: 'नमस्ते! आपका स्क्रीन टेक्स्ट पढ़ने के लिए तैयार है।',
   gu: 'નમસ્તે! તમારી સ્ક્રીનનો ટેક્સ્ટ વાંચવા માટે તૈયાર છે.',
 };
+
+/** Voice-preview samples, one per speech language. */
+export const PREVIEW_SAMPLES: Record<SpeechLanguage, string> = {
+  en: 'Hello! This is a preview of the selected voice.',
+  gu: 'નમસ્તે! આ પસંદ કરેલા અવાજનો નમૂનો છે.',
+  hi: 'नमस्ते! यह चुनी गई आवाज़ का नमूना है।',
+};
+
+/** Language categories offered for speech, in display order. */
+export const VOICE_LANGUAGE_ORDER: readonly SpeechLanguage[] = [
+  'en',
+  'gu',
+  'hi',
+];
+
+/**
+ * The device's voices for one language, as reported by the TTS engine:
+ * downloaded voices first, then by locale, then by engine quality.
+ */
+export function voicesFor(
+  info: SpeechInfo | null,
+  language: SpeechLanguage,
+): VoiceInfo[] {
+  return (info?.voices ?? [])
+    .filter(v => v.language === language)
+    .sort(
+      (a, b) =>
+        Number(b.installed) - Number(a.installed) ||
+        a.locale.localeCompare(b.locale) ||
+        b.quality - a.quality ||
+        a.name.localeCompare(b.name),
+    );
+}
+
+/**
+ * Whether the saved voice is still usable. A voice that vanished (engine
+ * update, data removed) or is no longer downloaded is reported, never
+ * silently swapped.
+ */
+export function savedVoiceStatus(
+  info: SpeechInfo | null,
+  speech: SpeechSettings,
+): SavedVoiceStatus {
+  if (!speech.voiceName) return 'default';
+  if (!info || !info.ready) return 'available';
+  const voice = info.voices.find(v => v.name === speech.voiceName);
+  return voice && voice.installed && voice.language === speech.language
+    ? 'available'
+    : 'unavailable';
+}
+
+function previewOutcome(value: string): PreviewOutcome {
+  return value === 'ok' ||
+    value === 'stopped' ||
+    value === 'busy' ||
+    value === 'voice_missing' ||
+    value === 'not_installed' ||
+    value === 'not_ready'
+    ? value
+    : 'speech_failed';
+}
 
 const UNSUPPORTED_INFO: SpeechInfo = {
   supported: false,
@@ -157,6 +221,33 @@ export const speechService = {
       );
     } catch (error) {
       logger.error('speech.testVoice failed', error);
+      return 'speech_failed';
+    }
+  },
+
+  /**
+   * Plays the preview sample with exactly this voice. Resolves when the
+   * sample finishes, is stopped, or is replaced by another preview.
+   */
+  async previewVoice(
+    voiceName: string,
+    language: SpeechLanguage,
+    rate: number,
+    pitch: number,
+  ): Promise<PreviewOutcome> {
+    if (!NativeScreenOcr) return 'unsupported';
+    try {
+      return previewOutcome(
+        await NativeScreenOcr.previewVoice(
+          PREVIEW_SAMPLES[language],
+          language,
+          voiceName,
+          rate,
+          pitch,
+        ),
+      );
+    } catch (error) {
+      logger.error('speech.previewVoice failed', error);
       return 'speech_failed';
     }
   },

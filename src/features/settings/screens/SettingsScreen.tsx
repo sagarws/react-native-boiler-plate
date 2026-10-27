@@ -16,6 +16,7 @@ import { isSupportedLanguage, type LanguageCode } from '@/i18n/languages';
 import { ROUTES } from '@/navigation/routes';
 import {
   Button,
+  ExpandableCard,
   Header,
   LanguageDropdown,
   ListRow,
@@ -32,9 +33,21 @@ import { SpeechSection } from '../components/SpeechSection';
 
 type Toast = 'historyCleared' | 'resetPositionDone' | null;
 
+/** The large, collapsible sections; only one is open at a time. */
+type SectionKey =
+  | 'ocr'
+  | 'floating'
+  | 'speech'
+  | 'reading'
+  | 'pagination'
+  | 'clipboard';
+
 /**
  * Settings, grouped: OCR language · Floating button · Speech & voice ·
- * Auto-scroll reading · Clipboard & history · Appearance · About & privacy.
+ * Auto-scroll reading · Speak with pagination · Clipboard & history ·
+ * Appearance · About & privacy. The large groups are an accordion — one open
+ * at a time, each collapsed to a one-line summary of its current state —
+ * so everything fits without long scrolling.
  * Every control writes through the capture settings store, which persists
  * immediately and is mirrored to the native service.
  */
@@ -46,6 +59,12 @@ export default function SettingsScreen() {
   const { settings, update } = useCaptureSettings();
   const overlay = useOverlayController();
   const [toast, setToast] = useState<Toast>(null);
+  const [open, setOpen] = useState<SectionKey | null>(null);
+  const section = (key: SectionKey) => ({
+    expanded: open === key,
+    onToggle: () => setOpen(current => (current === key ? null : key)),
+  });
+  const onOff = (value: boolean) => (value ? t('common.on') : t('common.off'));
 
   const language: LanguageCode = isSupportedLanguage(i18n.language)
     ? i18n.language
@@ -89,7 +108,7 @@ export default function SettingsScreen() {
         contentContainerStyle={{
           padding: spacing.lg,
           paddingBottom: bottom + spacing.xl,
-          gap: spacing.xl,
+          gap: spacing.md,
         }}
       >
         {toast ? (
@@ -100,33 +119,43 @@ export default function SettingsScreen() {
           />
         ) : null}
 
-        <SettingsSection
+        <ExpandableCard
           title={t('ocrMode.label')}
+          summary={t(`ocrMode.${settings.ocrMode}`)}
+          icon="languages"
           footer={`${t('settings.ocrHint')} ${t('ocrMode.engineNote')}`}
           padded
           testID="settings-ocr"
+          {...section('ocr')}
         >
           <OcrModePicker
             value={settings.ocrMode}
             onChange={ocrMode => update({ ocrMode })}
           />
-        </SettingsSection>
+        </ExpandableCard>
 
         <FloatingButtonSection
           overlay={overlay}
           onResetPosition={() => setToast('resetPositionDone')}
+          {...section('floating')}
         />
 
-        <SpeechSection />
+        <SpeechSection {...section('speech')} />
 
-        <ReadingSection />
+        <ReadingSection {...section('reading')} />
 
-        <PaginationSection />
+        <PaginationSection {...section('pagination')} />
 
-        <SettingsSection
+        <ExpandableCard
           title={t('settings.sectionClipboard')}
+          summary={t('settings.summaryClipboard', {
+            copy: onOff(settings.autoCopy),
+            history: onOff(settings.saveHistory),
+          })}
+          icon="clipboardCheck"
           footer={t('settings.privacyNote')}
           testID="settings-clipboard"
+          {...section('clipboard')}
         >
           <ListRow
             icon="clipboardCheck"
@@ -163,7 +192,7 @@ export default function SettingsScreen() {
             onPress={onClearHistory}
             testID="settings-clear-history"
           />
-        </SettingsSection>
+        </ExpandableCard>
 
         <SettingsSection title={t('settings.sectionAppearance')}>
           <ListRow

@@ -24,6 +24,9 @@ object ScreenOcrBus {
   /** The most recent capture. Memory only — gone when the process dies. */
   @Volatile var latest: JSONObject? = null
 
+  /** A read-aloud session (speak / auto-scroll / pagination) is running in the overlay. */
+  @Volatile var readingActive: Boolean = false
+
   /** Resolves the pending `startOverlay()` call once the user answers the consent dialog. */
   @Volatile var consentCallback: ((Boolean) -> Unit)? = null
 

@@ -26,6 +26,10 @@ export {
   engineLabel,
   unspeakableScripts,
   VOICE_SAMPLES,
+  PREVIEW_SAMPLES,
+  VOICE_LANGUAGE_ORDER,
+  voicesFor,
+  savedVoiceStatus,
   GOOGLE_TTS,
 } from './services/speech.service';
 export {
@@ -42,6 +46,8 @@ export type {
   SpeechInfo,
   SpeechOutcome,
   VoiceInfo,
+  PreviewOutcome,
+  SavedVoiceStatus,
 } from './capture.types';
 export {
   FLOATING_ACTIONS,
@@ -65,3 +71,5 @@ export type {
   PaginationTargetStatus,
   TargetProblem,
 } from './capture.types';
+export { useVoicePreview } from './hooks/useVoicePreview';
+export type { UseVoicePreview } from './hooks/useVoicePreview';

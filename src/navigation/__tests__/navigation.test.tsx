@@ -196,10 +196,52 @@ describe('after onboarding', () => {
     expect(textsOf(renderer.root)).toContain('No extractions yet');
   });
 
+  it('shows every settings group collapsed to a one-line summary', async () => {
+    const renderer = await renderApp();
+    await pressLabel(renderer, 'Open settings');
+    const texts = textsOf(renderer.root);
+    for (const title of [
+      'OCR language',
+      'Floating button',
+      'Speech & voice',
+      'Auto-scroll reading',
+      'Speak with pagination',
+      'Clipboard & history',
+    ]) {
+      expect(texts).toContain(title);
+    }
+    // Summaries come from real state.
+    expect(texts).toContain('Hindi + English');
+    expect(texts).toContain('Next button not pinned');
+    expect(texts).toContain('Auto-copy On · History On');
+    // Bodies are not rendered while collapsed.
+    expect(texts).not.toContain('Action on floating button click');
+  });
+
+  it('keeps one settings group open at a time and never changes values when collapsing', async () => {
+    const renderer = await renderApp();
+    await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-ocr-header');
+    await pressId(renderer, 'ocr-mode-gujarati');
+    expect(captureSettingsStore.read().ocrMode).toBe('gujarati');
+
+    // Opening another group closes the first.
+    await pressId(renderer, 'settings-floating-header');
+    expect(textsOf(renderer.root)).toContain('Action on floating button click');
+    expect(
+      renderer.root.findAll(n => n.props.testID === 'ocr-mode-gujarati').length,
+    ).toBe(0);
+
+    // Collapsing it again leaves every value untouched.
+    await pressId(renderer, 'settings-floating-header');
+    expect(captureSettingsStore.read().ocrMode).toBe('gujarati');
+    expect(textsOf(renderer.root)).toContain('Gujarati');
+  });
+
   it('changes the OCR language from Settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
-    expect(textsOf(renderer.root)).toContain('Floating button');
+    await pressId(renderer, 'settings-ocr-header');
 
     await pressId(renderer, 'ocr-mode-english');
     expect(captureSettingsStore.read().ocrMode).toBe('english');
@@ -209,6 +251,7 @@ describe('after onboarding', () => {
   it('offers all seven OCR modes, including Gujarati combinations', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-ocr-header');
     const texts = textsOf(renderer.root);
     for (const label of [
       'English',
@@ -228,6 +271,7 @@ describe('after onboarding', () => {
   it('selects the floating-button click action and persists it', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-floating-header');
     expect(textsOf(renderer.root)).toContain('Action on floating button click');
 
     await pressId(renderer, 'floating-action-speak_scroll');
@@ -241,26 +285,32 @@ describe('after onboarding', () => {
   it('offers Speak with pagination as the fourth action, with its settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-floating-header');
     const texts = textsOf(renderer.root);
     expect(texts).toContain('Copy text only');
     expect(texts).toContain('Start speaking');
     expect(texts).toContain('Speak with auto-scroll');
     expect(texts).toContain('Speak with pagination');
-    expect(texts).toContain('Next Page button');
 
     await pressId(renderer, 'floating-action-speak_pagination');
     expect(captureSettingsStore.read().action).toBe('speak_pagination');
     expect(checked(renderer, 'floating-action-speak_pagination')).toBe(true);
+
+    await pressId(renderer, 'settings-pagination-header');
+    expect(textsOf(renderer.root)).toContain('Next Page button');
   });
 
   it('shows Speech & voice and Auto-scroll reading settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
-    const texts = textsOf(renderer.root);
-    expect(texts).toContain('Auto-scroll reading');
-    expect(texts).toContain('Why auto-scroll needs accessibility access');
+    await pressId(renderer, 'settings-speech-header');
     // Without the native module the speech section says so instead of guessing.
-    expect(texts).toContain('Speech needs Android.');
+    expect(textsOf(renderer.root)).toContain('Speech needs Android.');
+
+    await pressId(renderer, 'settings-reading-header');
+    expect(textsOf(renderer.root)).toContain(
+      'Why auto-scroll needs accessibility access',
+    );
 
     const toggle = renderer.root.findAll(
       n => n.props.testID === 'reading-auto-scroll' && n.props.onValueChange,
@@ -274,6 +324,7 @@ describe('after onboarding', () => {
   it('turns history off from Settings', async () => {
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open settings');
+    await pressId(renderer, 'settings-clipboard-header');
     const toggle = renderer.root.findAll(
       n => n.props.testID === 'settings-save-history' && n.props.onValueChange,
     )[0];

@@ -11,9 +11,14 @@ import {
   useSpeechInfo,
   VERIFY_TIMEOUT,
 } from '@/features/capture';
-import { Button, ListRow, Notice, StatusPill } from '@/shared/components';
+import {
+  Button,
+  ExpandableCard,
+  ListRow,
+  Notice,
+  StatusPill,
+} from '@/shared/components';
 import { useTheme } from '@/theme';
-import { SettingsSection } from './SettingsSection';
 import { SliderRow } from './SettingControls';
 
 type Message = 'needsOverlay' | 'pickerShown' | null;
@@ -23,7 +28,15 @@ type Message = 'needsOverlay' | 'pickerShown' | null;
  * clear), page-turn timing and limits, and the accessibility permission the
  * page turns need.
  */
-export function PaginationSection() {
+export interface PaginationSectionProps {
+  expanded: boolean;
+  onToggle: () => void;
+}
+
+export function PaginationSection({
+  expanded,
+  onToggle,
+}: PaginationSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const { settings, updatePagination } = useCaptureSettings();
@@ -50,10 +63,21 @@ export function PaginationSection() {
   }, [clear, t]);
 
   const problem = target && target.problem !== 'none' ? target.problem : null;
+  const summary = !target
+    ? t('pagination.summaryNotSet')
+    : problem
+    ? t('pagination.summaryNeedsRepin')
+    : t('pagination.summaryPinned', {
+        anchor: t(`pagination.anchor_${target.anchor}`),
+      });
 
   return (
-    <SettingsSection
+    <ExpandableCard
       title={t('pagination.section')}
+      summary={summary}
+      icon="bookOpen"
+      expanded={expanded}
+      onToggle={onToggle}
       footer={t('pagination.controls')}
       testID="settings-pagination"
     >
@@ -221,7 +245,7 @@ export function PaginationSection() {
         step={MAX_PAGES.step}
         onChange={maxPages => updatePagination({ maxPages })}
       />
-    </SettingsSection>
+    </ExpandableCard>
   );
 }
 

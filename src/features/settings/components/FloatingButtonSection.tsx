@@ -10,25 +10,34 @@ import {
   useCaptureSettings,
   type UseOverlayController,
 } from '@/features/capture';
-import { Button, Card, ListRow, StatusPill } from '@/shared/components';
+import {
+  Button,
+  ExpandableCard,
+  ListRow,
+  StatusPill,
+} from '@/shared/components';
 import { useTheme } from '@/theme';
 import { SettingSwitch, SliderRow } from './SettingControls';
 
 export interface FloatingButtonSectionProps {
   overlay: UseOverlayController;
   onResetPosition: () => void;
+  expanded: boolean;
+  onToggle: () => void;
 }
 
 /** Overlay on/off and permission, click action, size, opacity, position. */
 export function FloatingButtonSection({
   overlay,
   onResetPosition,
+  expanded,
+  onToggle,
 }: FloatingButtonSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const { settings, update } = useCaptureSettings();
 
-  const onToggle = useCallback(
+  const onSwitch = useCallback(
     (on: boolean) => {
       if (!on) overlay.disable();
       else if (!overlay.status.overlayPermission) overlay.openOverlaySettings();
@@ -43,22 +52,26 @@ export function FloatingButtonSection({
   }, [onResetPosition]);
 
   const opacityPercent = Math.round(settings.bubbleOpacity * 100);
+  const action = t(`action.${settings.action}`);
+  const summary = overlay.status.serviceRunning
+    ? t('settings.summaryFloatingOn', { action })
+    : t('settings.summaryFloatingOff', { action });
 
   return (
-    <View style={{ gap: spacing.sm }} testID="settings-floating">
-      <Text
-        accessibilityRole="header"
-        style={[
-          typography.overline,
-          { color: colors.textSecondary, marginLeft: spacing.xs },
-        ]}
-      >
-        {t('settings.sectionFloating')}
-      </Text>
+    <View style={{ gap: spacing.sm }}>
+      {/* Problems stay visible even while the card is collapsed. */}
       <OverlayNoticeBanner controller={overlay} />
-      <Card flat>
+      <ExpandableCard
+        title={t('settings.sectionFloating')}
+        summary={summary}
+        icon="scanText"
+        expanded={expanded}
+        onToggle={onToggle}
+        footer={t('settings.floatingRestrictions')}
+        testID="settings-floating"
+      >
         <ListRow
-          icon="scanText"
+          icon="power"
           title={t('settings.floatingEnabled')}
           subtitle={t('settings.floatingEnabledHint')}
           disabled={!overlay.status.supported || overlay.busy}
@@ -66,7 +79,7 @@ export function FloatingButtonSection({
             <SettingSwitch
               testID="settings-overlay-switch"
               value={overlay.status.serviceRunning}
-              onChange={onToggle}
+              onChange={onSwitch}
               label={t('settings.floatingEnabled')}
             />
           }
@@ -89,24 +102,25 @@ export function FloatingButtonSection({
             )
           }
         />
-      </Card>
-
-      <Text
-        style={[
-          typography.label,
-          { color: colors.textPrimary, marginTop: spacing.sm },
-        ]}
-      >
-        {t('action.label')}
-      </Text>
-      <FloatingActionPicker
-        value={settings.action}
-        onChange={action => update({ action })}
-      />
-
-      <Card flat style={{ marginTop: spacing.sm }}>
+        <View
+          style={[
+            styles.block,
+            {
+              padding: spacing.lg,
+              gap: spacing.sm,
+              borderTopColor: colors.divider,
+            },
+          ]}
+        >
+          <Text style={[typography.label, { color: colors.textPrimary }]}>
+            {t('action.label')}
+          </Text>
+          <FloatingActionPicker
+            value={settings.action}
+            onChange={next => update({ action: next })}
+          />
+        </View>
         <SliderRow
-          divider={false}
           testID="settings-bubble-size"
           label={t('settings.bubbleSize')}
           valueText={t('settings.bubbleSizeValue', {
@@ -137,19 +151,12 @@ export function FloatingButtonSection({
           onPress={reset}
           testID="settings-reset-position"
         />
-      </Card>
-      <Text
-        style={[
-          typography.caption,
-          { color: colors.textSecondary, marginHorizontal: spacing.xs },
-        ]}
-      >
-        {t('settings.floatingRestrictions')}
-      </Text>
+      </ExpandableCard>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   inline: { alignSelf: 'auto' },
+  block: { borderTopWidth: StyleSheet.hairlineWidth },
 });

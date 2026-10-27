@@ -157,7 +157,10 @@
     "appearanceRow": "Theme & text style",
     "sectionAbout": "About",
     "version": "Version",
-    "aboutRow": "Privacy, permissions & help"
+    "aboutRow": "Privacy, permissions & help",
+    "summaryFloatingOn": "On · {{action}}",
+    "summaryFloatingOff": "Off · {{action}}",
+    "summaryClipboard": "Auto-copy {{copy}} · History {{history}}"
   },
   "appearance": {
     "title": "Theme & text style",
@@ -342,7 +345,30 @@
     "resumeAfterInterruption": "Resume after interruptions",
     "resumeAfterInterruptionHint": "Continue after a call or another app's sound",
     "scriptWarning": "Your OCR language includes {{scripts}}, which the selected voice can't pronounce. Install those voices or turn on “Switch voice by script”.",
-    "mixedNote": "Voices are per language. Mixed sentences are read by one voice; Hindi and Gujarati voices read embedded English words, the English voice cannot read Indic scripts."
+    "mixedNote": "Voices are per language. Mixed sentences are read by one voice; Hindi and Gujarati voices read embedded English words, the English voice cannot read Indic scripts.",
+    "voicesTitle": "Voices",
+    "voicesHint": "Tap a language to see its voices. Tap a voice to use it; ▶ only plays a sample.",
+    "voiceCount_one": "{{count}} voice",
+    "voiceCount_other": "{{count}} voices",
+    "inUse": "In use",
+    "noVoiceInstalled": "No voice installed",
+    "emptyVoices": "Your text-to-speech engine has no {{language}} voice on this phone.",
+    "emptyVoicesHint": "Install voice data, then come back — the list updates automatically.",
+    "defaultVoiceDescription": "Lets the engine pick its usual {{language}} voice",
+    "previewPlay": "Play a sample of {{name}}",
+    "previewStop": "Stop the sample",
+    "preview_busy": "A reading session is speaking. Pause or stop it before previewing voices.",
+    "preview_voice_missing": "That voice is no longer available. Choose another voice.",
+    "preview_not_installed": "That voice isn’t downloaded. Install it in the text-to-speech settings, or choose a downloaded voice.",
+    "preview_speech_failed": "The sample couldn’t play. Check the text-to-speech engine.",
+    "preview_not_ready": "The text-to-speech engine isn’t ready yet. Try again in a moment.",
+    "preview_unsupported": "Voice previews need Android.",
+    "savedVoiceUnavailable": "Your saved voice “{{name}}” isn’t available any more. Choose another voice below.",
+    "summary": "{{language}} · {{voice}}",
+    "summaryVoices": "{{language}} · {{voice}} · {{count}} voices",
+    "defaultVoiceShort": "default voice",
+    "controlsTitle": "Speed, pitch & behaviour",
+    "engineTitle": "Engine"
   },
   "reading": {
     "section": "Auto-scroll reading",
@@ -360,7 +386,9 @@
     "maxNoNewText": "Stop after screens with nothing new",
     "maxNoNewTextValue": "{{value}}",
     "manualFallback": "Manual scroll fallback",
-    "manualFallbackHint": "Without auto-scroll: you scroll, then tap ▶ to continue"
+    "manualFallbackHint": "Without auto-scroll: you scroll, then tap ▶ to continue",
+    "summaryAuto": "Auto-scroll · permission {{permission}}",
+    "summaryManual": "Manual scrolling"
   },
   "pagination": {
     "section": "Speak with pagination",
@@ -395,6 +423,9 @@
     "maxPagesValue": "{{value}} pages",
     "permission": "Page-turn permission",
     "permissionWhy": "Pressing a button in another app needs Akshar’s accessibility service (Settings → Accessibility → Installed apps → Akshar page turner). It is used only to press the button you pinned and to scroll in auto-scroll mode.",
-    "controls": "While reading: tap the bubble to pause or resume. The controller has Pause, Restart page, Next page now (Retry once / Skip page when stuck), Reposition and Stop. A failed page turn is never retried automatically."
+    "controls": "While reading: tap the bubble to pause or resume. The controller has Pause, Restart page, Next page now (Retry once / Skip page when stuck), Reposition and Stop. A failed page turn is never retried automatically.",
+    "summaryPinned": "Next button pinned · {{anchor}}",
+    "summaryNeedsRepin": "Reposition the Next button",
+    "summaryNotSet": "Next button not pinned"
   }
 }

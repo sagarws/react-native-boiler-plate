@@ -211,7 +211,48 @@ class ScreenOcrModule(context: ReactApplicationContext) :
               promise.resolve(if (reason == ReadingReason.VOICE_MISSING) "voice_missing" else "speech_failed")
             }
           },
+          onCancelled = {
+            if (!settled) {
+              settled = true
+              promise.resolve("stopped")
+            }
+          },
         )
+      }
+    }
+  }
+
+  /**
+   * Plays a sample with exactly [voiceName] — no substitute voice. Refused
+   * while an overlay reading session is speaking, so the two never overlap.
+   * Resolves 'ok', 'stopped' (Stop or another preview), 'busy',
+   * 'voice_missing', 'not_installed', 'speech_failed' or 'not_ready'.
+   */
+  override fun previewVoice(
+    text: String,
+    language: String,
+    voiceName: String,
+    rate: Double,
+    pitch: Double,
+    promise: Promise,
+  ) {
+    if (ScreenOcrBus.readingActive) {
+      promise.resolve("busy")
+      return
+    }
+    UiThreadUtil.runOnUiThread {
+      val p = player()
+      p.whenReady { ok ->
+        if (!ok) {
+          promise.resolve("not_ready")
+          return@whenReady
+        }
+        val voice = p.voiceNamed(voiceName)
+        when {
+          voice == null || voice.locale.language != language -> promise.resolve("voice_missing")
+          !p.isInstalled(voice) -> promise.resolve("not_installed")
+          else -> speakOnce(text, language, voiceName, rate.toFloat(), pitch.toFloat(), false, promise)
+        }
       }
     }
   }

@@ -43,6 +43,16 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
     fun onDone(index: Int)
 
     fun onError(code: Int)
+
+    /** Stopped or replaced by a newer request before it finished. */
+    fun onCancelled()
+  }
+
+  /** Ends the current request's callbacks, telling its owner it was cancelled. */
+  private fun cancelCurrent() {
+    val previous = listener
+    listener = null
+    previous?.onCancelled()
   }
 
   val enginePackage: String
@@ -154,12 +164,15 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
     onProgress: (Int, Int) -> Unit,
     onDone: () -> Unit,
     onError: (ReadingReason) -> Unit,
+    onCancelled: () -> Unit = {},
   ) {
     whenReady { ok ->
       if (!ok) {
         onError(ReadingReason.SPEECH_FAILED)
         return@whenReady
       }
+      // Only one request at a time: the previous one ends as cancelled.
+      cancelCurrent()
       val token = ++session
       tts.stop()
       val queue = segments.drop(from)
@@ -185,6 +198,8 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
             listener = null
             onError(ReadingReason.SPEECH_FAILED)
           }
+
+          override fun onCancelled() = onCancelled()
         }
       var currentLanguage: String? = null
       for ((offset, segment) in queue.withIndex()) {
@@ -213,9 +228,14 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
 
   fun stop() {
     session++
-    listener = null
+    cancelCurrent()
     if (isReady) tts.stop()
   }
+
+  /** The installed voice with this exact name, or null (never a substitute). */
+  fun voiceNamed(name: String): Voice? = voices().firstOrNull { it.name == name }
+
+  fun isInstalled(voice: Voice): Boolean = installed(voice)
 
   fun shutdown() {
     stop()

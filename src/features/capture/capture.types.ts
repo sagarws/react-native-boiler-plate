@@ -173,6 +173,20 @@ export interface SpeechInfo {
   scrollServiceEnabled: boolean;
 }
 
+/** Result of a single voice preview. */
+export type PreviewOutcome =
+  | 'ok'
+  | 'stopped'
+  | 'busy'
+  | 'voice_missing'
+  | 'not_installed'
+  | 'speech_failed'
+  | 'not_ready'
+  | 'unsupported';
+
+/** Whether the saved voice can still be used on this device. */
+export type SavedVoiceStatus = 'default' | 'available' | 'unavailable';
+
 export type SpeechOutcome =
   | 'ok'
   | 'voice_missing'

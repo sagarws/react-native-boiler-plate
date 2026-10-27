@@ -442,6 +442,7 @@ class OverlayCaptureService :
   }
 
   override fun onStateChanged(state: ReadingState, info: ReadingInfo) {
+    ScreenOcrBus.readingActive = state.isActive
     val autoScroll = sessionConfig?.action == FloatingAction.SPEAK_SCROLL
     panel?.update(state, info, autoScroll)
     if (state.isActive) return
@@ -640,6 +641,7 @@ class OverlayCaptureService :
       }
 
       override fun onStateChanged(state: PaginationState, info: PaginationInfo) {
+        ScreenOcrBus.readingActive = state.isActive
         panel?.updatePagination(state, info)
         if (state == PaginationState.NEEDS_ATTENTION) abandonAudioFocus()
         if (state.isActive) return
@@ -738,6 +740,7 @@ class OverlayCaptureService :
     pagination = null
     picker?.remove()
     picker = null
+    ScreenOcrBus.readingActive = false
     abandonAudioFocus()
     speech?.shutdown()
     speech = null

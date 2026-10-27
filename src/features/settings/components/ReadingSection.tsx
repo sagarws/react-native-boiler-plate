@@ -8,9 +8,13 @@ import {
   useCaptureSettings,
   useSpeechInfo,
 } from '@/features/capture';
-import { Button, ListRow, StatusPill } from '@/shared/components';
+import {
+  Button,
+  ExpandableCard,
+  ListRow,
+  StatusPill,
+} from '@/shared/components';
 import { useTheme } from '@/theme';
-import { SettingsSection } from './SettingsSection';
 import { SettingSwitch, SliderRow } from './SettingControls';
 
 /**
@@ -18,17 +22,33 @@ import { SettingSwitch, SliderRow } from './SettingControls';
  * disclosure — the app never enables it), limits that stop endless scrolling,
  * and the manual-scroll fallback.
  */
-export function ReadingSection() {
+export interface ReadingSectionProps {
+  expanded: boolean;
+  onToggle: () => void;
+}
+
+export function ReadingSection({ expanded, onToggle }: ReadingSectionProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const { settings, updateReading } = useCaptureSettings();
   const reading = settings.reading;
   const { info } = useSpeechInfo(settings.speech.preferGoogle);
   const serviceOn = info?.scrollServiceEnabled === true;
+  const summary = reading.autoScroll
+    ? t('reading.summaryAuto', {
+        permission: serviceOn
+          ? t('reading.serviceOn')
+          : t('reading.serviceOff'),
+      })
+    : t('reading.summaryManual');
 
   return (
-    <SettingsSection
+    <ExpandableCard
       title={t('reading.section')}
+      summary={summary}
+      icon="scrollText"
+      expanded={expanded}
+      onToggle={onToggle}
       footer={t('reading.notAllApps')}
       testID="settings-reading"
     >
@@ -121,7 +141,7 @@ export function ReadingSection() {
           />
         }
       />
-    </SettingsSection>
+    </ExpandableCard>
   );
 }
 

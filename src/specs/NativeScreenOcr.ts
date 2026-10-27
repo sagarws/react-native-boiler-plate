@@ -45,6 +45,19 @@ export interface Spec extends TurboModule {
     rate: number,
     pitch: number,
   ): Promise<string>;
+  /**
+   * Plays a sample with exactly this installed voice (no substitute).
+   * Resolves 'ok', 'stopped' (Stop pressed or replaced by another preview),
+   * 'busy' (a reading session is speaking), 'voice_missing', 'not_installed',
+   * 'speech_failed' or 'not_ready'.
+   */
+  previewVoice(
+    text: string,
+    language: string,
+    voiceName: string,
+    rate: number,
+    pitch: number,
+  ): Promise<string>;
   /** Reads text aloud with the saved speech settings; resolves when finished. */
   speakText(text: string): Promise<string>;
   stopSpeech(): void;

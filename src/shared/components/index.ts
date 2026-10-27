@@ -58,3 +58,5 @@ export { EmptyState } from './EmptyState';
 export type { EmptyStateProps } from './EmptyState';
 export { ChoiceList } from './ChoiceList';
 export type { ChoiceListProps, Choice } from './ChoiceList';
+export { ExpandableCard, animateNextLayout } from './ExpandableCard';
+export type { ExpandableCardProps } from './ExpandableCard';
