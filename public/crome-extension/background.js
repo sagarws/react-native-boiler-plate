@@ -19,6 +19,10 @@ const state = {
   error: '',
   volume: 0.9,
   lastAudioAt: 0,
+  // Reported by the phone: what it shares ('app' | 'device') and, for all
+  // phone audio, whether capture runs or what's missing.
+  phoneSource: '',
+  deviceAudio: '',
 };
 
 let session = null;
@@ -129,6 +133,9 @@ function onControl(json) {
   switch (json.t) {
     case 'ping':
       session?.send({ t: 'pong' });
+      if (typeof json.source === 'string') {
+        publish({ phoneSource: json.source, deviceAudio: String(json.deviceAudio || '') });
+      }
       break;
     case 'flush':
       sendToOffscreen({ type: 'flush' });
@@ -217,7 +224,7 @@ async function disconnect(byUser) {
   closeSession();
   await chrome.storage.session.remove('resume');
   state.playing = false;
-  publish({ status: 'disconnected', error: '', fingerprint: '', device: '' });
+  publish({ status: 'disconnected', error: '', fingerprint: '', device: '', phoneSource: '', deviceAudio: '' });
   await stopOffscreen();
 }
 

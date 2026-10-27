@@ -207,6 +207,11 @@ button:focus-visible {
   border-radius: 10px;
   font-size: 13px;
 }
+.notice.info {
+  margin: 0;
+  background: var(--primary-soft);
+  color: var(--primary-text);
+}
 .notice.error {
   background: color-mix(in srgb, var(--error) 12%, transparent);
   color: var(--error);

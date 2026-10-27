@@ -145,6 +145,7 @@ object AudioShareHub {
         capture = null
       }
     }
+    announce()
   }
 
   /** A captured chunk (already real-time paced by the recorder). */
@@ -308,8 +309,18 @@ object AudioShareHub {
     }
   }
 
+  /** Keep-alive that also tells the extension what is shared and what's missing. */
   private fun ping() {
-    synchronized(lock) { client }?.takeIf { it.authenticated }?.sendJson(JSONObject().put("t", "ping"))
+    val (c, json) =
+      synchronized(lock) {
+        client to JSONObject().put("t", "ping").put("source", source).put("deviceAudio", deviceAudioState())
+      }
+    c?.takeIf { it.authenticated }?.sendJson(json)
+  }
+
+  /** Sends the sharing state now (off the main thread). */
+  private fun announce() {
+    synchronized(lock) { audio }?.execute { ping() }
   }
 
   // ── Connections ───────────────────────────────────────────────────────

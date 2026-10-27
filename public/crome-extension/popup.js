@@ -19,6 +19,15 @@ const ERRORS = {
   sharing_stopped: 'Sharing was turned off on the phone.',
   disconnected_by_phone: 'The phone ended the connection.',
 };
+/** What the phone shares, and what's missing for other apps' sound. */
+const SOURCE_HINTS = {
+  app: "Sharing Akshar's voice only. To also hear YouTube and other apps: in Akshar, open Settings → Share voice to Chrome → What to share → All phone audio.",
+  needs_permission: 'All phone audio is selected, but Akshar needs the Microphone permission — tap Allow in its Share voice to Chrome card.',
+  needs_bubble: 'All phone audio is selected — turn on the floating button in Akshar (it provides the screen-capture permission).',
+  unsupported: "This phone's Android is too old to share other apps' sound (needs Android 10+).",
+  failed: "Android didn't allow capturing app audio. Turn Akshar's floating button off and on.",
+};
+
 const RETRYABLE = new Set(['unreachable', 'timeout', 'closed', 'denied', 'resume_invalid']);
 
 function send(type, extra = {}) {
@@ -69,6 +78,14 @@ function render(state) {
     : state.receiving
       ? 'Playing'
       : 'Playing — waiting for the phone to speak';
+  const hint =
+    state.phoneSource === 'app'
+      ? SOURCE_HINTS.app
+      : state.phoneSource === 'device'
+        ? SOURCE_HINTS[state.deviceAudio] || ''
+        : '';
+  $('source-hint').hidden = !hint;
+  $('source-hint').textContent = hint;
   const pct = Math.round(state.volume * 100);
   if (document.activeElement !== $('volume')) $('volume').value = String(pct);
   $('volume-value').textContent = `${pct}%`;
