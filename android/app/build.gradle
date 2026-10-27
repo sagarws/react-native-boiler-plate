@@ -140,7 +140,10 @@ android {
     }
     buildTypes {
         debug {
-            signingConfig signingConfigs.debug
+            // Same key as release when Akshar's own key is set up, so Google
+            // sign-in (matched by package + SHA-1) works in every build. The
+            // shared React Native debug key is registered to another project.
+            signingConfig hasUploadKey ? signingConfigs.release : signingConfigs.debug
         }
         release {
             signingConfig hasUploadKey ? signingConfigs.release : signingConfigs.debug
