@@ -16,7 +16,6 @@ jest.mock('@/specs/NativeScreenOcr', () => ({
     getAudioShareStatus: jest.fn(),
     respondAudioShare: jest.fn(),
     disconnectAudioShare: jest.fn(),
-    renewAudioShareCode: jest.fn(),
   },
 }));
 
@@ -29,8 +28,6 @@ const status = (patch: object) =>
     state: 'waiting',
     address: '192.168.1.23',
     port: 47811,
-    code: 'ABCDE-23456',
-    codeExpiresAt: 0,
     receiverName: '',
     fingerprint: '',
     transmitting: false,
@@ -86,10 +83,10 @@ describe('Share voice to Chrome card', () => {
     const r = await render();
     expect(captureSettingsStore.read().audioShare.enabled).toBe(false);
     expect(mockNative.getAudioShareStatus).not.toHaveBeenCalled();
-    expect(has(r, 'audio-share-code')).toBe(false);
+    expect(has(r, 'audio-share-address')).toBe(false);
   });
 
-  it('turning it on shows the address and pairing code to enter in Chrome', async () => {
+  it('turning it on shows the address to enter in Chrome (no code)', async () => {
     const r = await render();
     await act(() =>
       find(r, 'audio-share-enabled', 'onValueChange').props.onValueChange(true),
@@ -100,11 +97,6 @@ describe('Share voice to Chrome card', () => {
       ':',
       47811,
     ]);
-    expect(find(r, 'audio-share-code', 'children').props.children).toBe(
-      'ABCDE-23456',
-    );
-    await act(() => find(r, 'audio-share-new-code', 'onPress').props.onPress());
-    expect(mockNative.renewAudioShareCode).toHaveBeenCalled();
   });
 
   it('asks for approval with the fingerprint, and Allow/Deny reach native', async () => {
@@ -155,7 +147,7 @@ describe('Share voice to Chrome card', () => {
     expect(find(r, 'audio-share-error', 'message').props.message).toMatch(
       /Wi-Fi/,
     );
-    expect(has(r, 'audio-share-code')).toBe(false);
+    expect(has(r, 'audio-share-address')).toBe(false);
     expect(has(r, 'audio-share-retry')).toBe(true);
   });
 });

@@ -21,8 +21,9 @@ export interface AudioShareSectionProps {
 const RETRY_DELAY_MS = 300;
 
 /**
- * Share voice to Chrome: the switch, the address + pairing code to enter in
- * the extension, the approval prompt, and the live connection state.
+ * Share voice to Chrome: the switch, the address to enter in the extension,
+ * the approval prompt (every new computer must be allowed), and the live
+ * connection state.
  */
 export function AudioShareSection({
   expanded,
@@ -69,7 +70,7 @@ export function AudioShareSection({
   ];
   const showPairing =
     enabled &&
-    status.code.length > 0 &&
+    status.address.length > 0 &&
     (status.state === 'waiting' || status.state === 'pending') &&
     !status.error;
 
@@ -153,35 +154,10 @@ export function AudioShareSection({
               >
                 {status.address}:{status.port}
               </Text>
-              <Text style={[caption, { marginTop: spacing.sm }]}>
-                {t('audioShare.code')}
-              </Text>
-              <Text
-                selectable
-                testID="audio-share-code"
-                style={[
-                  typography.title,
-                  styles.mono,
-                  { color: colors.primaryText },
-                ]}
-              >
-                {status.code}
-              </Text>
             </View>
           ) : null}
           {showPairing ? (
-            <View style={styles.row}>
-              <Text style={[caption, styles.flex]}>
-                {t('audioShare.codeHint')}
-              </Text>
-              <Button
-                size="sm"
-                variant="ghost"
-                label={t('audioShare.newCode')}
-                onPress={share.renewCode}
-                testID="audio-share-new-code"
-              />
-            </View>
+            <Text style={caption}>{t('audioShare.addressHint')}</Text>
           ) : null}
 
           {status.state === 'pending' ? (

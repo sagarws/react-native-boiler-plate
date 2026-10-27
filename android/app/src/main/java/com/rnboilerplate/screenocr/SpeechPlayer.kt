@@ -9,6 +9,7 @@ import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
 import com.rnboilerplate.screenocr.share.AudioShareHub
+import com.rnboilerplate.screenocr.share.SharedSpeech
 import android.speech.tts.Voice
 import android.util.Log
 import java.util.Locale
@@ -38,9 +39,16 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
   private var session = 0
   private var listener: Listener? = null
   private var ids: List<String> = emptyList()
-  /** synthesizeToFile requests in flight (used by audio sharing's mirror). */
+  /** synthesizeToFile requests in flight (used while sharing audio). */
   private val synthCallbacks = HashMap<String, (Boolean) -> Unit>()
   private var synthCount = 0
+  /** Set while speaking through [SharedSpeech] (a Chrome receiver is listening). */
+  private var shared: SharedSpeech? = null
+  private val attributes =
+    AudioAttributes.Builder()
+      .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
+      .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+      .build()
 
   private interface Listener {
     fun onStart(index: Int)
@@ -70,12 +78,7 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
         main.post {
           ready = status == TextToSpeech.SUCCESS
           if (ready == true) {
-            tts.setAudioAttributes(
-              AudioAttributes.Builder()
-                .setUsage(AudioAttributes.USAGE_ASSISTANCE_ACCESSIBILITY)
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                .build(),
-            )
+            tts.setAudioAttributes(attributes)
             tts.setOnUtteranceProgressListener(progress)
           } else {
             Log.w(TAG, "TTS init failed: $status")
@@ -224,6 +227,7 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
       // Only one request at a time: the previous one ends as cancelled.
       cancelCurrent()
       val token = ++session
+      endShared()
       tts.stop()
       val queue = segments.drop(from)
       if (queue.isEmpty()) {
@@ -233,13 +237,9 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
       tts.setSpeechRate(rate)
       tts.setPitch(pitch)
       ids = segments.indices.map { "s$token-$it" }
-      AudioShareHub.speechStarted(this, appContext, preferGoogle, segments, from, voiceName, rate, pitch)
       listener =
         object : Listener {
-          override fun onStart(index: Int) {
-            AudioShareHub.segmentStarted(this@SpeechPlayer, index)
-            onProgress(index, segments.size)
-          }
+          override fun onStart(index: Int) = onProgress(index, segments.size)
 
           override fun onDone(index: Int) {
             if (index == segments.size - 1) {
@@ -255,6 +255,40 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
 
           override fun onCancelled() = onCancelled()
         }
+      if (AudioShareHub.isStreaming) {
+        // Same voice rules as below, checked up front.
+        queue.map { it.language }.distinct().firstOrNull { !isLanguageUsable(it) }?.let {
+          listener = null
+          onError(ReadingReason.VOICE_MISSING)
+          return@whenReady
+        }
+        val current = listener
+        shared =
+          SharedSpeech(
+            appContext.cacheDir,
+            segments,
+            from,
+            attributes,
+            PARAGRAPH_PAUSE_MS,
+            render = { segment, file, done -> synthesize(segment.text, segment.language, voiceName, rate, pitch, file, done) },
+            onStart = { index -> if (token == session && listener === current) current?.onStart(index) },
+            onDone = {
+              if (token == session && listener === current) {
+                shared = null
+                listener = null
+                onDone()
+              }
+            },
+            onFailed = {
+              if (token == session && listener === current) {
+                shared = null
+                listener = null
+                onError(ReadingReason.SPEECH_FAILED)
+              }
+            },
+          ).also { it.start() }
+        return@whenReady
+      }
       var currentLanguage: String? = null
       for ((offset, segment) in queue.withIndex()) {
         val index = from + offset
@@ -287,11 +321,17 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
 
   fun stop() {
     session++
-    AudioShareHub.speechStopped(this)
-    synthCallbacks.values.toList().forEach { it(false) }
-    synthCallbacks.clear()
+    endShared()
     cancelCurrent()
     if (isReady) tts.stop()
+  }
+
+  /** Stops shared playback and any rendering in flight. */
+  private fun endShared() {
+    shared?.cancel()
+    shared = null
+    synthCallbacks.values.toList().forEach { it(false) }
+    synthCallbacks.clear()
   }
 
   /** The installed voice with this exact name, or null (never a substitute). */

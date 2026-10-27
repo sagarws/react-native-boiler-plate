@@ -111,10 +111,6 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     AudioShareHub.disconnect()
   }
 
-  override fun renewAudioShareCode() {
-    AudioShareHub.renewCode()
-  }
-
   override fun resetBubblePosition() {
     prefs.resetPosition()
     OverlayCaptureService.resetPosition(reactApplicationContext)

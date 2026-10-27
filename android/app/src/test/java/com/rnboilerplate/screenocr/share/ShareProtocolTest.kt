@@ -42,7 +42,7 @@ class ShareProtocolTest {
   }
 
   @Test
-  fun bothSidesDeriveTheSameKeysOnlyWithTheSameCode() {
+  fun bothSidesDeriveTheSameKeysOnlyWithTheSameSecret() {
     val client = ShareProtocol.newKeyPair()
     val server = ShareProtocol.newKeyPair()
     val cPub = ShareProtocol.rawPublicKey(client)
@@ -50,14 +50,14 @@ class ShareProtocolTest {
     assertEquals(65, cPub.size)
     val cNonce = ShareProtocol.randomBytes(16)
     val sNonce = ShareProtocol.randomBytes(16)
-    val code = "ABCDE23456".toByteArray()
+    val code = ShareProtocol.PAIR_SECRET
     val onClient = ShareProtocol.deriveKeys(ShareProtocol.sharedSecret(client, sPub), code, cPub, sPub, cNonce, sNonce)
     val onServer = ShareProtocol.deriveKeys(ShareProtocol.sharedSecret(server, cPub), code, cPub, sPub, cNonce, sNonce)
     assertArrayEquals(onClient.clientMac(), onServer.clientMac())
     assertEquals(onClient.fingerprint(), onServer.fingerprint())
     assertTrue(onClient.fingerprint().matches(Regex("\\d{3} \\d{3}")))
 
-    val wrong = ShareProtocol.deriveKeys(ShareProtocol.sharedSecret(client, sPub), "ABCDE23457".toByteArray(), cPub, sPub, cNonce, sNonce)
+    val wrong = ShareProtocol.deriveKeys(ShareProtocol.sharedSecret(client, sPub), "other".toByteArray(), cPub, sPub, cNonce, sNonce)
     assertFalse(ShareProtocol.constantTimeEquals(wrong.clientMac(), onServer.clientMac()))
   }
 
@@ -75,15 +75,6 @@ class ShareProtocolTest {
     assertNotNull(opener.open(second))
     // The other direction's key/nonce never opens it.
     assertNull(ShareProtocol.Opener(key, ShareProtocol.DIR_CLIENT_TO_SERVER).open(sealer.seal(byteArrayOf(1))))
-  }
-
-  @Test
-  fun pairingCodesAreReadableAndNormalised() {
-    val code = ShareProtocol.newCode()
-    assertEquals(10, code.length)
-    assertTrue(code.all { it in ShareProtocol.CODE_ALPHABET })
-    assertEquals("ABCDE-23456", ShareProtocol.formatCode("ABCDE23456"))
-    assertEquals("ABCDE23456", ShareProtocol.normaliseCode(" abcde-23456 "))
   }
 
   @Test

@@ -15,9 +15,8 @@ over your own Wi-Fi: no account, no server, nothing goes through the internet.
 1. Connect the phone and the computer to the **same Wi-Fi**. The phone's own
    hotspot also works.
 2. In Akshar, open **Settings → Share voice to Chrome** and turn it on. The card
-   shows the **phone address** (e.g. `192.168.1.23:47811`) and a **pairing code**
-   (e.g. `ABCDE-23456`).
-3. Click the extension icon, enter both, and click **Connect**.
+   shows the **phone address** (e.g. `192.168.1.23:47811`).
+3. Click the extension icon, enter the address, and click **Connect**.
 4. Check that the phone and the extension show the same **6-digit code**, then
    tap **Allow** on the phone (in the notification or in the card).
 5. Click **Play** in the extension, then make Akshar speak (any read-aloud mode,
@@ -25,11 +24,11 @@ over your own Wi-Fi: no account, no server, nothing goes through the internet.
 
 - **Pause** stops playback on the computer only. The phone keeps speaking.
 - **Play** resumes without reconnecting.
-- **Disconnect** ends the session; the next connection needs a new code.
+- **Disconnect** ends the session; the next connection asks for Allow again.
 - Turning sharing off on the phone also ends the session.
 - Playback continues after the popup closes.
 - If Wi-Fi drops, the extension reconnects by itself for about 2 minutes,
-  without asking for the code again.
+  without asking you to Allow again.
 
 ## How it works
 
@@ -58,23 +57,21 @@ AudioShareHub: WebSocket server on the Wi-Fi :47811 ──(AES-256-GCM)──►
 
 ### Security
 
-- **Pairing:** the phone shows a 10-character code (50 bits). The code expires
-  after 10 minutes, works once, and is replaced after 5 wrong tries.
+- **Pairing:** by address only, no code. Every new computer must be allowed
+  on the phone, after checking that both screens show the same 6-digit
+  fingerprint. That check is what defeats a man-in-the-middle on the network.
+  After a Deny (or no answer within a minute), new requests are refused for
+  5 s, so they can't be spammed.
 - **Key exchange:** P-256 ECDH. Session keys are HKDF-SHA256 over the shared
-  secret, salted with the code. Both sides prove they know the code with an
-  HMAC before anything else is sent, so a device that doesn't know the code
-  can't impersonate either side.
-- **Approval:** the user must tap Allow on the phone, after checking that both
-  screens show the same 6-digit fingerprint. This defeats a man-in-the-middle on
-  the network.
+  secret, and both sides confirm them with an HMAC.
 - **Encryption:** all audio and control messages use AES-256-GCM, with one key
   per direction and a strictly increasing counter that rejects replayed frames.
 - **Who can connect:** browser pages can't connect, because the phone refuses
   any `http(s)` Origin. Only one computer can be connected at a time; others get
   "busy".
 - **Resume key:** a random 32-byte key kept in `chrome.storage.session`, which
-  Chrome clears when it closes. It lets the extension reconnect without the
-  code, and is revoked when either side disconnects or sharing stops.
+  Chrome clears when it closes. It lets the extension reconnect without asking
+  again, and is revoked when either side disconnects or sharing stops.
 - **What is shared:** only Akshar's own synthesized voice. Never the microphone,
   other apps or system audio.
 
@@ -90,20 +87,44 @@ AudioShareHub: WebSocket server on the Wi-Fi :47811 ──(AES-256-GCM)──►
   Rendering the same speech a second time needs no permission and doesn't
   touch the phone's playback.
 
+## Troubleshooting: "No answer from the phone"
+
+The computer can't reach the phone over the network. Compare the first three
+numbers of the two addresses:
+
+- Phone: shown in the app, e.g. `192.168.10.41`.
+- Computer: run `ipconfig` and look for the IPv4 Address, e.g. `192.168.1.21`.
+
+If they differ (`192.168.1.x` vs `192.168.10.x`), the devices are on separate
+networks even if both are "on the same Wi-Fi". Common causes:
+
+- a guest Wi-Fi network
+- a second router or extender that runs its own network
+- AP / client isolation turned on in the router
+
+Fixes, in order of preference:
+
+1. Put both on the same network. Join the computer to the phone's Wi-Fi,
+   connect the phone to the main (non-guest) Wi-Fi, or set the second
+   router/mesh to bridge or access-point mode.
+2. **USB (works anywhere):** plug the phone in with USB debugging on, run
+   `adb forward tcp:47811 tcp:47811`, and enter `127.0.0.1:47811` as the
+   phone address in the extension.
+
 ## End-to-end test (Node 22+)
 
 ```sh
 adb forward tcp:47811 tcp:47811             # or use the phone's Wi-Fi address
-node test/e2e.mjs 127.0.0.1:47811 ABCDE-23456 15
+node test/e2e.mjs 127.0.0.1:47811 15
 ```
 
 The script checks the following, in order:
 
-1. A wrong code is rejected.
+1. A Deny is respected (tap Deny on the phone).
 2. Pairing works (tap Allow on the phone).
 3. Audio arrives in real time while you make the app speak.
 4. Pausing stops the audio.
-5. Dropping the socket and resuming works without the code.
+5. Dropping the socket and resuming works without asking again.
 6. After disconnecting, the resume key is revoked.
 
 ## Same Wi-Fi vs. different networks

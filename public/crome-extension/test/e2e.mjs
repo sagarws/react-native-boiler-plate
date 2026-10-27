@@ -3,19 +3,19 @@
 // WebSocket + WebCrypto).
 //
 //   adb forward tcp:47811 tcp:47811          # or use the phone's Wi-Fi address
-//   node test/e2e.mjs 127.0.0.1:47811 ABCDE-23456 [listenSeconds]
+//   node test/e2e.mjs 127.0.0.1:47811 [listenSeconds]
 //
-// It: (1) checks a wrong code is rejected, (2) pairs (tap Allow on the
+// It: (1) checks a Deny is respected, (2) pairs (tap Allow on the
 // phone, matching the printed code), (3) listens and measures the audio while
 // you make the app speak, (4) pauses and checks audio stops, (5) drops the
 // socket and resumes without re-pairing, (6) disconnects.
 
-import { addressToUrl, fromB64, normaliseCode, openSession } from '../protocol.js';
+import { PAIR_SECRET, addressToUrl, fromB64, openSession } from '../protocol.js';
 
-const [address, code, seconds = '15'] = process.argv.slice(2);
+const [address, seconds = '15'] = process.argv.slice(2);
 const url = addressToUrl(address);
-if (!url || normaliseCode(code).length !== 10) {
-  console.error('usage: node test/e2e.mjs <address[:port]> <pairing code> [listenSeconds]');
+if (!url) {
+  console.error('usage: node test/e2e.mjs <address[:port]> [listenSeconds]');
   process.exit(2);
 }
 
@@ -43,21 +43,30 @@ const handlers = {
   onClose: () => control.push({ t: 'closed' }),
 };
 
-// 1. Wrong code.
+// 1. Deny.
+console.log('Tap DENY on the phone for this first request.');
 try {
-  await openSession({ url, mode: 'code', secret: new TextEncoder().encode('AAAAAAAAAA'), name: 'e2e (wrong code)', ...handlers });
-  check(false, 'wrong pairing code is rejected');
+  await openSession({
+    url,
+    mode: 'pair',
+    secret: PAIR_SECRET,
+    name: 'e2e (deny me)',
+    onPending: fp => console.log(`      phone shows: ${fp}`),
+    ...handlers,
+  });
+  check(false, 'a denied computer is refused');
 } catch (e) {
-  check(e.code === 'bad_code', `wrong pairing code is rejected (${e.code})`);
+  check(e.code === 'denied', `a denied computer is refused (${e.code})`);
 }
+await sleep(5500); // the phone refuses new requests for 5 s after a deny
 
 // 2. Pair.
 console.log('\nPairing — tap Allow on the phone when it shows the code below.');
 const started = Date.now();
 const session = await openSession({
   url,
-  mode: 'code',
-  secret: new TextEncoder().encode(normaliseCode(code)),
+  mode: 'pair',
+  secret: PAIR_SECRET,
   name: 'e2e test',
   onPending: fp => console.log(`      phone should show: ${fp}`),
   ...handlers,

@@ -6,8 +6,8 @@
 
 export const VERSION = 1;
 export const DEFAULT_PORT = 47811;
-export const CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-export const CODE_LENGTH = 10;
+/** Public salt for first-time pairing; the user's Allow on the phone authenticates. */
+export const PAIR_SECRET = new TextEncoder().encode('akshar-pair-v1');
 
 const TYPE_JSON = 1;
 const TYPE_PCM = 2;
@@ -20,15 +20,6 @@ const APPROVAL_TIMEOUT_MS = 70_000;
 const subtle = globalThis.crypto.subtle;
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-
-/** "abcde-23456" → "ABCDE23456" (dash and spaces are cosmetic). */
-export function normaliseCode(input) {
-  return String(input ?? '')
-    .toUpperCase()
-    .split('')
-    .filter(c => CODE_ALPHABET.includes(c))
-    .join('');
-}
 
 /**
  * "192.168.1.23:47811" / "192.168.1.23" → ws URL; null when it isn't a
@@ -118,16 +109,16 @@ class SessionError extends Error {
  *
  * @param {object} o
  * @param {string} o.url        ws://host:port (see addressToUrl)
- * @param {'code'|'resume'} o.mode
- * @param {Uint8Array} o.secret normalised code bytes, or the resume key
+ * @param {'pair'|'resume'} o.mode
+ * @param {Uint8Array} o.secret PAIR_SECRET, or the resume key
  * @param {string} o.name       shown on the phone ("Chrome on Windows")
  * @param {(fingerprint: string) => void} [o.onPending]  waiting for the phone's Allow
  * @param {(json: object) => void} o.onJson              decrypted control messages
  * @param {(rate: number, channels: number, pcm: Int16Array) => void} o.onPcm
  * @param {(reason: string) => void} o.onClose           after the session was open
  * @returns {Promise<{send(json: object): Promise<void>, close(): void, fingerprint: string, welcome: object}>}
- *          rejects with {code}: unreachable, timeout, bad_code, code_expired,
- *          busy, denied, resume_invalid, bad_server, bad_version, closed.
+ *          rejects with {code}: unreachable, timeout, busy, denied,
+ *          resume_invalid, bad_server, bad_request, bad_version, closed.
  */
 export function openSession(o) {
   return new Promise((resolve, reject) => {

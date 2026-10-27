@@ -24,12 +24,13 @@ import javax.crypto.spec.SecretKeySpec
  * (mirrored in `public/crome-extension/protocol.js` — keep them in step).
  *
  * Handshake (JSON text frames, before encryption):
- *  1. client → {t:"hello", v:1, mode:"code"|"resume", pub, nonce, name}
+ *  1. client → {t:"hello", v:1, mode:"pair"|"resume", pub, nonce, name}
  *  2. server → {t:"challenge", pub, nonce}
  *  3. both: Z = ECDH(P-256); keys = HKDF-SHA256(ikm=Z, salt=SHA-256(secret),
  *     info="akshar-audio-v1"‖pubC‖pubS‖nonceC‖nonceS, 96 bytes)
  *     = confirm(32) ‖ client→server(32) ‖ server→client(32). The secret is
- *     the pairing code (normalised) or the resume key.
+ *     [PAIR_SECRET] for a new receiver (authenticated by the user's Allow
+ *     after comparing fingerprints) or the resume key.
  *  4. client → {t:"confirm", mac: HMAC(confirm, "client")}
  *  5. server → {t:"pending"|"ready", mac: HMAC(confirm, "server"), fingerprint}
  *
@@ -46,18 +47,10 @@ object ShareProtocol {
   const val DIR_CLIENT_TO_SERVER = 2
   private const val INFO = "akshar-audio-v1"
 
-  /** No I, O, 0, 1 — easy to read aloud and type. 32 symbols → 5 bits each. */
-  const val CODE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
-  const val CODE_LENGTH = 10
+  /** Public salt for first-time pairing (no code); the user's Allow authenticates. */
+  val PAIR_SECRET: ByteArray = "akshar-pair-v1".toByteArray()
 
   private val random = SecureRandom()
-
-  fun newCode(): String = buildString { repeat(CODE_LENGTH) { append(CODE_ALPHABET[random.nextInt(CODE_ALPHABET.length)]) } }
-
-  /** "abcde-fghjk" → "ABCDEFGHJK"; the dash and spaces are cosmetic. */
-  fun normaliseCode(input: String): String = input.uppercase().filter { it in CODE_ALPHABET }
-
-  fun formatCode(code: String): String = if (code.length == CODE_LENGTH) code.take(5) + "-" + code.drop(5) else code
 
   fun randomBytes(size: Int): ByteArray = ByteArray(size).also { random.nextBytes(it) }
 

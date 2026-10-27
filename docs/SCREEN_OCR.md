@@ -324,16 +324,14 @@ no new permissions.
 - **Server:** a WebSocket server on port 47811 (falls back to a random port),
   using a minimal RFC 6455 implementation in `WebSocketConnection` with no new
   dependency. It refuses `http(s)` Origins and accepts one receiver at a time.
-- **Pairing** (`ShareProtocol`):
-  - a 10-character single-use code that expires after 10 minutes and is
-    replaced after 5 wrong tries
-  - P-256 ECDH, HKDF-SHA256 salted with the code, and HMAC confirmation from
-    both sides
-  - the user's **Allow**, given in the notification or in the card, after
-    matching a 6-digit fingerprint
+- **Pairing** (`ShareProtocol`): by the phone's address only, with no code.
+  - P-256 ECDH, HKDF-SHA256 and HMAC key confirmation
+  - the user's **Allow** for every new computer, given in the notification or
+    in the card, after matching a 6-digit fingerprint
+  - after a Deny or a timeout, new requests are refused for 5 s
   - then AES-256-GCM frames with replay counters
 - **Resume key:** issued after pairing, so a receiver can reconnect after a
-  network drop without the code. It is revoked on disconnect or when sharing
+  network drop without asking again. It is revoked on disconnect or when sharing
   stops.
 - **States** (shown in the card): `off`, `waiting`, `pending` (approve),
   `connected` (receiver paused) and `streaming`. Errors are `no_wifi` and

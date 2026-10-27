@@ -5,22 +5,21 @@ const $ = id => document.getElementById(id);
 
 const ERRORS = {
   bad_address: 'Enter the phone address shown in the app, e.g. 192.168.1.23:47811.',
-  bad_code_format: 'The pairing code has 10 letters and numbers, e.g. ABCDE-23456.',
-  bad_code: 'Wrong pairing code. Check it in the app (a new one appears after 5 wrong tries).',
-  code_expired: 'That code expired. The app shows a new one.',
   busy: 'Another computer is connected to this phone.',
-  denied: 'The connection was not allowed on the phone.',
-  resume_invalid: 'The session ended. Pair again with the code in the app.',
-  need_code: 'Pair again with the code shown in the app.',
-  unreachable: "Can't reach the phone. Is sharing on in the app, and are both on the same Wi-Fi?",
-  timeout: 'The phone did not answer in time. Try again.',
+  denied: 'The connection was not allowed on the phone (or not answered within a minute).',
+  resume_invalid: 'The session ended. Click Connect to pair again.',
+  bad_request: 'The phone rejected the request. Update Akshar and this extension.',
+  unreachable:
+    "Can't reach the phone. Is sharing on in the app? The computer and phone must be on the same network — the first three numbers of their addresses should match (e.g. 192.168.1.x).",
+  timeout:
+    "No answer from the phone. Usually the computer and phone are on different networks (e.g. guest Wi-Fi, or 192.168.1.x vs 192.168.10.x). Join the same network, or use USB: run 'adb forward tcp:47811 tcp:47811' and connect to 127.0.0.1:47811.",
   closed: 'The connection was lost.',
-  bad_server: "That device didn't prove it has the code. Check the address.",
+  bad_server: "That device isn't Akshar. Check the address.",
   bad_version: 'Update Akshar or this extension — their versions differ.',
   sharing_stopped: 'Sharing was turned off on the phone.',
   disconnected_by_phone: 'The phone ended the connection.',
 };
-const RETRYABLE = new Set(['unreachable', 'timeout', 'closed']);
+const RETRYABLE = new Set(['unreachable', 'timeout', 'closed', 'denied', 'resume_invalid']);
 
 function send(type, extra = {}) {
   return chrome.runtime.sendMessage({ target: 'background', type, ...extra }).then(render, () => {});
@@ -81,15 +80,14 @@ function render(state) {
 }
 
 $('connect').addEventListener('click', () => {
-  send('connect', { address: $('address').value, code: $('code').value });
+  send('connect', { address: $('address').value });
 });
-$('code').addEventListener('input', e => {
-  // Type freely; shown as ABCDE-23456.
-  const clean = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10);
-  e.target.value = clean.length > 5 ? `${clean.slice(0, 5)}-${clean.slice(5)}` : clean;
-});
-$('code').addEventListener('keydown', e => {
+$('address').addEventListener('keydown', e => {
   if (e.key === 'Enter') $('connect').click();
+});
+$('use-usb').addEventListener('click', () => {
+  $('address').value = '127.0.0.1:47811';
+  $('connect').focus();
 });
 $('cancel').addEventListener('click', () => send('disconnect'));
 $('disconnect').addEventListener('click', () => send('disconnect'));

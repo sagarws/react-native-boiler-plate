@@ -16,9 +16,6 @@ export interface AudioShareStatus {
   /** Phone's Wi-Fi IPv4 address, '' when not on Wi-Fi. */
   address: string;
   port: number;
-  /** "ABCDE-23456"; '' when sharing is off. */
-  code: string;
-  codeExpiresAt: number;
   receiverName: string;
   /** Six digits both screens show while a connection waits for approval. */
   fingerprint: string;
@@ -31,8 +28,6 @@ export const AUDIO_SHARE_OFF: AudioShareStatus = {
   state: 'off',
   address: '',
   port: 0,
-  code: '',
-  codeExpiresAt: 0,
   receiverName: '',
   fingerprint: '',
   transmitting: false,
@@ -60,8 +55,6 @@ export function parseAudioShareStatus(json: string): AudioShareStatus {
         : 'off',
       address: str(r.address, 45),
       port: typeof r.port === 'number' ? r.port : 0,
-      code: str(r.code, 16),
-      codeExpiresAt: typeof r.codeExpiresAt === 'number' ? r.codeExpiresAt : 0,
       receiverName: str(r.receiverName, 40),
       fingerprint: str(r.fingerprint, 8),
       transmitting: r.transmitting === true,
@@ -95,9 +88,5 @@ export const audioShareService = {
 
   disconnect(): void {
     NativeScreenOcr?.disconnectAudioShare();
-  },
-
-  renewCode(): void {
-    NativeScreenOcr?.renewAudioShareCode();
   },
 };

@@ -3,7 +3,7 @@
 // Audio is decrypted here and forwarded to the offscreen document, which plays
 // it — so playback continues with the popup closed.
 
-import { addressToUrl, fromB64, normaliseCode, openSession, toB64 } from './protocol.js';
+import { PAIR_SECRET, addressToUrl, fromB64, openSession, toB64 } from './protocol.js';
 
 const OFFSCREEN_URL = 'offscreen.html';
 const RECONNECT_DELAYS_MS = [1000, 2000, 4000, 8000, 15000, 15000, 15000, 15000];
@@ -43,7 +43,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.target !== 'background') return false;
   const handlers = {
     getState: async () => snapshot(),
-    connect: async () => connectWithCode(message.address, message.code),
+    connect: async () => connect(message.address),
     disconnect: async () => disconnect(true),
     play: async () => setPlaying(true),
     pause: async () => setPlaying(false),
@@ -66,16 +66,15 @@ function deviceName() {
   return `Chrome on ${platform}`;
 }
 
-async function connectWithCode(address, rawCode) {
+/** New pairing: the phone asks its user to Allow this computer. */
+async function connect(address) {
   const url = addressToUrl(address);
   if (!url) return publish({ error: 'bad_address' });
-  const code = normaliseCode(rawCode);
-  if (code.length !== 10) return publish({ error: 'bad_code_format' });
   await chrome.storage.local.set({ address: address.trim() });
   await chrome.storage.session.remove('resume');
   stopReconnecting();
   closeSession();
-  await open({ url, address: address.trim(), mode: 'code', secret: new TextEncoder().encode(code) });
+  await open({ url, address: address.trim(), mode: 'pair', secret: PAIR_SECRET });
 }
 
 async function open({ url, address, mode, secret }) {
@@ -190,7 +189,9 @@ async function retry() {
   if (resume) {
     await open({ url: resume.url, address: resume.address, mode: 'resume', secret: fromB64(resume.key) });
   } else {
-    publish({ error: 'need_code' });
+    const { address } = await chrome.storage.local.get('address');
+    if (address) await connect(address);
+    else publish({ error: 'bad_address' });
   }
 }
 

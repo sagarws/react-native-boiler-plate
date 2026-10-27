@@ -12,7 +12,6 @@ export interface UseAudioShare {
   approve: () => void;
   deny: () => void;
   disconnect: () => void;
-  renewCode: () => void;
   /** Re-reads the status now (e.g. after Retry). */
   refresh: () => void;
 }
@@ -58,7 +57,6 @@ export function useAudioShare(active: boolean): UseAudioShare {
     approve: act(() => audioShareService.respond(true)),
     deny: act(() => audioShareService.respond(false)),
     disconnect: act(() => audioShareService.disconnect()),
-    renewCode: act(() => audioShareService.renewCode()),
     refresh,
   };
 }

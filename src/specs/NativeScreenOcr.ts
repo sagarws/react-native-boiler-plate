@@ -92,16 +92,14 @@ export interface Spec extends TurboModule {
   /**
    * Audio sharing with the Chrome extension (started/stopped by
    * config.audioShare.enabled). JSON {state: off|waiting|pending|connected|
-   * streaming, address, port, code, codeExpiresAt, receiverName,
-   * fingerprint, transmitting, error}.
+   * streaming, address, port, receiverName, fingerprint, transmitting,
+   * error}. Pairing is by address + the user's Allow (no code).
    */
   getAudioShareStatus(): Promise<string>;
   /** Allow or deny the pending connection request. */
   respondAudioShare(approve: boolean): void;
   /** Ends the receiver's session (it must pair again). */
   disconnectAudioShare(): void;
-  /** Replaces the pairing code. */
-  renewAudioShareCode(): void;
   clearPaginationTarget(): void;
   /**
    * Shows the Next-button picker over other apps. Resolves 'started', or

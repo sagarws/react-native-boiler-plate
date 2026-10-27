@@ -14,7 +14,6 @@ import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.rnboilerplate.R
-import com.rnboilerplate.screenocr.SpeechSegment
 import java.io.IOException
 import java.net.Inet4Address
 import java.net.InetSocketAddress
@@ -35,13 +34,15 @@ import org.json.JSONObject
  * on and the app process runs (the floating-button service keeps it alive in
  * the background).
  *
- * Policy: one receiver at a time; others get "busy". A pairing code is valid
- * for [CODE_TTL_MS], single use, and replaced after [MAX_FAILURES] wrong
- * attempts. A paired receiver gets a resume key so it can reconnect after a
- * network drop without re-pairing; the key dies when sharing stops or either
- * side disconnects. Audio is only sent while the receiver is listening.
+ * Policy: one receiver at a time; others get "busy". Pairing needs only the
+ * phone's address, so every new receiver must be allowed by the user on the
+ * phone (after matching the 6-digit fingerprint); after a deny or timeout,
+ * new requests are refused for [PAIR_COOLDOWN_MS] so they can't be spammed.
+ * A paired receiver gets a resume key so it can reconnect after a network
+ * drop without asking again; the key dies when sharing stops or either side
+ * disconnects. Audio is only sent while the receiver is listening.
  *
- * Nothing about codes, keys or audio is logged.
+ * Nothing about keys or audio is logged.
  */
 @SuppressLint("StaticFieldLeak") // Holds the application context only.
 object AudioShareHub {
@@ -49,8 +50,7 @@ object AudioShareHub {
 
   private const val TAG = "AudioShare"
   const val PORT = 47811
-  private const val CODE_TTL_MS = 10 * 60_000L
-  private const val MAX_FAILURES = 5
+  private const val PAIR_COOLDOWN_MS = 5_000L
   private const val APPROVAL_TIMEOUT_MS = 60_000L
   private const val HANDSHAKE_TIMEOUT_MS = 10_000
   private const val IDLE_TIMEOUT_MS = 45_000
@@ -68,15 +68,11 @@ object AudioShareHub {
   private var acceptThread: Thread? = null
   private var audio: ScheduledExecutorService? = null
   private var client: Client? = null
-  private var code = ""
-  private var codeExpiresAt = 0L
-  private var failures = 0
+  private var pairBlockedUntil = 0L
   private var resumeKey: ByteArray? = null
   private var error: String? = null
   @Volatile private var audioGeneration = 0
   @Volatile private var lastAudioAt = 0L
-  private var mirror: SpeechMirror? = null
-  private var mirrorOwner: Any? = null
 
   // ── Lifecycle ─────────────────────────────────────────────────────────
 
@@ -101,7 +97,6 @@ object AudioShareHub {
       server = socket
       audio = Executors.newSingleThreadScheduledExecutor()
       audio?.scheduleWithFixedDelay({ ping() }, PING_INTERVAL_S, PING_INTERVAL_S, TimeUnit.SECONDS)
-      renewCodeLocked()
       acceptThread = Thread({ acceptLoop(socket) }, "audio-share-accept").also { it.start() }
     }
   }
@@ -131,15 +126,10 @@ object AudioShareHub {
       acceptThread = null
       audio?.shutdownNow()
       audio = null
-      code = ""
       error = null
     }
     old?.close("sharing_stopped")
-    main.post {
-      mirror?.shutdown()
-      mirror = null
-      cancelApprovalNotification()
-    }
+    main.post { cancelApprovalNotification() }
   }
 
   // ── State for the app's card ──────────────────────────────────────────
@@ -155,15 +145,10 @@ object AudioShareHub {
           c.listening -> State.STREAMING
           else -> State.CONNECTED
         }
-      if (server != null && System.currentTimeMillis() > codeExpiresAt && (c == null || !c.awaitingApproval)) {
-        renewCodeLocked()
-      }
       JSONObject()
         .put("state", state.name.lowercase())
         .put("address", if (server != null) localAddress().orEmpty() else "")
         .put("port", server?.localPort ?: 0)
-        .put("code", if (server != null) ShareProtocol.formatCode(code) else "")
-        .put("codeExpiresAt", codeExpiresAt)
         .put("receiverName", c?.name.orEmpty())
         .put("fingerprint", c?.fingerprint.orEmpty())
         .put("transmitting", System.currentTimeMillis() - lastAudioAt < 1500)
@@ -187,13 +172,6 @@ object AudioShareHub {
     flush()
   }
 
-  fun renewCode() = synchronized(lock) { renewCodeLocked() }
-
-  private fun renewCodeLocked() {
-    code = ShareProtocol.newCode()
-    codeExpiresAt = System.currentTimeMillis() + CODE_TTL_MS
-    failures = 0
-  }
 
   /** The phone's IPv4 address on Wi-Fi (or its own hotspot). */
   private fun localAddress(): String? =
@@ -208,50 +186,22 @@ object AudioShareHub {
       null
     }
 
-  // ── Speech mirroring (called by SpeechPlayer on the main thread) ──────
+  // ── Audio (from SharedSpeech) ─────────────────────────────────────────
 
-  private val streaming: Boolean
+  /** A paired receiver is listening: speech should go through SharedSpeech. */
+  val isStreaming: Boolean
     get() = synchronized(lock) { client?.let { it.authenticated && it.listening } == true }
 
-  /** A speak request began: render the same segments for the receiver. */
-  fun speechStarted(
-    owner: Any,
-    context: Context,
-    preferGoogle: Boolean,
-    segments: List<SpeechSegment>,
-    from: Int,
-    voiceName: String,
-    rate: Float,
-    pitch: Float,
-  ) {
-    if (!streaming) return
-    val m = mirror?.takeIf { it.preferGoogle == preferGoogle } ?: run {
-      mirror?.shutdown()
-      SpeechMirror(context.applicationContext, preferGoogle) { clip -> sendClip(clip) }.also { mirror = it }
-    }
-    flush()
-    mirrorOwner = owner
-    m.begin(segments, from, voiceName, rate, pitch)
-  }
-
-  fun segmentStarted(owner: Any, index: Int) {
-    if (owner === mirrorOwner) mirror?.started(index)
-  }
-
-  fun speechStopped(owner: Any) {
-    if (owner !== mirrorOwner) return
-    mirrorOwner = null
-    mirror?.cancel()
-    flush()
-  }
-
   /** Drops audio queued for the receiver (new request, stop, skip). */
-  private fun flush() {
+  fun flush() {
     audioGeneration++
-    synchronized(lock) { client }?.sendJson(JSONObject().put("t", "flush"))
+    // Never write to the socket on the main thread (NetworkOnMainThreadException).
+    val executor = synchronized(lock) { audio } ?: return
+    executor.execute { synchronized(lock) { client }?.sendJson(JSONObject().put("t", "flush")) }
   }
 
-  private fun sendClip(clip: PcmClip) {
+  /** Sends [clip] to the receiver, paced to real time. */
+  fun sendClip(clip: PcmClip) {
     val executor = synchronized(lock) { audio } ?: return
     val generation = audioGeneration
     executor.execute {
@@ -349,9 +299,9 @@ object AudioShareHub {
         synchronized(lock) {
           if (client?.authenticated == true || client?.awaitingApproval == true) throw Rejected("busy")
           when (mode) {
-            "code" -> {
-              if (System.currentTimeMillis() > codeExpiresAt) throw Rejected("code_expired")
-              ShareProtocol.normaliseCode(code).toByteArray()
+            "pair" -> {
+              if (System.currentTimeMillis() < pairBlockedUntil) throw Rejected("denied")
+              ShareProtocol.PAIR_SECRET
             }
             "resume" -> resumeKey ?: throw Rejected("resume_invalid")
             else -> throw Rejected("bad_request")
@@ -376,15 +326,11 @@ object AudioShareHub {
       val confirm = readJson(conn)
       val mac = B64.decode(confirm.optString("mac")) ?: ByteArray(0)
       if (confirm.optString("t") != "confirm" || !ShareProtocol.constantTimeEquals(mac, keys.clientMac())) {
-        if (mode == "code") {
-          synchronized(lock) { if (++failures >= MAX_FAILURES) renewCodeLocked() }
-          throw Rejected("bad_code")
-        }
-        throw Rejected("resume_invalid")
+        throw Rejected(if (mode == "pair") "bad_request" else "resume_invalid")
       }
       fingerprint = keys.fingerprint()
 
-      if (mode == "code") {
+      if (mode == "pair") {
         synchronized(lock) {
           if (client?.authenticated == true || client?.awaitingApproval == true) throw Rejected("busy")
           client = this
@@ -398,12 +344,11 @@ object AudioShareHub {
         val approved = decided.await(APPROVAL_TIMEOUT_MS, TimeUnit.MILLISECONDS) && decision == true
         awaitingApproval = false
         main.post { cancelApprovalNotification() }
-        if (!approved) throw Rejected("denied")
-        synchronized(lock) {
-          // Single use: the next pairing needs a fresh code.
-          renewCodeLocked()
-          resumeKey = ShareProtocol.randomBytes(32)
+        if (!approved) {
+          synchronized(lock) { pairBlockedUntil = System.currentTimeMillis() + PAIR_COOLDOWN_MS }
+          throw Rejected("denied")
         }
+        synchronized(lock) { resumeKey = ShareProtocol.randomBytes(32) }
       } else {
         // Proof of the resume key: this is the same receiver coming back, so
         // it replaces a connection the phone hasn't noticed is dead yet.
@@ -468,6 +413,11 @@ object AudioShareHub {
     }
 
     fun sendPayload(payload: ByteArray) {
+      if (Looper.myLooper() == Looper.getMainLooper()) {
+        // Socket writes are forbidden on the main thread; keep order via the audio thread.
+        synchronized(lock) { audio }?.execute { sendPayload(payload) }
+        return
+      }
       val s = sealer ?: return
       try {
         ws?.sendBinary(s.seal(payload))
@@ -478,13 +428,16 @@ object AudioShareHub {
 
     /** Says why (if given) and closes; the read loop then detaches. */
     fun close(reason: String?) {
-      if (reason != null) sendJson(JSONObject().put("t", "bye").put("reason", reason))
       decided.countDown()
-      try {
-        ws?.sendClose()
-        socket.close()
-      } catch (_: IOException) {
+      val finish = {
+        if (reason != null) sendJson(JSONObject().put("t", "bye").put("reason", reason))
+        try {
+          ws?.sendClose()
+          socket.close()
+        } catch (_: IOException) {
+        }
       }
+      if (Looper.myLooper() == Looper.getMainLooper()) Thread(finish, "audio-share-close").start() else finish()
     }
 
     private fun detach() {

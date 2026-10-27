@@ -523,9 +523,6 @@
     "state_connected": "Connected",
     "state_streaming": "Streaming",
     "address": "Phone address",
-    "code": "Pairing code",
-    "codeHint": "Enter both in the Akshar Listen extension. The code works once and changes every 10 minutes.",
-    "newCode": "New code",
     "requestTitle": "{{name}} wants to connect",
     "requestBody": "Allow only if your computer shows {{fingerprint}}.",
     "allow": "Allow",
@@ -539,7 +536,8 @@
     "error_port_failed": "Could not start sharing on this network. Turn it off and on to retry.",
     "error_unsupported": "Audio sharing isn’t available on this device.",
     "retry": "Retry",
-    "howTo": "On the computer: load the Akshar Listen extension (public/crome-extension, see its README), open it, enter the address and code, then tap Allow here.",
-    "privacy": "Only Akshar’s voice is shared — never the microphone or other apps. The connection is encrypted and needs this code plus your approval."
+    "howTo": "On the computer: load the Akshar Listen extension (public/crome-extension, see its README), open it, enter the address above and click Connect.",
+    "privacy": "Only Akshar’s voice is shared — never the microphone or other apps. Every new computer must be allowed here, and the connection is encrypted.",
+    "addressHint": "Enter this address in the Akshar Listen extension and click Connect, then tap Allow here when the request appears."
   }
 }
