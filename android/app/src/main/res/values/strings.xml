@@ -17,6 +17,7 @@
     <string name="screen_ocr_capture_failed">Couldn\'t capture the screen. Please try again.</string>
     <string name="screen_ocr_clipboard_failed">Text captured, but copying to the clipboard failed</string>
     <string name="screen_ocr_capture_stopped">Screen capture stopped. Turn the floating button on again in the app.</string>
+    <string name="screen_ocr_shared_app_hidden">You shared only one app. Open that app to read it, or turn the floating button off and on to share another app or the entire screen.</string>
     <string name="screen_ocr_capture_unavailable">Screen capture could not start</string>
     <string name="screen_ocr_overlay_revoked">\"Display over other apps\" is off. Allow it in the app to continue.</string>
     <string name="screen_ocr_channel_name">Floating text capture</string>

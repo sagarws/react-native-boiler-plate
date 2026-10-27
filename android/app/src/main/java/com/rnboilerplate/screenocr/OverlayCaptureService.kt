@@ -75,6 +75,8 @@ class OverlayCaptureService :
   private var focusRequest: AudioFocusRequest? = null
   private var pausedByFocusLoss = false
   private var lastText: String? = null
+  /** The last capture failed because the one shared app was hidden (already explained). */
+  private var lastCaptureHidden = false
   private var picker: TargetPicker? = null
   private var pagination: PaginationSession? = null
 
@@ -246,6 +248,9 @@ class OverlayCaptureService :
 
   private class CaptureFailed : RuntimeException("capture")
 
+  /** One app was shared and it is not on screen; already explained by a toast. */
+  private class SharedAppHidden : RuntimeException("shared app hidden")
+
   /**
    * Hides the overlay, grabs one frame, shows the overlay again and runs OCR
    * with the configured languages. Never runs twice at once.
@@ -278,6 +283,13 @@ class OverlayCaptureService :
     val activeCapturer = capturer
     if (activeCapturer == null || capturing) {
       onResult(Result.failure(CaptureFailed()), 0, 0)
+      return
+    }
+    lastCaptureHidden = !activeCapturer.contentVisible
+    if (!activeCapturer.contentVisible) {
+      // One-app share and that app is behind another: Android sends blank frames.
+      toast(R.string.screen_ocr_shared_app_hidden)
+      onResult(Result.failure(SharedAppHidden()), 0, 0)
       return
     }
     capturing = true
@@ -322,6 +334,7 @@ class OverlayCaptureService :
       val text = result.getOrNull()
       val message =
         when {
+          result.exceptionOrNull() is SharedAppHidden -> return@captureAndRecognize
           result.exceptionOrNull() is CaptureFailed -> R.string.screen_ocr_capture_failed
           text == null -> R.string.screen_ocr_failed
           text.isBlank() -> R.string.screen_ocr_no_text
@@ -437,8 +450,13 @@ class OverlayCaptureService :
     bubble?.setReading(false)
     when (info.reason) {
       ReadingReason.NO_TEXT -> toast(R.string.screen_ocr_no_text)
-      ReadingReason.CAPTURE_FAILED -> toast(R.string.screen_ocr_capture_failed)
-      ReadingReason.OCR_FAILED -> toast(R.string.screen_ocr_failed)
+      ReadingReason.CAPTURE_FAILED, ReadingReason.OCR_FAILED ->
+        if (!lastCaptureHidden) {
+          toast(
+            if (info.reason == ReadingReason.CAPTURE_FAILED) R.string.screen_ocr_capture_failed
+            else R.string.screen_ocr_failed,
+          )
+        }
       ReadingReason.SPEECH_FAILED -> toast(R.string.reading_error_speech)
       ReadingReason.VOICE_MISSING -> toast(R.string.reading_error_voice)
       ReadingReason.END_OF_PAGE -> toast(R.string.reading_end_of_page)
@@ -631,7 +649,8 @@ class OverlayCaptureService :
           PaginationIssue.PAGE_LIMIT -> toast(R.string.pagination_issue_page_limit)
           PaginationIssue.LAST_PAGE -> toast(R.string.pagination_issue_last_page)
           PaginationIssue.EMPTY_PAGE -> toast(R.string.screen_ocr_no_text)
-          PaginationIssue.CAPTURE_FAILED -> toast(R.string.screen_ocr_capture_failed)
+          PaginationIssue.CAPTURE_FAILED ->
+            if (!lastCaptureHidden) toast(R.string.screen_ocr_capture_failed)
           PaginationIssue.SPEECH_FAILED -> toast(R.string.reading_error_speech)
           PaginationIssue.VOICE_MISSING -> toast(R.string.reading_error_voice)
           else -> Unit

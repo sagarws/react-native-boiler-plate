@@ -45,8 +45,38 @@ class ScreenCapturer(
   private var height = 0
   private var released = false
 
+  /**
+   * Single-app sharing (Android 14+): the captured app's size differs from the
+   * display, and while that app is not on screen Android sends blank frames.
+   * Null means unknown (older Android, or the callback hasn't fired) and is
+   * treated as a full-screen share.
+   */
+  @Volatile private var capturedSize: Pair<Int, Int>? = null
+
+  /** False while a single shared app is hidden behind another app. */
+  @Volatile var contentVisible = true
+    private set
+
+  /** True when the user shared one app rather than the entire screen. */
+  val isSingleApp: Boolean
+    get() {
+      val size = capturedSize ?: return false
+      val m = metrics()
+      val sameAsDisplay =
+        (size.first == m.width && size.second == m.height) || (size.first == m.height && size.second == m.width)
+      return !sameAsDisplay
+    }
+
   private val projectionCallback =
     object : MediaProjection.Callback() {
+      override fun onCapturedContentResize(width: Int, height: Int) {
+        capturedSize = width to height
+      }
+
+      override fun onCapturedContentVisibilityChanged(isVisible: Boolean) {
+        contentVisible = isVisible
+      }
+
       override fun onStop() {
         // The user or the system ended the session (status-bar stop, lock
         // screen on newer Android, another app taking over the projection).
@@ -120,7 +150,8 @@ class ScreenCapturer(
 
     // Drop any frame left over from a previous capture.
     imageReader.acquireLatestImage()?.close()
-    val (cropTop, cropBottom) = systemBarInsets()
+    // A single shared app's frame has no system bars, so there is nothing to crop.
+    val (cropTop, cropBottom) = if (isSingleApp) 0 to 0 else systemBarInsets()
 
     val done = AtomicBoolean(false)
     fun finish(bitmap: Bitmap?) {

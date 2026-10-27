@@ -305,7 +305,7 @@ service**:
 | Permission | Why |
 |---|---|
 | `SYSTEM_ALERT_WINDOW` ("Display over other apps") | Draws the floating button. Granted by the user in system settings. |
-| Screen-capture consent (MediaProjection) | Android's own dialog; asked each time the button is turned on, because the token is single-use and cannot be stored. On Android 14+ the request is pinned to the entire screen. |
+| Screen-capture consent (MediaProjection) | Android's own dialog; asked each time the button is turned on, because the token is single-use and cannot be stored. On Android 14+ the user can share the **entire screen** (any app is readable) or **one app** (only that app; while it is hidden Android sends blank frames, so Akshar says so instead of reporting “no text”, and skips the system-bar crop because a single-app frame has no system bars). |
 | `FOREGROUND_SERVICE`, `FOREGROUND_SERVICE_MEDIA_PROJECTION` | Android requires a `mediaProjection` foreground service while a capture session is held. Its notification has a **Stop** action. |
 | `POST_NOTIFICATIONS` | Shows that notification on Android 13+. Without it the service still works, but the notification is hidden. |
 | Accessibility service (optional) | Only for "Speak with auto-scroll", only if the user enables it in Android settings: scrolls the page being read. |
