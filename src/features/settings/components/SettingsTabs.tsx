@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/theme';
 
-export type SettingsTab = 'general' | 'ocr';
+export type SettingsTab = 'general' | 'ocr' | 'files';
 
 export interface SettingsTabsProps {
   value: SettingsTab;
@@ -11,7 +11,7 @@ export interface SettingsTabsProps {
   accessibilityLabel: string;
 }
 
-/** The General / OCR switcher at the top of Settings. */
+/** The General / OCR / File Management switcher at the top of Settings. */
 export function SettingsTabs({
   value,
   onChange,

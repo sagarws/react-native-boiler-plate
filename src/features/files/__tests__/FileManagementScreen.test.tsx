@@ -1,0 +1,207 @@
+import React from 'react';
+import ReactTestRenderer from 'react-test-renderer';
+import '@/i18n';
+import { storage } from '@/store/mmkv';
+import { setDriveClientForTest } from '../repository/drive.repository';
+import FileManagementScreen from '../screens/FileManagementScreen';
+import type { DriveClient } from '@/services/api';
+
+jest.mock('@react-navigation/native', () => {
+  const ReactLib = jest.requireActual('react');
+  return {
+    useNavigation: () => ({ navigate: mockNavigate }),
+    // Run the focus callback once on mount, like a screen gaining focus.
+    useFocusEffect: (cb: () => void) => ReactLib.useEffect(cb, [cb]),
+  };
+});
+const mockNavigate = jest.fn();
+
+jest.mock('@/specs/NativeScreenOcr', () => ({
+  __esModule: true,
+  default: {
+    getDriveCredentialStatus: jest.fn(),
+    getDriveAccessToken: jest.fn(),
+  },
+}));
+const mockNative: Record<string, jest.Mock> = jest.requireMock(
+  '@/specs/NativeScreenOcr',
+).default;
+const signin = jest.requireMock('@react-native-google-signin/google-signin');
+
+const request = jest.fn();
+setDriveClientForTest({ request, upload: jest.fn() } as unknown as DriveClient);
+
+const notConfigured = JSON.stringify({
+  configured: false,
+  clientId: '',
+  folderId: '',
+  secretHint: '',
+  tokenHint: '',
+});
+const sharedConfigured = JSON.stringify({
+  configured: true,
+  clientId: '123-abc.apps.googleusercontent.com',
+  folderId: 'SharedFolder_0123456789',
+  secretHint: 'abcd',
+  tokenHint: 'wxyz',
+});
+
+const mounted: ReactTestRenderer.ReactTestRenderer[] = [];
+async function render() {
+  let r: ReactTestRenderer.ReactTestRenderer | undefined;
+  await ReactTestRenderer.act(async () => {
+    r = ReactTestRenderer.create(<FileManagementScreen />);
+  });
+  mounted.push(r!);
+  return r!;
+}
+const find = (
+  r: ReactTestRenderer.ReactTestRenderer,
+  id: string,
+  prop: string,
+) => r.root.findAll(n => n.props.testID === id && prop in n.props)[0];
+const has = (r: ReactTestRenderer.ReactTestRenderer, id: string) =>
+  r.root.findAll(n => n.props.testID === id).length > 0;
+const texts = (r: ReactTestRenderer.ReactTestRenderer) =>
+  r.root
+    .findAllByType('Text' as never, { deep: true })
+    .flatMap(n => n.children)
+    .filter((c): c is string => typeof c === 'string');
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  request.mockReset();
+  storage.clearAll();
+  mockNative.getDriveCredentialStatus.mockResolvedValue(notConfigured);
+});
+
+afterEach(async () => {
+  await ReactTestRenderer.act(() => {
+    mounted.splice(0).forEach(r => r.unmount());
+  });
+});
+
+describe('File Management', () => {
+  it('shows both cards and asks to connect when nothing is set up', async () => {
+    const r = await render();
+    expect(has(r, 'files-drive-card')).toBe(true);
+    expect(has(r, 'files-share-card')).toBe(true);
+    expect(has(r, 'files-needs-drive')).toBe(true);
+    expect(find(r, 'files-drive-status', 'label').props.label).toBe(
+      'Not connected',
+    );
+  });
+
+  it('uses the shared Drive from Settings when no account is connected', async () => {
+    mockNative.getDriveCredentialStatus.mockResolvedValue(sharedConfigured);
+    request
+      .mockResolvedValueOnce({ files: [] }) // start folder check (list)
+      .mockResolvedValueOnce({
+        files: [
+          {
+            id: 'f1',
+            name: 'report.pdf',
+            mimeType: 'application/pdf',
+            size: '1024',
+          },
+        ],
+      });
+    const r = await render();
+    expect(find(r, 'files-drive-status', 'label').props.label).toBe(
+      'Shared Drive',
+    );
+    expect(texts(r)).toContain('Shared Drive'); // breadcrumb
+    expect(texts(r)).toContain('report.pdf');
+    expect(has(r, 'files-needs-drive')).toBe(false);
+  });
+
+  it('opens Settings → File Management to manage the shared Drive', async () => {
+    const r = await render();
+    await ReactTestRenderer.act(async () => {
+      find(r, 'files-manage-shared', 'onPress').props.onPress();
+    });
+    expect(mockNavigate).toHaveBeenCalledWith('Settings', { tab: 'files' });
+  });
+
+  it('explains when Google sign-in is not registered for this build', async () => {
+    signin.GoogleSignin.signIn.mockRejectedValueOnce(
+      Object.assign(new Error('DEVELOPER_ERROR'), { code: '10' }),
+    );
+    const r = await render();
+    await ReactTestRenderer.act(async () => {
+      find(r, 'files-connect', 'onPress').props.onPress();
+    });
+    expect(find(r, 'files-connect-error', 'message').props.message).toMatch(
+      /registered in Google Cloud/,
+    );
+  });
+
+  it('starts in the personal "Akshar" folder after connecting', async () => {
+    signin.GoogleSignin.signIn.mockResolvedValueOnce({
+      type: 'success',
+      data: {
+        user: { email: 'me@x.com', name: 'Me', photo: null },
+        scopes: ['https://www.googleapis.com/auth/drive.file'],
+      },
+    });
+    request
+      .mockResolvedValueOnce({ files: [{ id: 'akshar-1' }] }) // find Akshar folder
+      .mockResolvedValueOnce({ files: [] }); // list it
+    const r = await render();
+    await ReactTestRenderer.act(async () => {
+      find(r, 'files-connect', 'onPress').props.onPress();
+    });
+    expect(find(r, 'files-drive-status', 'label').props.label).toBe(
+      'Connected',
+    );
+    expect(texts(r)).toContain('me@x.com');
+    expect(texts(r)).toContain('Akshar');
+    expect(has(r, 'files-empty')).toBe(true);
+  });
+
+  it('asks for Drive access when the checkbox was left unticked, and offers it again on a 403', async () => {
+    signin.GoogleSignin.signIn.mockResolvedValueOnce({
+      type: 'success',
+      data: {
+        user: { email: 'me@x.com', name: 'Me', photo: null },
+        scopes: ['email'],
+      },
+    });
+    const { ApiError } = jest.requireActual('@/services/api/errors');
+    request.mockRejectedValueOnce(
+      new ApiError('x', {
+        status: 403,
+        url: '',
+        body: {
+          error: { message: 'Request had insufficient authentication scopes.' },
+        },
+      }),
+    );
+    const r = await render();
+    await ReactTestRenderer.act(async () => {
+      find(r, 'files-connect', 'onPress').props.onPress();
+    });
+    // Sign-in noticed the missing scope and asked for it.
+    expect(signin.GoogleSignin.addScopes).toHaveBeenCalledWith({
+      scopes: ['https://www.googleapis.com/auth/drive.file'],
+    });
+    // Still refused: the error shows Google's reason and a way to grant access.
+    expect(find(r, 'files-load-error', 'message').props.message).toMatch(
+      /Google says: Request had insufficient authentication scopes\./,
+    );
+    signin.GoogleSignin.addScopes.mockResolvedValueOnce({
+      type: 'success',
+      data: {
+        user: { email: 'me@x.com', name: 'Me', photo: null },
+        scopes: ['https://www.googleapis.com/auth/drive.file'],
+      },
+    });
+    request
+      .mockResolvedValueOnce({ files: [{ id: 'akshar-1' }] })
+      .mockResolvedValueOnce({ files: [] });
+    await ReactTestRenderer.act(async () => {
+      find(r, 'files-grant-access', 'onPress').props.onPress();
+    });
+    expect(has(r, 'files-empty')).toBe(true);
+  });
+});

@@ -21,7 +21,9 @@ export type ExtractedTextParams =
 export type MainStackParamList = {
   Dashboard: undefined;
   ExtractedText: ExtractedTextParams;
-  Settings: undefined;
+  FileManagement: undefined;
+  /** `tab` opens a Settings tab directly (e.g. from File Management). */
+  Settings: { tab?: 'general' | 'ocr' | 'files' } | undefined;
   Appearance: undefined;
   About: undefined;
 };

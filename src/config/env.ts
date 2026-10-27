@@ -39,3 +39,8 @@ function load(): Env {
 }
 
 export const env: Env = load();
+
+// GOOGLE_DRIVE_CLIENT_ID / _CLIENT_SECRET / _REFRESH_TOKEN / _FOLDER_ID are
+// intentionally NOT read here: they are secrets the native
+// DriveCredentialStore reads directly, so JS never holds them. JS only sees
+// their status (configured, client id, folder id, 4-char hints).

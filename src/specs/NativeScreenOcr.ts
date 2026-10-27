@@ -100,6 +100,28 @@ export interface Spec extends TurboModule {
   respondAudioShare(approve: boolean): void;
   /** Ends the receiver's session (it must pair again). */
   disconnectAudioShare(): void;
+  /**
+   * File Management's shared Google Drive (Settings → File Management),
+   * stored encrypted. JSON {clientId, clientSecret, refreshToken, folderId};
+   * a blank secret field keeps the stored value. Resolves whether it saved.
+   */
+  setDriveCredentials(json: string): Promise<boolean>;
+  /**
+   * JSON {configured, source: saved|default|none, hasDefaults, clientId,
+   * folderId, secretHint, tokenHint} — never the secrets. "default" means the
+   * build's .env values (GOOGLE_DRIVE_*) are in use.
+   */
+  getDriveCredentialStatus(): Promise<string>;
+  /** Forgets saved values and stops using the build defaults. */
+  clearDriveCredentials(): void;
+  /** Forgets saved values and goes back to the build defaults. */
+  restoreDriveDefaults(): void;
+  /**
+   * A short-lived Drive access token from the stored refresh token. Rejects
+   * with code not_configured | invalid_token | invalid_client | no_internet |
+   * timeout | server.
+   */
+  getDriveAccessToken(forceRefresh: boolean): Promise<string>;
   clearPaginationTarget(): void;
   /**
    * Shows the Next-button picker over other apps. Resolves 'started', or

@@ -11,23 +11,28 @@ import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
 /**
- * Stores the user's Gemini API key encrypted with an AES-256-GCM key that
- * lives in the Android Keystore (hardware-backed where the device supports
- * it) and never leaves it. The ciphertext sits in private SharedPreferences;
- * `allowBackup="false"` keeps it out of backups.
+ * Stores one secret (by default the user's Gemini API key) encrypted with an
+ * AES-256-GCM key that lives in the Android Keystore (hardware-backed where
+ * the device supports it) and never leaves it. The ciphertext sits in private
+ * SharedPreferences; `allowBackup="false"` keeps it out of backups.
  *
- * The plain key is only ever returned to native code that calls Gemini —
- * JS gets [hint] (last four characters) and [hasKey].
+ * The plain value is only ever returned to native code that uses it — JS gets
+ * [hint] (last four characters) and [hasKey]. [file]/[alias] give another
+ * secret its own storage (e.g. [DriveCredentialStore]).
  */
-class SecureKeyStore(context: Context) {
-  private val prefs = context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+class SecureKeyStore(
+  context: Context,
+  file: String = FILE,
+  private val alias: String = ALIAS,
+) {
+  private val prefs = context.applicationContext.getSharedPreferences(file, Context.MODE_PRIVATE)
 
   private fun secretKey(): SecretKey {
     val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-    (keyStore.getEntry(ALIAS, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
+    (keyStore.getEntry(alias, null) as? KeyStore.SecretKeyEntry)?.let { return it.secretKey }
     val generator = KeyGenerator.getInstance(KeyProperties.KEY_ALGORITHM_AES, ANDROID_KEYSTORE)
     generator.init(
-      KeyGenParameterSpec.Builder(ALIAS, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
+      KeyGenParameterSpec.Builder(alias, KeyProperties.PURPOSE_ENCRYPT or KeyProperties.PURPOSE_DECRYPT)
         .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
         .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
         .setKeySize(256)

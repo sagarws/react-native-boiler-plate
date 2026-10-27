@@ -108,3 +108,14 @@ export type {
   DeviceAudioState,
 } from './services/audioShare.service';
 export type { AudioShareSettings, AudioShareSource } from './capture.types';
+export {
+  driveCredentialsService,
+  parseDriveCredentialStatus,
+  DriveTokenUnavailable,
+  DRIVE_NOT_CONFIGURED,
+} from './services/driveCredentials.service';
+export type {
+  DriveCredentialStatus,
+  DriveCredentialsInput,
+  DriveTokenError,
+} from './services/driveCredentials.service';

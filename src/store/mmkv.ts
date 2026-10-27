@@ -13,4 +13,6 @@ export const StorageKeys = {
   CaptureSettings: 'capture.settings',
   CaptureHistory: 'capture.history',
   OnboardingComplete: 'app.onboardingComplete',
+  /** File Management: the "Akshar" folder id in each connected Google account's Drive. */
+  DriveRootFolders: 'files.driveRootFolders',
 } as const;

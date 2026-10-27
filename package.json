@@ -16,6 +16,8 @@
     "clean": "watchman watch-del-all 2>/dev/null; rm -rf node_modules ios/Pods ios/build android/build android/.gradle android/app/build $TMPDIR/metro-* $TMPDIR/haste-map-*"
   },
   "dependencies": {
+    "@react-native-documents/picker": "12.0.2",
+    "@react-native-google-signin/google-signin": "16.1.5",
     "@react-navigation/native": "7.2.5",
     "@react-navigation/native-stack": "7.16.0",
     "i18next": "26.3.1",

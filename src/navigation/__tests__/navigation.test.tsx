@@ -229,6 +229,11 @@ describe('after onboarding', () => {
       expect(texts).toContain(title);
     }
     expect(texts).not.toContain('Gemini AI');
+    // File Management: open the page, and the shared Google Drive values.
+    await pressId(renderer, 'settings-tab-files');
+    texts = textsOf(renderer.root);
+    expect(texts).toContain('Open File Management');
+    expect(texts).toContain('Shared Google Drive');
   });
 
   it('shows every settings group collapsed to a one-line summary', async () => {

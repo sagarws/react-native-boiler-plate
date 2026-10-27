@@ -12,14 +12,20 @@ import { useDrawer } from './DrawerContext';
 import { ROUTES } from '../routes';
 import type { MainStackParamList } from '../types';
 
-type DrawerTarget = 'Dashboard' | 'Settings' | 'Appearance' | 'About';
+type DrawerTarget =
+  | 'Dashboard'
+  | 'FileManagement'
+  | 'Settings'
+  | 'Appearance'
+  | 'About';
 
 const ITEMS: readonly {
   screen: DrawerTarget;
   icon: IconName;
-  label: 'home' | 'settings' | 'appearance' | 'about';
+  label: 'home' | 'files' | 'settings' | 'appearance' | 'about';
 }[] = [
   { screen: ROUTES.DASHBOARD, icon: 'scanText', label: 'home' },
+  { screen: ROUTES.FILE_MANAGEMENT, icon: 'folder', label: 'files' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
   { screen: ROUTES.APPEARANCE, icon: 'palette', label: 'appearance' },
   { screen: ROUTES.ABOUT, icon: 'shieldCheck', label: 'about' },

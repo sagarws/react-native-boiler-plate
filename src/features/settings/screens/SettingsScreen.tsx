@@ -1,7 +1,11 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FEATURES } from '@/config';
 import {
@@ -35,6 +39,8 @@ import { RefineSection } from '../components/RefineSection';
 import { AudioShareSection } from '../components/AudioShareSection';
 import { GeminiSection } from '../components/GeminiSection';
 import { SettingsTabs, type SettingsTab } from '../components/SettingsTabs';
+import { DriveCredentialsSection } from '../components/DriveCredentialsSection';
+import type { MainStackParamList } from '@/navigation/types';
 
 type Toast = 'historyCleared' | 'resetPositionDone' | null;
 
@@ -49,6 +55,7 @@ type SectionKey =
   | 'audioShare'
   | 'translate'
   | 'gemini'
+  | 'driveCreds'
   | 'clipboard';
 
 /**
@@ -57,6 +64,8 @@ type SectionKey =
  *   Share voice to Chrome · Appearance · Language · About.
  * - OCR: OCR language · Floating button · Auto-scroll reading · Speak with
  *   pagination · Refine text · Translation · Clipboard & history.
+ * - File Management: open File Management · the shared Google Drive
+ *   (client, refresh token, folder) File Share uses without an account.
  * The large groups are an accordion — one open at a time, each collapsed to
  * a one-line summary of its current state — so everything fits without long
  * scrolling.
@@ -68,11 +77,16 @@ export default function SettingsScreen() {
   const { top, bottom } = useSafeAreaInsets();
   const { colors, typography, spacing, preset, typographyPreset } = useTheme();
   const navigation = useNavigation();
+  const { params } = useRoute<RouteProp<MainStackParamList, 'Settings'>>();
   const { settings, update } = useCaptureSettings();
   const overlay = useOverlayController();
   const [toast, setToast] = useState<Toast>(null);
   const [open, setOpen] = useState<SectionKey | null>(null);
-  const [tab, setTab] = useState<SettingsTab>('general');
+  const [tab, setTab] = useState<SettingsTab>(params?.tab ?? 'general');
+  // Opened again with a tab (e.g. from File Management): switch to it.
+  useEffect(() => {
+    if (params?.tab) setTab(params.tab);
+  }, [params?.tab]);
   const chooseTab = (next: SettingsTab) => {
     setTab(next);
     setOpen(null);
@@ -127,6 +141,7 @@ export default function SettingsScreen() {
         tabs={[
           { value: 'general', label: t('settings.tabGeneral') },
           { value: 'ocr', label: t('settings.tabOcr') },
+          { value: 'files', label: t('settings.tabFiles') },
         ]}
       />
       <ScrollView
@@ -224,6 +239,20 @@ export default function SettingsScreen() {
                 testID="settings-clear-history"
               />
             </ExpandableCard>
+          </>
+        ) : tab === 'files' ? (
+          <>
+            <SettingsSection title={t('settings.tabFiles')}>
+              <ListRow
+                icon="folder"
+                title={t('driveCreds.openFiles')}
+                subtitle={t('driveCreds.openFilesHint')}
+                onPress={() => navigation.navigate(ROUTES.FILE_MANAGEMENT)}
+                testID="settings-open-files"
+              />
+            </SettingsSection>
+
+            <DriveCredentialsSection {...section('driveCreds')} />
           </>
         ) : (
           <>

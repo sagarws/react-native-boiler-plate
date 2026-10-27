@@ -9,6 +9,7 @@ export const ROUTES = {
   MAIN: 'Main',
   DASHBOARD: 'Dashboard',
   EXTRACTED_TEXT: 'ExtractedText',
+  FILE_MANAGEMENT: 'FileManagement',
   SETTINGS: 'Settings',
   APPEARANCE: 'Appearance',
   ABOUT: 'About',

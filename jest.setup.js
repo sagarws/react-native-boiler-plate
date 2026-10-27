@@ -80,3 +80,35 @@ jest.mock('socket.io-client', () => ({
 jest.mock('react-native-safe-area-context', () =>
   require('react-native-safe-area-context/jest/mock').default,
 );
+
+// File Management: Google Sign-In and the system file picker are native.
+jest.mock('@react-native-google-signin/google-signin', () => ({
+  GoogleSignin: {
+    configure: jest.fn(),
+    hasPlayServices: jest.fn().mockResolvedValue(true),
+    signIn: jest.fn().mockResolvedValue({ type: 'cancelled', data: null }),
+    signInSilently: jest.fn().mockResolvedValue({ type: 'noSavedCredentialFound', data: null }),
+    signOut: jest.fn().mockResolvedValue(null),
+    revokeAccess: jest.fn().mockResolvedValue(null),
+    hasPreviousSignIn: jest.fn(() => false),
+    getCurrentUser: jest.fn(() => null),
+    getTokens: jest.fn().mockResolvedValue({ accessToken: 'test-token', idToken: null }),
+    clearCachedAccessToken: jest.fn().mockResolvedValue(null),
+    addScopes: jest.fn().mockResolvedValue(null),
+  },
+  isSuccessResponse: response => response?.type === 'success',
+  isErrorWithCode: error => Boolean(error && typeof error.code === 'string'),
+  statusCodes: {
+    SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED',
+    IN_PROGRESS: 'IN_PROGRESS',
+    PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
+    SIGN_IN_REQUIRED: 'SIGN_IN_REQUIRED',
+  },
+}));
+
+jest.mock('@react-native-documents/picker', () => ({
+  pick: jest.fn().mockResolvedValue([]),
+  types: { allFiles: '*/*' },
+  errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },
+  isErrorWithCode: error => Boolean(error && typeof error.code === 'string'),
+}));

@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ExtractedTextScreen } from '@/features/capture';
 import { DashboardScreen } from '@/features/dashboard';
+import { FileManagementScreen } from '@/features/files';
 import {
   AboutScreen,
   AppearanceScreen,
@@ -29,6 +30,10 @@ export default function MainNavigator() {
         <Stack.Screen
           name={ROUTES.EXTRACTED_TEXT}
           component={ExtractedTextScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.FILE_MANAGEMENT}
+          component={FileManagementScreen}
         />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />

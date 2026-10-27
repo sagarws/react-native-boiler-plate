@@ -100,6 +100,17 @@ android {
         versionCode 1
         versionName "0.1.0"
     }
+    // Release key settings: `-P` / ~/.gradle/gradle.properties first, else the
+    // project-local, gitignored android/keystore.properties (so one machine's
+    // projects don't share a key).
+    def keystoreProps = new Properties()
+    def keystorePropsFile = rootProject.file('keystore.properties')
+    if (keystorePropsFile.exists()) {
+        keystorePropsFile.withInputStream { keystoreProps.load(it) }
+    }
+    def signingValue = { String key -> project.findProperty(key) ?: keystoreProps.getProperty(key) }
+    def hasUploadKey = signingValue('APP_UPLOAD_STORE_FILE') != null
+
     signingConfigs {
         debug {
             storeFile file('debug.keystore')
@@ -108,16 +119,17 @@ android {
             keyPassword 'android'
         }
         // Upload key for store builds. Credentials come from
-        // `~/.gradle/gradle.properties` or CI secrets — never commit them, and
+        // `~/.gradle/gradle.properties`, android/keystore.properties or CI
+        // secrets — never commit them, and
         // keep the keystore itself out of the repo (`*.jks` is gitignored).
         // Until APP_UPLOAD_STORE_FILE is set, release builds fall back to the
         // debug key so `npm run apk:release` still works locally.
-        if (project.hasProperty('APP_UPLOAD_STORE_FILE')) {
+        if (hasUploadKey) {
             release {
-                storeFile file(APP_UPLOAD_STORE_FILE)
-                storePassword APP_UPLOAD_STORE_PASSWORD
-                keyAlias APP_UPLOAD_KEY_ALIAS
-                keyPassword APP_UPLOAD_KEY_PASSWORD
+                storeFile file(signingValue('APP_UPLOAD_STORE_FILE'))
+                storePassword signingValue('APP_UPLOAD_STORE_PASSWORD')
+                keyAlias signingValue('APP_UPLOAD_KEY_ALIAS')
+                keyPassword signingValue('APP_UPLOAD_KEY_PASSWORD')
             }
         }
     }
@@ -131,9 +143,7 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig project.hasProperty('APP_UPLOAD_STORE_FILE')
-                ? signingConfigs.release
-                : signingConfigs.debug
+            signingConfig hasUploadKey ? signingConfigs.release : signingConfigs.debug
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }

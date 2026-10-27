@@ -33,6 +33,7 @@ class ScreenOcrModule(context: ReactApplicationContext) :
   override fun invalidate() {
     if (ScreenOcrBus.listener === this) ScreenOcrBus.listener = null
     gemini?.shutdown()
+    driveTokens.shutdown()
     gemini = null
     UiThreadUtil.runOnUiThread {
       speech?.shutdown()
@@ -297,6 +298,59 @@ class ScreenOcrModule(context: ReactApplicationContext) :
   // ── Gemini key (never returned to JS) ─────────────────────────────────
 
   private val keyStore by lazy { SecureKeyStore(reactApplicationContext) }
+
+  // ── File Management: shared Google Drive credentials ─────────────────
+  // Entered in Settings → File Management, stored encrypted. JS can write
+  // them and read a status (client id, folder id, 4-char hints) — never the
+  // secret or refresh token; it only ever receives short-lived access tokens.
+
+  private val driveStore by lazy { DriveCredentialStore(reactApplicationContext) }
+  private val driveTokens by lazy { DriveTokenClient() }
+
+  override fun setDriveCredentials(json: String, promise: Promise) {
+    val update =
+      try {
+        JSONObject(json)
+      } catch (_: JSONException) {
+        promise.resolve(false)
+        return
+      }
+    val merged = DriveCredentials.merge(driveStore.read(), update)
+    val saved = merged != null && driveStore.save(merged)
+    if (saved) driveTokens.invalidate()
+    promise.resolve(saved)
+  }
+
+  override fun getDriveCredentialStatus(promise: Promise) {
+    promise.resolve(driveStore.statusJson().toString())
+  }
+
+  override fun clearDriveCredentials() {
+    driveStore.clear()
+    driveTokens.invalidate()
+  }
+
+  override fun restoreDriveDefaults() {
+    driveStore.restoreDefaults()
+    driveTokens.invalidate()
+  }
+
+  override fun getDriveAccessToken(forceRefresh: Boolean, promise: Promise) {
+    val credentials = driveStore.read()
+    if (credentials == null) {
+      promise.reject("not_configured", "Shared Drive is not set up")
+      return
+    }
+    driveTokens.accessToken(credentials, forceRefresh) { result ->
+      result.fold(
+        onSuccess = { promise.resolve(it) },
+        onFailure = {
+          val e = it as? DriveTokenException
+          promise.reject(e?.code ?: "server", e?.detail?.ifEmpty { null } ?: (e?.code ?: "server"))
+        },
+      )
+    }
+  }
   private var gemini: GeminiClient? = null
 
   override fun setGeminiKey(apiKey: String, promise: Promise) {
