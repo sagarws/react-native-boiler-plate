@@ -58,6 +58,7 @@ export function buildNativeConfig(
     pagination: settings.pagination,
     translate: settings.translate,
     refine: settings.refine,
+    audioShare: settings.audioShare,
   };
 }
 

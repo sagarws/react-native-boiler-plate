@@ -85,3 +85,5 @@ yarn-error.log
 .claude/projects/
 .claude/settings.local.json
 graphify-out
+# Chrome extension build output
+public/crome-extension-dist/

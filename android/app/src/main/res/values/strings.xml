@@ -67,6 +67,13 @@
     <string name="translate_error_timeout">Translation timed out. Try again.</string>
     <string name="translate_error_bad_response">Gemini returned an unexpected answer. Try again.</string>
 
+    <!-- Audio sharing (Chrome extension) -->
+    <string name="audio_share_channel">Audio sharing requests</string>
+    <string name="audio_share_request_title">%1$s wants to hear Akshar</string>
+    <string name="audio_share_request_body">Allow only if the computer shows code %1$s</string>
+    <string name="audio_share_allow">Allow</string>
+    <string name="audio_share_deny">Deny</string>
+
     <!-- Speak with pagination -->
     <string name="reading_mode_pagination">Speak + next page</string>
     <string name="pagination_status_page">Page %1$d</string>

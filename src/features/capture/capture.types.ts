@@ -121,6 +121,11 @@ export interface RefineSettings {
   prompt: string;
 }
 
+/** Share the spoken voice with the Akshar Listen Chrome extension (same Wi-Fi). */
+export interface AudioShareSettings {
+  enabled: boolean;
+}
+
 /** Speak with pagination: timing and limits for page turns. */
 export interface PaginationSettings {
   /** Wait after pressing Next before checking the page. */
@@ -195,6 +200,7 @@ export interface CaptureSettings {
   pagination: PaginationSettings;
   translate: TranslateSettings;
   refine: RefineSettings;
+  audioShare: AudioShareSettings;
 }
 
 export type LanguageStatus = 'available' | 'missing_data' | 'not_supported';

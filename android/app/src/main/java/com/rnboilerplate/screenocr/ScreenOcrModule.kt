@@ -1,5 +1,6 @@
 package com.rnboilerplate.screenocr
 
+import com.rnboilerplate.screenocr.share.AudioShareHub
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -93,6 +94,25 @@ class ScreenOcrModule(context: ReactApplicationContext) :
       }
     prefs.writeConfig(json)
     OverlayCaptureService.notifyConfigChanged(reactApplicationContext)
+    AudioShareHub.apply(reactApplicationContext, json.optJSONObject("audioShare")?.optBoolean("enabled") == true)
+  }
+
+  // ── Audio sharing (Chrome extension) ─────────────────────────────────
+
+  override fun getAudioShareStatus(promise: Promise) {
+    promise.resolve(AudioShareHub.statusJson().toString())
+  }
+
+  override fun respondAudioShare(approve: Boolean) {
+    AudioShareHub.respond(approve)
+  }
+
+  override fun disconnectAudioShare() {
+    AudioShareHub.disconnect()
+  }
+
+  override fun renewAudioShareCode() {
+    AudioShareHub.renewCode()
   }
 
   override fun resetBubblePosition() {

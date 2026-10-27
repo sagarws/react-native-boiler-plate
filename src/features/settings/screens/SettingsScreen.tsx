@@ -32,6 +32,7 @@ import { SettingSwitch } from '../components/SettingControls';
 import { SpeechSection } from '../components/SpeechSection';
 import { TranslateSection } from '../components/TranslateSection';
 import { RefineSection } from '../components/RefineSection';
+import { AudioShareSection } from '../components/AudioShareSection';
 
 type Toast = 'historyCleared' | 'resetPositionDone' | null;
 
@@ -43,6 +44,7 @@ type SectionKey =
   | 'reading'
   | 'pagination'
   | 'refine'
+  | 'audioShare'
   | 'translate'
   | 'clipboard';
 
@@ -153,6 +155,8 @@ export default function SettingsScreen() {
         <RefineSection {...section('refine')} />
 
         <TranslateSection {...section('translate')} />
+
+        <AudioShareSection {...section('audioShare')} />
 
         <ExpandableCard
           title={t('settings.sectionClipboard')}

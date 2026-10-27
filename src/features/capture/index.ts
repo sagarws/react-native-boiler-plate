@@ -95,3 +95,15 @@ export {
 } from './store/captureSettings.store';
 export type { TranslateSettings, RefineSettings } from './capture.types';
 export { DEFAULT_REFINE_PROMPT } from './store/captureSettings.store';
+export { useAudioShare } from './hooks/useAudioShare';
+export type { UseAudioShare } from './hooks/useAudioShare';
+export {
+  audioShareService,
+  parseAudioShareStatus,
+  AUDIO_SHARE_OFF,
+} from './services/audioShare.service';
+export type {
+  AudioShareStatus,
+  AudioShareState,
+} from './services/audioShare.service';
+export type { AudioShareSettings } from './capture.types';

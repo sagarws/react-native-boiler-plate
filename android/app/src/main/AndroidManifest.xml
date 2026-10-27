@@ -58,6 +58,10 @@
         android:noHistory="false"
         android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
+      <!-- Allow / Deny on the audio-sharing connection request notification. -->
+      <receiver
+        android:name=".screenocr.share.AudioShareActionReceiver"
+        android:exported="false" />
       <service
         android:name=".screenocr.OverlayCaptureService"
         android:exported="false"

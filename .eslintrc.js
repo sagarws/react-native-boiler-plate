@@ -27,6 +27,26 @@ module.exports = {
       files: ['jest.setup.js', 'jest.config.js'],
       env: { node: true, jest: true },
     },
+    {
+      // The Chrome extension is plain browser JS (service worker, offscreen
+      // document, AudioWorklet), not React Native.
+      files: ['public/crome-extension/**/*.js', 'public/crome-extension/**/*.mjs'],
+      env: { browser: true, webextensions: true, es2022: true, worker: true },
+      parserOptions: { sourceType: 'module', ecmaVersion: 2022 },
+      globals: { sampleRate: 'readonly', AudioWorkletProcessor: 'readonly', registerProcessor: 'readonly' },
+      // Byte-level crypto framing and PCM conversion need bitwise operators.
+      rules: { 'no-bitwise': 'off' },
+    },
+    {
+      files: ['public/crome-extension/test/**/*.mjs', 'public/crome-extension/scripts/**/*.mjs'],
+      env: { node: true },
+    },
   ],
-  ignorePatterns: ['node_modules/', 'ios/Pods/', 'android/build/', 'android/app/build/'],
+  ignorePatterns: [
+    'node_modules/',
+    'ios/Pods/',
+    'android/build/',
+    'android/app/build/',
+    'public/crome-extension-dist/',
+  ],
 };

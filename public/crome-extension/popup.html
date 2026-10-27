@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Akshar Listen</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="header">
+      <img src="icons/icon48.png" alt="" width="32" height="32" />
+      <div class="title">
+        <h1>Akshar Listen</h1>
+        <p>Hear your phone's read-aloud voice</p>
+      </div>
+      <span id="pill" class="pill" role="status">Disconnected</span>
+    </header>
+
+    <main>
+      <div id="error" class="notice error" role="alert" hidden>
+        <span id="error-text"></span>
+        <button id="retry" class="link" type="button" hidden>Retry</button>
+      </div>
+
+      <!-- Pairing -->
+      <section id="pair" class="card" hidden>
+        <p class="hint">
+          In Akshar, open <b>Settings → Share voice to Chrome</b> and turn it on, then enter what
+          the app shows. Both devices must be on the same Wi-Fi.
+        </p>
+        <label for="address">Phone address</label>
+        <input id="address" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
+          placeholder="192.168.1.23:47811" />
+        <label for="code">Pairing code</label>
+        <input id="code" type="text" autocomplete="off" spellcheck="false" maxlength="11"
+          placeholder="ABCDE-23456" class="mono" />
+        <button id="connect" class="primary" type="button">Connect</button>
+      </section>
+
+      <!-- Waiting for the phone -->
+      <section id="busy" class="card center" hidden>
+        <div class="spinner" aria-hidden="true"></div>
+        <p id="busy-text">Connecting…</p>
+        <div id="approve" hidden>
+          <p class="hint">Tap <b>Allow</b> on your phone if it shows this code:</p>
+          <p id="fingerprint" class="fingerprint mono">— —</p>
+        </div>
+        <button id="cancel" class="secondary" type="button">Cancel</button>
+      </section>
+
+      <!-- Connected -->
+      <section id="live" class="card" hidden>
+        <div class="device">
+          <span class="dot" id="dot"></span>
+          <div>
+            <b id="device">Akshar</b>
+            <p id="playback" class="hint">Paused</p>
+          </div>
+        </div>
+        <div class="controls">
+          <button id="play" class="primary" type="button">▶ Play</button>
+          <button id="pause" class="secondary" type="button">❚❚ Pause</button>
+        </div>
+        <label for="volume" class="row">
+          <span>Volume</span>
+          <span id="volume-value">90%</span>
+        </label>
+        <input id="volume" type="range" min="0" max="100" step="1" value="90" />
+        <p class="hint small">
+          Code <span id="live-fingerprint" class="mono"></span> · keeps playing when this popup closes.
+        </p>
+        <button id="disconnect" class="danger" type="button">Disconnect</button>
+      </section>
+    </main>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

@@ -308,6 +308,41 @@ screenshot. The key is encrypted with AES-GCM using an Android Keystore key
 see whether a key exists and its last four characters. Nothing about
 requests, responses or the key is logged, and error details are redacted.
 
+### Share voice to Chrome (`share/AudioShareHub.kt`, `share/SpeechMirror.kt`)
+
+Streams Akshar's spoken voice to the **Akshar Listen** Chrome extension
+(`public/crome-extension`; its README has setup, pairing, the protocol and
+the security model). It is opt-in, works on the same Wi-Fi only, and needs
+no new permissions.
+
+- **Capture:** every speech request goes through `SpeechPlayer.speak()`,
+  which notifies the hub. `SpeechMirror` renders the same segments with a
+  second TTS client (`synthesizeToFile` → `PcmClip`), at most 3 segments
+  ahead. Each segment's PCM is sent when the phone starts speaking it, paced
+  in real time with a 300 ms lead. The phone's own playback is untouched. Audio
+  is only rendered and sent while a paired receiver is listening.
+- **Server:** a WebSocket server on port 47811 (falls back to a random port),
+  using a minimal RFC 6455 implementation in `WebSocketConnection` with no new
+  dependency. It refuses `http(s)` Origins and accepts one receiver at a time.
+- **Pairing** (`ShareProtocol`):
+  - a 10-character single-use code that expires after 10 minutes and is
+    replaced after 5 wrong tries
+  - P-256 ECDH, HKDF-SHA256 salted with the code, and HMAC confirmation from
+    both sides
+  - the user's **Allow**, given in the notification or in the card, after
+    matching a 6-digit fingerprint
+  - then AES-256-GCM frames with replay counters
+- **Resume key:** issued after pairing, so a receiver can reconnect after a
+  network drop without the code. It is revoked on disconnect or when sharing
+  stops.
+- **States** (shown in the card): `off`, `waiting`, `pending` (approve),
+  `connected` (receiver paused) and `streaming`. Errors are `no_wifi` and
+  `port_failed`, with a Retry button.
+- **Lifetime:** the hub is process-wide. It starts and stops with
+  `config.audioShare.enabled` (via `updateConfig`) and keeps running in the
+  background while the floating-button service holds the process.
+- **Logging:** codes, keys and audio are never logged.
+
 ## Speech (text-to-speech)
 
 - **Engine:** Android `TextToSpeech`. Google Speech Services (`com.google.android.tts`)
@@ -354,7 +389,7 @@ requests, responses or the key is logged, and error details are redacted.
 | `POST_NOTIFICATIONS` | Shows that notification on Android 13+. Without it the service still works, but the notification is hidden. |
 | Accessibility service (optional) | Only for "Speak with auto-scroll", only if the user enables it in Android settings: scrolls the page being read. |
 | `TTS_SERVICE` package query | Not a permission; lets the app see which TTS engines are installed (to prefer Google). |
-| `INTERNET` | Only for **Speak with translation** (Google Gemini API, after opt-in); also Metro in debug builds. ML Kit's usage-logging uploader is removed from release builds, so no other component sends data. |
+| `INTERNET` | Only for opt-in features: **Refine text / Apply translation** (Google Gemini API) and **Share voice to Chrome** (a local-network server, port 47811). Also used by Metro in debug builds. ML Kit's usage-logging uploader is removed from release builds, so no other component sends data. |
 
 No other permission is requested: no storage, camera, location or accessibility service.
 

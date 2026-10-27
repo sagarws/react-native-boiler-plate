@@ -5,6 +5,7 @@ import {
   isSpeechLanguage,
   type CaptureSettings,
   type PaginationSettings,
+  type AudioShareSettings,
   type RefineSettings,
   type TranslateSettings,
   type ReadingSettings,
@@ -81,6 +82,7 @@ export const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
   pagination: DEFAULT_PAGINATION_SETTINGS,
   translate: DEFAULT_TRANSLATE_SETTINGS,
   refine: DEFAULT_REFINE_SETTINGS,
+  audioShare: { enabled: false },
 };
 
 function clamp(
@@ -246,6 +248,7 @@ export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
     pagination: sanitizePaginationSettings(r.pagination),
     translate: legacyTranslate ? { ...translate, enabled: true } : translate,
     refine: sanitizeRefineSettings(r.refine),
+    audioShare: { enabled: bool(record(r.audioShare).enabled, false) },
   };
 }
 
@@ -292,6 +295,12 @@ export const captureSettingsStore = {
     const current = captureSettingsStore.read();
     return captureSettingsStore.update({
       refine: { ...current.refine, ...patch },
+    });
+  },
+  updateAudioShare(patch: Partial<AudioShareSettings>): CaptureSettings {
+    const current = captureSettingsStore.read();
+    return captureSettingsStore.update({
+      audioShare: { ...current.audioShare, ...patch },
     });
   },
   updatePagination(patch: Partial<PaginationSettings>): CaptureSettings {

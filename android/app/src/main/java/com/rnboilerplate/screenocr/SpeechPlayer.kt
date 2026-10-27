@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.speech.tts.TextToSpeech
 import android.speech.tts.UtteranceProgressListener
+import com.rnboilerplate.screenocr.share.AudioShareHub
 import android.speech.tts.Voice
 import android.util.Log
 import java.util.Locale
@@ -29,13 +30,17 @@ import org.json.JSONObject
  * Android TTS has no pause; [SpeechPlayer] stops and the caller resumes from
  * the segment it was on. Callbacks arrive on the main thread.
  */
-class SpeechPlayer(context: Context, preferGoogle: Boolean) {
+class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
+  private val appContext = context.applicationContext
   private val main = Handler(Looper.getMainLooper())
   private val waiting = ArrayList<(Boolean) -> Unit>()
   private var ready: Boolean? = null
   private var session = 0
   private var listener: Listener? = null
   private var ids: List<String> = emptyList()
+  /** synthesizeToFile requests in flight (used by audio sharing's mirror). */
+  private val synthCallbacks = HashMap<String, (Boolean) -> Unit>()
+  private var synthCount = 0
 
   private interface Listener {
     fun onStart(index: Int)
@@ -88,14 +93,59 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
     object : UtteranceProgressListener() {
       override fun onStart(utteranceId: String) = dispatch(utteranceId) { l, i -> l.onStart(i) }
 
-      override fun onDone(utteranceId: String) = dispatch(utteranceId) { l, i -> l.onDone(i) }
+      override fun onDone(utteranceId: String) {
+        if (!finishSynth(utteranceId, true)) dispatch(utteranceId) { l, i -> l.onDone(i) }
+      }
 
       @Deprecated("Deprecated in Java")
-      override fun onError(utteranceId: String) = dispatch(utteranceId) { l, _ -> l.onError(-1) }
+      override fun onError(utteranceId: String) {
+        if (!finishSynth(utteranceId, false)) dispatch(utteranceId) { l, _ -> l.onError(-1) }
+      }
 
-      override fun onError(utteranceId: String, errorCode: Int) =
-        dispatch(utteranceId) { l, _ -> l.onError(errorCode) }
+      override fun onError(utteranceId: String, errorCode: Int) {
+        if (!finishSynth(utteranceId, false)) dispatch(utteranceId) { l, _ -> l.onError(errorCode) }
+      }
+
+      override fun onStop(utteranceId: String, interrupted: Boolean) {
+        finishSynth(utteranceId, false)
+      }
     }
+
+  /** Completes a synthesizeToFile request; false if [id] isn't one. */
+  private fun finishSynth(id: String, ok: Boolean): Boolean {
+    if (!id.startsWith("f")) return false
+    main.post { synthCallbacks.remove(id)?.invoke(ok) }
+    return true
+  }
+
+  /**
+   * Renders [text] to a WAV [file] (no playback) with the same voice rules as
+   * [speak]; [onDone] runs on main with success. For audio sharing.
+   */
+  fun synthesize(
+    text: String,
+    language: String,
+    voiceName: String,
+    rate: Float,
+    pitch: Float,
+    file: java.io.File,
+    onDone: (Boolean) -> Unit,
+  ) {
+    whenReady { ok ->
+      if (!ok || !applyLanguage(language, voiceName)) {
+        onDone(false)
+        return@whenReady
+      }
+      tts.setSpeechRate(rate)
+      tts.setPitch(pitch)
+      val id = "f${++synthCount}"
+      synthCallbacks[id] = onDone
+      if (tts.synthesizeToFile(text, Bundle(), file, id) != TextToSpeech.SUCCESS) {
+        synthCallbacks.remove(id)
+        onDone(false)
+      }
+    }
+  }
 
   /** Routes engine callbacks (binder threads) to the current session on main. */
   private fun dispatch(id: String, block: (Listener, Int) -> Unit) {
@@ -183,9 +233,13 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
       tts.setSpeechRate(rate)
       tts.setPitch(pitch)
       ids = segments.indices.map { "s$token-$it" }
+      AudioShareHub.speechStarted(this, appContext, preferGoogle, segments, from, voiceName, rate, pitch)
       listener =
         object : Listener {
-          override fun onStart(index: Int) = onProgress(index, segments.size)
+          override fun onStart(index: Int) {
+            AudioShareHub.segmentStarted(this@SpeechPlayer, index)
+            onProgress(index, segments.size)
+          }
 
           override fun onDone(index: Int) {
             if (index == segments.size - 1) {
@@ -233,6 +287,9 @@ class SpeechPlayer(context: Context, preferGoogle: Boolean) {
 
   fun stop() {
     session++
+    AudioShareHub.speechStopped(this)
+    synthCallbacks.values.toList().forEach { it(false) }
+    synthCallbacks.clear()
     cancelCurrent()
     if (isReady) tts.stop()
   }

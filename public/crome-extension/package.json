@@ -1,0 +1,9 @@
+{
+  "name": "akshar-listen-extension",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "e2e": "node test/e2e.mjs"
+  }
+}

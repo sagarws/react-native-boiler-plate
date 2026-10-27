@@ -3,6 +3,7 @@ import { captureSettingsStore } from '../store/captureSettings.store';
 import type {
   CaptureSettings,
   PaginationSettings,
+  AudioShareSettings,
   RefineSettings,
   TranslateSettings,
   ReadingSettings,
@@ -17,6 +18,7 @@ export interface UseCaptureSettings {
   updatePagination: (patch: Partial<PaginationSettings>) => void;
   updateTranslate: (patch: Partial<TranslateSettings>) => void;
   updateRefine: (patch: Partial<RefineSettings>) => void;
+  updateAudioShare: (patch: Partial<AudioShareSettings>) => void;
 }
 
 /** Live capture settings; `update` persists and notifies every subscriber. */
@@ -43,6 +45,9 @@ export function useCaptureSettings(): UseCaptureSettings {
   const updateRefine = useCallback((patch: Partial<RefineSettings>) => {
     captureSettingsStore.updateRefine(patch);
   }, []);
+  const updateAudioShare = useCallback((patch: Partial<AudioShareSettings>) => {
+    captureSettingsStore.updateAudioShare(patch);
+  }, []);
   return {
     settings,
     update,
@@ -51,5 +56,6 @@ export function useCaptureSettings(): UseCaptureSettings {
     updatePagination,
     updateTranslate,
     updateRefine,
+    updateAudioShare,
   };
 }
