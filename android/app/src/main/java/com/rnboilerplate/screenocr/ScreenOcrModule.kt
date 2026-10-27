@@ -94,7 +94,8 @@ class ScreenOcrModule(context: ReactApplicationContext) :
       }
     prefs.writeConfig(json)
     OverlayCaptureService.notifyConfigChanged(reactApplicationContext)
-    AudioShareHub.apply(reactApplicationContext, json.optJSONObject("audioShare")?.optBoolean("enabled") == true)
+    val share = json.optJSONObject("audioShare")
+    AudioShareHub.apply(reactApplicationContext, share?.optBoolean("enabled") == true, share?.optString("source") ?: "app")
   }
 
   // ── Audio sharing (Chrome extension) ─────────────────────────────────

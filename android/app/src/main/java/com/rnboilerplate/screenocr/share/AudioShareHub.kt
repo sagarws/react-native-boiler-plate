@@ -1,5 +1,6 @@
 package com.rnboilerplate.screenocr.share
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -7,12 +8,15 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.media.projection.MediaProjection
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.rnboilerplate.R
 import java.io.IOException
 import java.net.Inet4Address
@@ -73,12 +77,81 @@ object AudioShareHub {
   private var error: String? = null
   @Volatile private var audioGeneration = 0
   @Volatile private var lastAudioAt = 0L
+  /** "app" (Akshar's voice) or "device" (all phone audio). */
+  @Volatile private var source = "app"
+  /** The floating button's screen-capture consent, needed for "device". */
+  private var projection: MediaProjection? = null
+  private var capture: DeviceAudioCapture? = null
+  @Volatile private var captureFailed = false
 
   // ── Lifecycle ─────────────────────────────────────────────────────────
 
-  /** Starts or stops sharing to match the user's switch. Idempotent. */
-  fun apply(appContext: Context, enabled: Boolean) {
+  /** Starts or stops sharing to match the user's settings. Idempotent. */
+  fun apply(appContext: Context, enabled: Boolean, source: String = "app") {
+    val changed = this.source != source
+    this.source = if (source == "device") "device" else "app"
+    if (changed) captureFailed = false
     if (enabled) start(appContext) else stop()
+    updateCapture()
+  }
+
+  /** Set by the floating-button service while it holds screen-capture consent. */
+  fun attachProjection(value: MediaProjection?) {
+    synchronized(lock) {
+      if (projection === value) return
+      projection = value
+      captureFailed = false
+    }
+    updateCapture()
+  }
+
+  private fun hasCapturePermission(): Boolean =
+    context?.let {
+      ContextCompat.checkSelfPermission(it, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+    } == true
+
+  /** Why "all phone audio" isn't running, or "active"/"idle". */
+  private fun deviceAudioState(): String =
+    when {
+      source != "device" || server == null -> "off"
+      Build.VERSION.SDK_INT < Build.VERSION_CODES.Q -> "unsupported"
+      !hasCapturePermission() -> "needs_permission"
+      projection == null -> "needs_bubble"
+      captureFailed -> "failed"
+      capture != null -> "active"
+      else -> "idle"
+    }
+
+  /** Runs device capture exactly while it's wanted and possible. */
+  private fun updateCapture() {
+    synchronized(lock) {
+      val p = projection
+      val want =
+        server != null && source == "device" && p != null && !captureFailed &&
+          Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q && hasCapturePermission() &&
+          client?.let { it.authenticated && it.listening } == true
+      if (want && capture == null && p != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+        capture =
+          DeviceAudioCapture(
+            p,
+            onChunk = { bytes -> sendLive(bytes) },
+            onFailed = {
+              captureFailed = true
+              synchronized(lock) { capture = null }
+            },
+          ).also { it.start() }
+      } else if (!want && capture != null) {
+        capture?.stop()
+        capture = null
+      }
+    }
+  }
+
+  /** A captured chunk (already real-time paced by the recorder). */
+  private fun sendLive(bytes: ByteArray) {
+    val c = synchronized(lock) { client }?.takeIf { it.authenticated && it.listening } ?: return
+    c.sendPayload(ShareProtocol.pcmPayload(DeviceAudioCapture.RATE, DeviceAudioCapture.CHANNELS, bytes, 0, bytes.size))
+    lastAudioAt = System.currentTimeMillis()
   }
 
   private fun start(appContext: Context) {
@@ -127,6 +200,8 @@ object AudioShareHub {
       audio?.shutdownNow()
       audio = null
       error = null
+      capture?.stop()
+      capture = null
     }
     old?.close("sharing_stopped")
     main.post { cancelApprovalNotification() }
@@ -152,6 +227,8 @@ object AudioShareHub {
         .put("receiverName", c?.name.orEmpty())
         .put("fingerprint", c?.fingerprint.orEmpty())
         .put("transmitting", System.currentTimeMillis() - lastAudioAt < 1500)
+        .put("source", source)
+        .put("deviceAudio", deviceAudioState())
         .put("error", error ?: if (server != null && localAddress() == null) "no_wifi" else "")
     }
 
@@ -195,13 +272,21 @@ object AudioShareHub {
   /** Drops audio queued for the receiver (new request, stop, skip). */
   fun flush() {
     audioGeneration++
+    synchronized(lock) { capture }?.flushSpeech()
     // Never write to the socket on the main thread (NetworkOnMainThreadException).
     val executor = synchronized(lock) { audio } ?: return
     executor.execute { synchronized(lock) { client }?.sendJson(JSONObject().put("t", "flush")) }
   }
 
-  /** Sends [clip] to the receiver, paced to real time. */
+  /**
+   * Sends [clip] to the receiver, paced to real time — or, while all phone
+   * audio is being captured, mixes it into that stream.
+   */
   fun sendClip(clip: PcmClip) {
+    synchronized(lock) { capture }?.let {
+      it.mix(clip)
+      return
+    }
     val executor = synchronized(lock) { audio } ?: return
     val generation = audioGeneration
     executor.execute {
@@ -297,9 +382,9 @@ object AudioShareHub {
 
       val secret: ByteArray =
         synchronized(lock) {
-          if (client?.authenticated == true || client?.awaitingApproval == true) throw Rejected("busy")
           when (mode) {
             "pair" -> {
+              if (client?.authenticated == true || client?.awaitingApproval == true) throw Rejected("busy")
               if (System.currentTimeMillis() < pairBlockedUntil) throw Rejected("denied")
               ShareProtocol.PAIR_SECRET
             }
@@ -388,6 +473,7 @@ object AudioShareHub {
           "listen" -> {
             listening = json.optBoolean("on")
             if (!listening) audioGeneration++
+            updateCapture()
           }
           "bye" -> {
             synchronized(lock) { if (client === this) resumeKey = null }
@@ -412,6 +498,7 @@ object AudioShareHub {
       if (authenticated) sendPayload(ShareProtocol.jsonPayload(json.toString()))
     }
 
+    @Synchronized // Seal and send together: frames must leave in counter order.
     fun sendPayload(payload: ByteArray) {
       if (Looper.myLooper() == Looper.getMainLooper()) {
         // Socket writes are forbidden on the main thread; keep order via the audio thread.
@@ -452,6 +539,7 @@ object AudioShareHub {
         }
       if (wasCurrent) {
         audioGeneration++
+        updateCapture()
         main.post { cancelApprovalNotification() }
       }
     }

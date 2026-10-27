@@ -1,12 +1,18 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useAudioShare, useCaptureSettings } from '@/features/capture';
+import {
+  audioShareService,
+  useAudioShare,
+  useCaptureSettings,
+  type AudioShareSource,
+} from '@/features/capture';
 import {
   Button,
   ExpandableCard,
   ListRow,
   Notice,
+  SegmentedControl,
   StatusPill,
   type StatusTone,
 } from '@/shared/components';
@@ -21,9 +27,9 @@ export interface AudioShareSectionProps {
 const RETRY_DELAY_MS = 300;
 
 /**
- * Share voice to Chrome: the switch, the address to enter in the extension,
- * the approval prompt (every new computer must be allowed), and the live
- * connection state.
+ * Share voice to Chrome: the switch, what to share (Akshar's voice or all
+ * phone audio), the address to enter in the extension, the approval prompt
+ * (every new computer must be allowed), and the live connection state.
  */
 export function AudioShareSection({
   expanded,
@@ -36,6 +42,34 @@ export function AudioShareSection({
   const share = useAudioShare(enabled);
   const { status } = share;
   const name = status.receiverName || 'Chrome';
+  const source = settings.audioShare.source;
+  const [permissionDenied, setPermissionDenied] = useState(false);
+
+  // "All phone audio" needs RECORD_AUDIO (Android's gate for playback capture).
+  const requestPermission = useCallback(async () => {
+    const granted = await audioShareService.requestCapturePermission();
+    setPermissionDenied(!granted);
+    // Re-push the config so the native side re-checks and starts capturing.
+    updateAudioShare({ source: 'app' });
+    updateAudioShare({ source: 'device' });
+    share.refresh();
+  }, [share, updateAudioShare]);
+
+  const chooseSource = useCallback(
+    (next: AudioShareSource) => {
+      updateAudioShare({ source: next });
+      setPermissionDenied(false);
+      if (next === 'device') void requestPermission();
+    },
+    [requestPermission, updateAudioShare],
+  );
+  const deviceNotice =
+    source === 'device' &&
+    ['needs_permission', 'needs_bubble', 'unsupported', 'failed'].includes(
+      status.deviceAudio,
+    )
+      ? status.deviceAudio
+      : null;
 
   const summary = !enabled
     ? t('audioShare.summaryOff')
@@ -108,6 +142,43 @@ export function AudioShareSection({
               tone={tone}
             />
           </View>
+
+          <Text style={label}>{t('audioShare.source')}</Text>
+          <SegmentedControl
+            testID="audio-share-source"
+            accessibilityLabel={t('audioShare.source')}
+            value={source}
+            onChange={chooseSource}
+            options={[
+              { value: 'app' as const, label: t('audioShare.source_app') },
+              {
+                value: 'device' as const,
+                label: t('audioShare.source_device'),
+              },
+            ]}
+          />
+          <Text style={caption}>{t(`audioShare.sourceHint_${source}`)}</Text>
+          {deviceNotice ? (
+            <Notice
+              testID="audio-share-device"
+              tone="warning"
+              message={t(`audioShare.device_${deviceNotice}`)}
+            />
+          ) : null}
+          {deviceNotice === 'needs_permission' ? (
+            <Button
+              size="sm"
+              variant="soft"
+              label={t('audioShare.device_grant')}
+              onPress={() => {
+                void requestPermission();
+              }}
+              testID="audio-share-grant"
+            />
+          ) : null}
+          {permissionDenied && deviceNotice === 'needs_permission' ? (
+            <Text style={caption}>{t('audioShare.permissionDenied')}</Text>
+          ) : null}
 
           {status.error ? (
             <Notice
@@ -197,6 +268,8 @@ export function AudioShareSection({
               <Text testID="audio-share-activity" style={caption}>
                 {status.state === 'connected'
                   ? t('audioShare.paused')
+                  : source === 'device' && status.deviceAudio === 'active'
+                  ? t('audioShare.device_active')
                   : status.transmitting
                   ? t('audioShare.transmitting')
                   : t('audioShare.idle')}

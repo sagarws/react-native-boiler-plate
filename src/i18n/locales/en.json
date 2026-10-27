@@ -511,7 +511,7 @@
   "audioShare": {
     "section": "Share voice to Chrome",
     "apply": "Share voice to Chrome",
-    "applyHint": "Lets the Akshar Listen extension on your computer play what Akshar reads aloud. Works on the same Wi-Fi; nothing goes through the internet.",
+    "applyHint": "Lets the Akshar Listen extension on your computer play Akshar’s voice — or all phone audio. Works on the same Wi-Fi; nothing goes through the internet.",
     "summaryOff": "Off",
     "summaryWaiting": "On · waiting for Chrome",
     "summaryConnected": "Connected to {{name}}",
@@ -537,7 +537,20 @@
     "error_unsupported": "Audio sharing isn’t available on this device.",
     "retry": "Retry",
     "howTo": "On the computer: load the Akshar Listen extension (public/crome-extension, see its README), open it, enter the address above and click Connect.",
-    "privacy": "Only Akshar’s voice is shared — never the microphone or other apps. Every new computer must be allowed here, and the connection is encrypted.",
-    "addressHint": "Enter this address in the Akshar Listen extension and click Connect, then tap Allow here when the request appears."
+    "privacy": "Only what you choose is shared — never the microphone or calls. Every new computer must be allowed here, and the connection is encrypted.",
+    "addressHint": "Enter this address in the Akshar Listen extension and click Connect, then tap Allow here when the request appears.",
+    "source": "What to share",
+    "source_app": "Akshar’s voice",
+    "source_device": "All phone audio",
+    "sourceHint_app": "Only what Akshar reads aloud.",
+    "sourceHint_device": "Everything apps play — YouTube, browser, music, games — plus Akshar’s voice. Not phone or app calls, and not apps that block capture (often paid video/music apps). Needs the floating button on and Android 10 or later.",
+    "device_needs_permission": "Android needs the Microphone permission for capturing app audio. Nothing is recorded from the microphone.",
+    "device_grant": "Allow",
+    "device_needs_bubble": "Turn on the floating button — capturing app audio uses its screen-capture permission.",
+    "device_unsupported": "Capturing app audio needs Android 10 or later. Only Akshar’s voice can be shared.",
+    "device_failed": "Android didn’t allow capturing app audio. Turn the floating button off and on, then try again.",
+    "device_active": "Sharing all phone audio",
+    "device_idle": "All phone audio is shared while Chrome is playing.",
+    "permissionDenied": "Permission not given — open Android Settings → Apps → Akshar → Permissions to allow Microphone."
   }
 }

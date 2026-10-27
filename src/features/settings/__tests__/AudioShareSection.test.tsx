@@ -6,9 +6,21 @@ import {
   sanitizeCaptureSettings,
 } from '@/features/capture/store/captureSettings.store';
 import { buildNativeConfig } from '@/features/capture/services/screenOcr.service';
-import { parseAudioShareStatus } from '@/features/capture/services/audioShare.service';
+import {
+  audioShareService,
+  parseAudioShareStatus,
+} from '@/features/capture/services/audioShare.service';
 import { storage } from '@/store/mmkv';
 import { AudioShareSection } from '../components/AudioShareSection';
+
+jest.mock(
+  'react-native/Libraries/PermissionsAndroid/PermissionsAndroid',
+  () => ({
+    PERMISSIONS: { RECORD_AUDIO: 'android.permission.RECORD_AUDIO' },
+    RESULTS: { GRANTED: 'granted', DENIED: 'denied' },
+    request: jest.fn(() => Promise.resolve('granted')),
+  }),
+);
 
 jest.mock('@/specs/NativeScreenOcr', () => ({
   __esModule: true,
@@ -32,6 +44,7 @@ const status = (patch: object) =>
     fingerprint: '',
     transmitting: false,
     error: '',
+    deviceAudio: 'off',
     ...patch,
   });
 
@@ -152,12 +165,39 @@ describe('Share voice to Chrome card', () => {
   });
 });
 
+describe('all phone audio', () => {
+  it('choosing it asks for the capture permission and is saved', async () => {
+    captureSettingsStore.updateAudioShare({ enabled: true });
+    const request = jest
+      .spyOn(audioShareService, 'requestCapturePermission')
+      .mockResolvedValue(true);
+    const r = await render();
+    await act(() =>
+      find(r, 'audio-share-source-device', 'onPress').props.onPress(),
+    );
+    expect(request).toHaveBeenCalled();
+    expect(captureSettingsStore.read().audioShare.source).toBe('device');
+  });
+
+  it('explains what is missing (floating button off)', async () => {
+    captureSettingsStore.updateAudioShare({ enabled: true, source: 'device' });
+    mockNative.getAudioShareStatus.mockResolvedValue(
+      status({ deviceAudio: 'needs_bubble' }),
+    );
+    const r = await render();
+    expect(find(r, 'audio-share-device', 'message').props.message).toMatch(
+      /floating button/,
+    );
+  });
+});
+
 describe('audio share settings and status', () => {
   it('persist the switch and reach native config', () => {
     const settings = sanitizeCaptureSettings({ audioShare: { enabled: true } });
-    expect(settings.audioShare).toEqual({ enabled: true });
+    expect(settings.audioShare).toEqual({ enabled: true, source: 'app' });
     expect(sanitizeCaptureSettings({ audioShare: 'yes' }).audioShare).toEqual({
       enabled: false,
+      source: 'app',
     });
     const config = buildNativeConfig(settings, {
       background: '#000',
@@ -165,7 +205,7 @@ describe('audio share settings and status', () => {
       panel: '#000',
       panelText: '#fff',
     });
-    expect(config.audioShare).toEqual({ enabled: true });
+    expect(config.audioShare).toEqual({ enabled: true, source: 'app' });
   });
 
   it('parse defensively', () => {

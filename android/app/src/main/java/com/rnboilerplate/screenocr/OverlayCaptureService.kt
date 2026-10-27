@@ -1,5 +1,6 @@
 package com.rnboilerplate.screenocr
 
+import com.rnboilerplate.screenocr.share.AudioShareHub
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -9,6 +10,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.content.res.Configuration
 import android.hardware.display.DisplayManager
@@ -119,6 +121,7 @@ class OverlayCaptureService :
       ACTION_START -> start(intent)
       ACTION_STOP -> shutdown()
       ACTION_CONFIG_CHANGED -> {
+        refreshForegroundType()
         val config = prefs.readConfig()
         bubble?.applyConfig(config)
         // A running session keeps its own settings; only colours follow along.
@@ -139,6 +142,37 @@ class OverlayCaptureService :
     return START_NOT_STICKY
   }
 
+  /**
+   * mediaProjection, plus microphone once RECORD_AUDIO is granted: Android
+   * 14+ requires it for playback capture ("all phone audio") from a
+   * foreground service. Nothing is recorded from the microphone.
+   */
+  private fun foregroundTypes(): Int {
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return 0
+    var types = ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+      ContextCompat.checkSelfPermission(this, android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
+    ) {
+      types = types or ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
+    }
+    return types
+  }
+
+  private var foregroundTypesApplied = 0
+
+  /** Re-enters the foreground with the microphone type after the permission is granted. */
+  private fun refreshForegroundType() {
+    if (capturer == null) return
+    val types = foregroundTypes()
+    if (types == foregroundTypesApplied) return
+    try {
+      ServiceCompat.startForeground(this, NOTIFICATION_ID, buildNotification(), types)
+      foregroundTypesApplied = types
+    } catch (e: RuntimeException) {
+      Log.w(TAG, "Could not update foreground type: ${e.javaClass.simpleName}")
+    }
+  }
+
   private fun start(intent: Intent) {
     val resultCode = intent.getIntExtra(EXTRA_RESULT_CODE, 0)
     val data = IntentCompat.getParcelableExtra(intent, EXTRA_RESULT_DATA, Intent::class.java)
@@ -153,12 +187,9 @@ class OverlayCaptureService :
         this,
         NOTIFICATION_ID,
         buildNotification(),
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-          ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PROJECTION
-        } else {
-          0
-        },
+        foregroundTypes(),
       )
+      foregroundTypesApplied = foregroundTypes()
     } catch (e: RuntimeException) {
       Log.w(TAG, "Could not enter the foreground: ${e.javaClass.simpleName}")
       shutdown()
@@ -191,6 +222,8 @@ class OverlayCaptureService :
       shutdown()
       return
     }
+    // "All phone audio" sharing captures playback over this same consent.
+    AudioShareHub.attachProjection(projection)
 
     if (bubble == null) {
       if (!Settings.canDrawOverlays(this)) {
@@ -892,6 +925,7 @@ class OverlayCaptureService :
     panel = null
     bubble?.remove()
     bubble = null
+    AudioShareHub.attachProjection(null)
     capturer?.release()
     capturer = null
     engine?.close()

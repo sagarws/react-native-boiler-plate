@@ -1,3 +1,4 @@
+import { PermissionsAndroid, Platform } from 'react-native';
 import NativeScreenOcr from '@/specs/NativeScreenOcr';
 import { logger } from '@/shared/utils';
 
@@ -9,6 +10,16 @@ export type AudioShareState =
   | 'streaming';
 
 export type AudioShareError = '' | 'no_wifi' | 'port_failed' | 'unsupported';
+
+/** "All phone audio": running, or why not. */
+export type DeviceAudioState =
+  | 'off'
+  | 'idle'
+  | 'active'
+  | 'needs_permission'
+  | 'needs_bubble'
+  | 'unsupported'
+  | 'failed';
 
 /** What the phone's audio-sharing server reports (see AudioShareHub). */
 export interface AudioShareStatus {
@@ -22,6 +33,7 @@ export interface AudioShareStatus {
   /** Audio was sent in the last ~1.5 s. */
   transmitting: boolean;
   error: AudioShareError;
+  deviceAudio: DeviceAudioState;
 }
 
 export const AUDIO_SHARE_OFF: AudioShareStatus = {
@@ -32,6 +44,7 @@ export const AUDIO_SHARE_OFF: AudioShareStatus = {
   fingerprint: '',
   transmitting: false,
   error: '',
+  deviceAudio: 'off',
 };
 
 const STATES: readonly AudioShareState[] = [
@@ -42,6 +55,15 @@ const STATES: readonly AudioShareState[] = [
   'streaming',
 ];
 const ERRORS: readonly AudioShareError[] = ['', 'no_wifi', 'port_failed'];
+const DEVICE_STATES: readonly DeviceAudioState[] = [
+  'off',
+  'idle',
+  'active',
+  'needs_permission',
+  'needs_bubble',
+  'unsupported',
+  'failed',
+];
 
 const str = (v: unknown, max = 80) =>
   typeof v === 'string' ? v.slice(0, max) : '';
@@ -61,6 +83,9 @@ export function parseAudioShareStatus(json: string): AudioShareStatus {
       error: ERRORS.includes(r.error as AudioShareError)
         ? (r.error as AudioShareError)
         : '',
+      deviceAudio: DEVICE_STATES.includes(r.deviceAudio as DeviceAudioState)
+        ? (r.deviceAudio as DeviceAudioState)
+        : 'off',
     };
   } catch {
     return AUDIO_SHARE_OFF;
@@ -79,6 +104,23 @@ export const audioShareService = {
     } catch (error) {
       logger.error('audioShare.getStatus failed', error);
       return AUDIO_SHARE_OFF;
+    }
+  },
+
+  /**
+   * Android gates playback capture ("all phone audio") behind the RECORD_AUDIO
+   * permission. Nothing is recorded from the microphone.
+   */
+  async requestCapturePermission(): Promise<boolean> {
+    if (Platform.OS !== 'android') return false;
+    try {
+      const result = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.RECORD_AUDIO,
+      );
+      return result === PermissionsAndroid.RESULTS.GRANTED;
+    } catch (error) {
+      logger.error('audioShare.requestCapturePermission failed', error);
+      return false;
     }
   },
 

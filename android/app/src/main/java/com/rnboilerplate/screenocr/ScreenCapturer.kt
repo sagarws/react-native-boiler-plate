@@ -33,7 +33,7 @@ import kotlin.math.roundToInt
  */
 class ScreenCapturer(
   private val context: Context,
-  private val projection: MediaProjection,
+  val projection: MediaProjection,
   private val onStopped: () -> Unit,
 ) {
   private val main = Handler(Looper.getMainLooper())

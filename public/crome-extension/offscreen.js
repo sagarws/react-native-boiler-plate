@@ -1,6 +1,7 @@
 // Plays PCM forwarded by the service worker. One AudioContext at the
-// stream's sample rate (Chrome resamples to the output device), an
-// AudioWorklet jitter buffer, and a gain node for volume.
+// stream's sample rate (Chrome resamples to the output device), a stereo
+// AudioWorklet jitter buffer, and a gain node for volume. Akshar's voice
+// arrives mono (24 kHz); "all phone audio" arrives 48 kHz stereo.
 
 let context = null;
 let player = null;
@@ -17,22 +18,23 @@ async function ensureContext(sampleRate) {
   rate = sampleRate;
   context = new AudioContext({ sampleRate, latencyHint: 'interactive' });
   await context.audioWorklet.addModule('pcm-player-worklet.js');
-  player = new AudioWorkletNode(context, 'pcm-player', { outputChannelCount: [1] });
+  player = new AudioWorkletNode(context, 'pcm-player', { outputChannelCount: [2] });
   gain = new GainNode(context, { gain: volume });
   player.connect(gain).connect(context.destination);
 }
 
-function toFloat(base64, channels) {
+/** 16-bit PCM (base64) → interleaved stereo Float32; mono is duplicated. */
+function toStereoFloat(base64, channels) {
   const s = atob(base64);
   const bytes = new Uint8Array(s.length);
   for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i);
   const pcm = new Int16Array(bytes.buffer, 0, bytes.length >> 1);
   const frames = Math.floor(pcm.length / channels);
-  const out = new Float32Array(frames);
+  const out = new Float32Array(frames * 2);
   for (let f = 0; f < frames; f++) {
-    let sum = 0;
-    for (let c = 0; c < channels; c++) sum += pcm[f * channels + c];
-    out[f] = sum / channels / 32768;
+    const l = pcm[f * channels] / 32768;
+    out[2 * f] = l;
+    out[2 * f + 1] = channels > 1 ? pcm[f * channels + 1] / 32768 : l;
   }
   return out;
 }
@@ -51,7 +53,7 @@ async function handle(message) {
   switch (message.type) {
     case 'pcm': {
       await ensureContext(message.rate);
-      const samples = toFloat(message.data, Math.max(1, message.channels));
+      const samples = toStereoFloat(message.data, Math.max(1, message.channels));
       player.port.postMessage({ type: 'push', samples }, [samples.buffer]);
       break;
     }

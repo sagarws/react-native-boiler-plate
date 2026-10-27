@@ -321,6 +321,19 @@ no new permissions.
   ahead. Each segment's PCM is sent when the phone starts speaking it, paced
   in real time with a 300 ms lead. The phone's own playback is untouched. Audio
   is only rendered and sent while a paired receiver is listening.
+- **All phone audio** (`share/DeviceAudioCapture.kt`, optional): the card
+  lets the user choose between Akshar's voice and all phone audio.
+  - Uses Android 10+ `AudioPlaybackCapture` over the floating button's
+    existing `MediaProjection` (`AudioShareHub.attachProjection`).
+  - Captures media, game and unknown usages at 48 kHz stereo, sent in 100 ms
+    chunks. Silent chunks are skipped. Akshar's own speech, whose
+    accessibility usage isn't captured, is resampled and mixed in.
+  - Needs `RECORD_AUDIO`, which is asked only when this option is chosen.
+    The service then also runs with the `microphone` foreground type
+    (required on Android 14+).
+  - Not captured: calls, and apps that opt out of capture.
+  - The card reports why it isn't running: `needs_permission`,
+    `needs_bubble`, `unsupported` or `failed`.
 - **Server:** a WebSocket server on port 47811 (falls back to a random port),
   using a minimal RFC 6455 implementation in `WebSocketConnection` with no new
   dependency. It refuses `http(s)` Origins and accepts one receiver at a time.
@@ -387,6 +400,7 @@ no new permissions.
 | `POST_NOTIFICATIONS` | Shows that notification on Android 13+. Without it the service still works, but the notification is hidden. |
 | Accessibility service (optional) | Only for "Speak with auto-scroll", only if the user enables it in Android settings: scrolls the page being read. |
 | `TTS_SERVICE` package query | Not a permission; lets the app see which TTS engines are installed (to prefer Google). |
+| `RECORD_AUDIO`, `FOREGROUND_SERVICE_MICROPHONE` | Only for **Share voice to Chrome → All phone audio**: Android gates playback capture behind the microphone permission. It is asked only when that option is chosen, and nothing is recorded from the microphone. |
 | `INTERNET` | Only for opt-in features: **Refine text / Apply translation** (Google Gemini API) and **Share voice to Chrome** (a local-network server, port 47811). Also used by Metro in debug builds. ML Kit's usage-logging uploader is removed from release builds, so no other component sends data. |
 
 No other permission is requested: no storage, camera, location or accessibility service.

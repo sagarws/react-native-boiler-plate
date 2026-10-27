@@ -121,9 +121,13 @@ export interface RefineSettings {
   prompt: string;
 }
 
-/** Share the spoken voice with the Akshar Listen Chrome extension (same Wi-Fi). */
+export type AudioShareSource = 'app' | 'device';
+
+/** Share audio with the Akshar Listen Chrome extension (same Wi-Fi). */
 export interface AudioShareSettings {
   enabled: boolean;
+  /** Akshar's voice only, or all phone audio (playback capture; Android 10+). */
+  source: AudioShareSource;
 }
 
 /** Speak with pagination: timing and limits for page turns. */

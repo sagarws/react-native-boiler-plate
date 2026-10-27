@@ -12,6 +12,12 @@
          a screen-capture session is held. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <!-- "Share voice to Chrome → All phone audio": Android gates playback
+         capture behind RECORD_AUDIO (asked only when that option is chosen),
+         and Android 14+ needs the microphone service type for it. Nothing is
+         recorded from the microphone. -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
 
     <!-- Android 11+ package visibility: lets the app list installed
          text-to-speech engines (to prefer Google Speech Services when present). -->
@@ -65,7 +71,7 @@
       <service
         android:name=".screenocr.OverlayCaptureService"
         android:exported="false"
-        android:foregroundServiceType="mediaProjection" />
+        android:foregroundServiceType="mediaProjection|microphone" />
 
       <!-- Optional, for "Speak with auto-scroll" only: scrolls the app being
            read. Off until the user turns it on in Android's accessibility

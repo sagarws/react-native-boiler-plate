@@ -72,8 +72,14 @@ AudioShareHub: WebSocket server on the Wi-Fi :47811 ──(AES-256-GCM)──►
 - **Resume key:** a random 32-byte key kept in `chrome.storage.session`, which
   Chrome clears when it closes. It lets the extension reconnect without asking
   again, and is revoked when either side disconnects or sharing stops.
-- **What is shared:** only Akshar's own synthesized voice. Never the microphone,
-  other apps or system audio.
+- **What is shared:** you choose in the app.
+  - **Akshar's voice**: only Akshar's own synthesized speech.
+  - **All phone audio**: what apps play (YouTube, browser, music, games),
+    using Android 10+ playback capture over the floating button's
+    screen-capture permission. Android needs the Microphone permission for
+    this, but nothing is recorded from the microphone.
+  - Never shared: phone and VoIP calls, and apps that opt out of capture
+    (often paid video or music apps with DRM).
 
 ### Why not WebRTC or system audio capture?
 
@@ -162,4 +168,6 @@ service.
   sleeps the Wi-Fi with the screen off, the extension reconnects when it wakes.
 - **Chrome restarts:** pairing is lost (the resume key is session-only), and
   after a service-worker restart you press Play again.
-- **Mono:** audio is downmixed to mono, which is what TTS produces anyway.
+- **Audio format:** Akshar's voice is sent as 24 kHz mono. "All phone audio"
+  is sent as 48 kHz stereo, about 1.5 Mbit/s, and only while the phone is
+  actually playing something.

@@ -105,5 +105,6 @@ export {
 export type {
   AudioShareStatus,
   AudioShareState,
+  DeviceAudioState,
 } from './services/audioShare.service';
-export type { AudioShareSettings } from './capture.types';
+export type { AudioShareSettings, AudioShareSource } from './capture.types';

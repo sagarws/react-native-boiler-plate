@@ -154,6 +154,26 @@ class ShareProtocolTest {
     assertEquals("""{"t":"listen","on":true}""", String(plain, 1, plain.size - 1))
   }
 
+  @Test
+  fun resamplesSpeechTo48kStereoForMixing() {
+    // 24 kHz mono ramp, 4 frames → 8 stereo frames at 48 kHz.
+    val mono = ByteArray(8)
+    val values = intArrayOf(0, 1000, 2000, 3000)
+    values.forEachIndexed { i, v ->
+      mono[2 * i] = v.toByte()
+      mono[2 * i + 1] = (v shr 8).toByte()
+    }
+    val out = DeviceAudioCapture.resampleToStereo48k(PcmClip(24000, 1, mono))
+    assertEquals(16, out.size)
+    assertEquals(0, out[0].toInt())
+    assertEquals(out[0], out[1]) // both channels
+    assertEquals(500, out[2].toInt()) // interpolated midpoint
+    assertEquals(1000, out[4].toInt())
+    // Already 48 kHz stereo: unchanged.
+    val stereo = byteArrayOf(10, 0, 20, 0, 30, 0, 40, 0)
+    assertEquals(listOf<Short>(10, 20, 30, 40), DeviceAudioCapture.resampleToStereo48k(PcmClip(48000, 2, stereo)).toList())
+  }
+
   // ── WebSocket ──
 
   private fun clientFrame(opcode: Int, payload: ByteArray, fin: Boolean = true): ByteArray {
