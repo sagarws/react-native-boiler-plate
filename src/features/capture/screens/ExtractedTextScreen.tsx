@@ -28,6 +28,8 @@ import type { MainStackParamList } from '@/navigation/types';
 import { useTheme } from '@/theme';
 import { ToolButton } from '../components/ToolButton';
 import { ResultMeta } from '../components/ResultMeta';
+import { TranslationCard } from '../components/TranslationCard';
+import { screenOcrService } from '../services/screenOcr.service';
 import {
   useExtractedText,
   type ExtractedSource,
@@ -202,6 +204,14 @@ export default function ExtractedTextScreen() {
         <>
           <View style={[styles.body, { padding: spacing.lg, gap: spacing.md }]}>
             <ResultMeta result={result} text={text} />
+            <TranslationCard
+              result={result}
+              onCopy={translated => {
+                void screenOcrService
+                  .copy(translated)
+                  .then(ok => setFeedback(ok ? 'copied' : 'copyFailed'));
+              }}
+            />
             {feedback ? (
               <Notice
                 tone={

@@ -3,8 +3,9 @@
 Akshar lets the user tap a floating button over any app and get that screen's text, in
 English, Hindi, Gujarati or a mix, then either copy it, read it aloud, or read a long
 page aloud while scrolling. OCR runs on the device; speech uses the phone's own
-text-to-speech engine. There is no account, no API key, no backend, and release builds
-have no `INTERNET` permission at all.
+text-to-speech engine. There is no account and no backend. The only network use is
+the optional **Speak with translation** action, which sends extracted text to the
+Google Gemini API with the user's own key after explicit opt-in.
 
 Android only. On iOS (and under Jest) the native module is absent and the UI says the
 floating button is unavailable.
@@ -102,6 +103,7 @@ use and reused until the service stops.
 | Start speaking | capture → OCR → speak. A controller appears (Pause/Resume, Restart, Copy, Stop). No scrolling. |
 | Speak with auto-scroll | a reading session over the whole page (below) |
 | Speak with pagination | read a page, press the pinned Next button once, verify the page turned, continue (below) |
+| Speak with translation | OCR on the device → translate with Gemini (user's key, opt-in) → speak the translation (below) |
 
 The bubble carries a small badge for the current action (copy / speaker / scroll icon)
 and shows a speaker while reading. While a session runs, tapping the bubble pauses or
@@ -262,6 +264,66 @@ service**:
 - capabilities are unchanged: window content (to find the button or scroll container)
   and gestures (to tap or swipe); no events are acted on.
 
+### Speak with translation (`TranslateSession.kt`, `GeminiClient.kt`)
+
+```
+IDLE → CAPTURING → RUNNING_OCR → TRANSLATING → SPEAKING → COMPLETE
+any active state → PAUSED / STOPPED / ERROR
+```
+
+**Gate.** A tap does nothing (just a toast) until the user has turned on "Send
+extracted text to Google Gemini" and saved an API key. Without both, nothing is
+captured or sent.
+
+**Request.**
+- `POST https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
+- The key goes in the `x-goog-api-key` header, never in the URL.
+- `systemInstruction` is the user's prompt with `{target}` and `{source}` filled in,
+  plus fixed output rules.
+- `contents` is the OCR text with paragraphs separated by blank lines.
+- `generationConfig` sets temperature 0.2 and asks for JSON output
+  `{detectedLanguage, translation}`. If a model ignores that, plain text is accepted.
+- Long text is sent in paragraph chunks of at most 4,000 characters, in order.
+- Default model: `gemini-2.5-flash`, editable in Settings.
+
+**What is sent:** only the extracted text and the instructions. Screenshots never leave
+the device.
+
+**Errors.**
+- No internet, invalid key, API disabled, quota (HTTP 429 gets exactly one retry after
+  2 s), safety block, server error, timeout, unexpected response: each shows its own
+  message.
+- Nothing else is retried.
+- Requests, responses and the key are never logged.
+
+**Cancellation.** Stop disconnects the in-flight request, and a generation counter
+drops any late result, so nothing is spoken after Stop.
+
+**Speech.** The translation is spoken paragraph by paragraph with the target language's
+voice. If the source language is fixed and equals the target, the Gemini call is
+skipped.
+
+**Results.** The translation is stored with the capture (if history is on) and shown
+above the original on the Extracted Text screen.
+
+**The API key** (`SecureKeyStore.kt`):
+- It is encrypted with AES-256-GCM using a key held in the Android Keystore
+  (hardware-backed where available). The ciphertext lives in private
+  SharedPreferences, and backups are off.
+- JS hands the key over once on save and then only learns `hasKey` and the last four
+  characters.
+- It is never in the repo, `.env`, Gradle or logs.
+- Limitation: a key used directly from an app can be extracted by someone with access
+  to the device. For a public release, put a backend proxy or Firebase App Check in
+  front, and restrict the key in Google Cloud (Generative Language API only, Android
+  app restriction with package name + SHA-1).
+
+**Network policy** (`src/release/AndroidManifest.xml`):
+- Release builds keep `INTERNET` for this feature only.
+- ML Kit's bundled datatransport usage-logging uploader (backend discovery, job
+  scheduler, alarm receiver) is removed from the manifest, so it can't send anything
+  even with the permission present.
+
 ---
 
 ## Speech (text-to-speech)
@@ -310,7 +372,7 @@ service**:
 | `POST_NOTIFICATIONS` | Shows that notification on Android 13+. Without it the service still works, but the notification is hidden. |
 | Accessibility service (optional) | Only for "Speak with auto-scroll", only if the user enables it in Android settings: scrolls the page being read. |
 | `TTS_SERVICE` package query | Not a permission; lets the app see which TTS engines are installed (to prefer Google). |
-| `INTERNET` | **Debug only**, so the app can reach Metro. Removed from release by `src/release/AndroidManifest.xml`, including any library-declared copy such as ML Kit's usage logging. |
+| `INTERNET` | Only for **Speak with translation** (Google Gemini API, after opt-in); also Metro in debug builds. ML Kit's usage-logging uploader is removed from release builds, so no other component sends data. |
 
 No other permission is requested: no storage, camera, location or accessibility service.
 

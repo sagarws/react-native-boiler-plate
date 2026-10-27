@@ -20,6 +20,15 @@ export function parseOcrResult(raw: unknown): OcrResult | null {
     mode: r.mode,
     createdAt: finiteNumber(r.createdAt, 0),
     durationMs: Math.max(0, finiteNumber(r.durationMs, 0)),
+    ...(typeof r.translation === 'string' && r.translation.length > 0
+      ? {
+          translation: r.translation,
+          targetLanguage:
+            typeof r.targetLanguage === 'string' ? r.targetLanguage : undefined,
+          sourceLanguage:
+            typeof r.sourceLanguage === 'string' ? r.sourceLanguage : undefined,
+        }
+      : {}),
     lineCount: Math.max(
       0,
       Math.round(finiteNumber(r.lineCount, r.text.split('\n').length)),

@@ -56,6 +56,7 @@ export function buildNativeConfig(
     },
     reading,
     pagination: settings.pagination,
+    translate: settings.translate,
   };
 }
 

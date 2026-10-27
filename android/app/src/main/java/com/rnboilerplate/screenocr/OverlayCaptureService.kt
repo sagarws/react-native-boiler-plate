@@ -53,7 +53,10 @@ import org.json.JSONObject
  *   continues with the new text only;
  * - SPEAK_PAGINATION — a [PaginationSession] that speaks the page, presses
  *   the user-pinned Next button once (accessibility service), verifies the
- *   page turned and continues. The pin is set with [TargetPicker].
+ *   page turned and continues. The pin is set with [TargetPicker];
+ * - SPEAK_TRANSLATE — a [TranslateSession]: OCR on the device, then the
+ *   extracted text (only text, never the screenshot) is translated with the
+ *   user's own Gemini API key, after explicit opt-in, and spoken.
  *
  * One operation at a time: while a capture or a reading session is running,
  * further taps control it instead of starting another. Idle cost is one
@@ -79,6 +82,9 @@ class OverlayCaptureService :
   private var lastCaptureHidden = false
   private var picker: TargetPicker? = null
   private var pagination: PaginationSession? = null
+  private var translation: TranslateSession? = null
+  private var gemini: GeminiClient? = null
+  private val keyStore by lazy { SecureKeyStore(this) }
 
   private val screenOffReceiver =
     object : BroadcastReceiver() {
@@ -86,6 +92,7 @@ class OverlayCaptureService :
         if (sessionConfig?.speech?.stopOnScreenOff == true) {
           session?.stop()
           pagination?.stop()
+          translation?.stop()
         }
       }
     }
@@ -213,6 +220,12 @@ class OverlayCaptureService :
         return
       }
     }
+    translation?.let { current ->
+      if (current.state.isActive) {
+        current.togglePause()
+        return
+      }
+    }
     // A running session owns the button: a tap pauses/resumes it (or
     // continues after a manual scroll).
     session?.let { current ->
@@ -228,6 +241,7 @@ class OverlayCaptureService :
       FloatingAction.COPY -> copyOnce(config)
       FloatingAction.SPEAK, FloatingAction.SPEAK_SCROLL -> startReading(config)
       FloatingAction.SPEAK_PAGINATION -> startPagination(config)
+      FloatingAction.SPEAK_TRANSLATE -> startTranslation(config)
     }
   }
 
@@ -352,7 +366,12 @@ class OverlayCaptureService :
   }
 
   /** Keeps a finished extraction: in memory always, queued for history if enabled. */
-  private fun store(text: String, config: OcrConfig, durationMs: Long) {
+  private fun store(
+    text: String,
+    config: OcrConfig,
+    durationMs: Long,
+    translated: TranslationResult? = null,
+  ) {
     val entry =
       JSONObject()
         .put("id", UUID.randomUUID().toString())
@@ -361,7 +380,13 @@ class OverlayCaptureService :
         .put("createdAt", System.currentTimeMillis())
         .put("durationMs", durationMs)
         .put("lineCount", text.lines().size)
-    lastText = text
+    if (translated != null) {
+      entry
+        .put("translation", translated.text)
+        .put("targetLanguage", config.translate.target)
+        .put("sourceLanguage", translated.detectedLanguage)
+    }
+    lastText = translated?.text ?: text
     ScreenOcrBus.latest = entry
     if (config.saveHistory) prefs.appendPending(entry)
     ScreenOcrBus.notifyResult()
@@ -476,13 +501,24 @@ class OverlayCaptureService :
   private val paginationActive: Boolean
     get() = pagination?.state?.isActive == true
 
+  private val translationActive: Boolean
+    get() = translation?.state?.isActive == true || translation?.state == TranslateState.COMPLETE
+
   override fun onPanelPlayPause() {
     pausedByFocusLoss = false
-    if (paginationActive) pagination?.togglePause() else session?.togglePause()
+    when {
+      paginationActive -> pagination?.togglePause()
+      translation?.state?.isActive == true -> translation?.togglePause()
+      else -> session?.togglePause()
+    }
   }
 
   override fun onPanelRestart() {
-    if (paginationActive) pagination?.restartPage() else session?.restartSection()
+    when {
+      paginationActive -> pagination?.restartPage()
+      translationActive -> translation?.restart()
+      else -> session?.restartSection()
+    }
   }
 
   override fun onPanelNext() {
@@ -497,8 +533,11 @@ class OverlayCaptureService :
 
   override fun onPanelCopy() {
     val text =
-      (if (paginationActive) pagination?.currentText else session?.currentText)?.takeIf { it.isNotBlank() }
-        ?: lastText
+      when {
+        paginationActive -> pagination?.currentText
+        translationActive -> translation?.translatedText
+        else -> session?.currentText
+      }?.takeIf { it.isNotBlank() } ?: lastText
     if (text.isNullOrBlank()) return
     toast(
       if (ClipboardHelper.copy(this, text, sensitive = true)) R.string.screen_ocr_copied
@@ -509,6 +548,7 @@ class OverlayCaptureService :
   override fun onPanelStop() {
     session?.stop()
     pagination?.stop()
+    translation?.stop()
     panel?.remove()
   }
 
@@ -518,13 +558,16 @@ class OverlayCaptureService :
     AudioManager.OnAudioFocusChangeListener { change ->
       val paged = pagination?.takeIf { it.state.isActive }
       val reading = session?.takeIf { it.state.isActive }
+      val translating = translation?.takeIf { it.state.isActive }
       when (change) {
         AudioManager.AUDIOFOCUS_LOSS, AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
           val speaking =
-            paged?.state == PaginationState.SPEAKING_PAGE || reading?.state == ReadingState.SPEAKING
+            paged?.state == PaginationState.SPEAKING_PAGE || reading?.state == ReadingState.SPEAKING ||
+              translating?.state == TranslateState.SPEAKING
           if (speaking) {
             paged?.pause()
             reading?.pause()
+            translating?.pause()
             pausedByFocusLoss = change == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT
           }
         }
@@ -532,6 +575,7 @@ class OverlayCaptureService :
           if (pausedByFocusLoss && sessionConfig?.speech?.resumeAfterInterruption == true) {
             paged?.resume()
             reading?.resume()
+            translating?.resume()
           }
           pausedByFocusLoss = false
         }
@@ -561,6 +605,102 @@ class OverlayCaptureService :
     }
     focusRequest = null
   }
+
+  // ── Speak with translation ────────────────────────────────────────────
+
+  private fun startTranslation(config: OcrConfig) {
+    // Nothing is captured or sent until translation is fully set up.
+    val problem =
+      when {
+        !config.translate.consent -> R.string.translate_error_no_consent
+        !keyStore.hasKey -> R.string.translate_error_no_key
+        else -> null
+      }
+    if (problem != null) {
+      toast(problem)
+      return
+    }
+    // Speak in the target language with that language's chosen voice.
+    val speakConfig =
+      config.copy(
+        speech =
+          config.speech.copy(
+            language = config.translate.target,
+            voiceName = if (config.speech.language == config.translate.target) config.speech.voiceName else "",
+          ),
+      )
+    prepareReadAloud(speakConfig)
+    translation = TranslateSession(translatePorts).also { it.start() }
+  }
+
+  private val translatePorts =
+    object : TranslatePorts {
+      private var lastDuration = 0L
+
+      override fun capture(onOcr: () -> Unit, onResult: (Result<String>) -> Unit) {
+        val config = sessionConfig ?: return onResult(Result.failure(CaptureFailed()))
+        captureAndRecognize(config, onOcr) { result: Result<String>, duration: Long ->
+          lastDuration = duration
+          onResult(result)
+        }
+      }
+
+      override fun translate(text: String, onResult: (Result<TranslationResult>) -> Unit) {
+        val config = sessionConfig ?: return onResult(Result.failure(TranslateException(TranslateError.NO_CONSENT)))
+        val key = keyStore.read() ?: return onResult(Result.failure(TranslateException(TranslateError.NO_KEY)))
+        val client = gemini ?: GeminiClient().also { gemini = it }
+        // Same language as the target: nothing to translate.
+        if (config.translate.source != "auto" && config.translate.source == config.translate.target) {
+          onResult(Result.success(TranslationResult(ParagraphText.keepLines(text) { _, _ -> true }, config.translate.source)))
+          return
+        }
+        client.translate(key, config.translate, text) { result ->
+          result.getOrNull()?.let { store(text, config, lastDuration, it) }
+          onResult(result)
+        }
+      }
+
+      override fun cancelTranslation() {
+        gemini?.cancel()
+      }
+
+      override fun speak(
+        text: String,
+        fromSegment: Int,
+        onProgress: (Int, Int) -> Unit,
+        onDone: () -> Unit,
+        onError: (ReadingReason) -> Unit,
+      ) {
+        if (sessionConfig?.speech?.copyBeforeSpeaking == true) {
+          ClipboardHelper.copy(this@OverlayCaptureService, text, true)
+        }
+        this@OverlayCaptureService.speak(text, fromSegment, onProgress, onDone, onError)
+      }
+
+      override fun stopSpeech() = this@OverlayCaptureService.stopSpeech()
+
+      override fun onStateChanged(state: TranslateState, info: TranslateInfo) {
+        ScreenOcrBus.readingActive = state.isActive
+        panel?.updateTranslate(state, info, sessionConfig?.translate?.target ?: "hi")
+        if (state.isActive) return
+        abandonAudioFocus()
+        bubble?.setReading(false)
+        when (info.issue) {
+          TranslateIssue.NO_TEXT -> toast(R.string.screen_ocr_no_text)
+          TranslateIssue.CAPTURE_FAILED -> if (!lastCaptureHidden) toast(R.string.screen_ocr_capture_failed)
+          TranslateIssue.TRANSLATE_FAILED ->
+            info.error?.let { error -> panel?.let { toast(it.translateErrorText(error)) } }
+          TranslateIssue.SPEECH_FAILED -> toast(R.string.reading_error_speech)
+          TranslateIssue.VOICE_MISSING -> toast(R.string.reading_error_voice)
+          TranslateIssue.NONE -> Unit
+        }
+        val ended = translation
+        main.postDelayed(
+          { if (translation === ended && translation?.state?.isActive != true) panel?.remove() },
+          PANEL_LINGER_MS * 2,
+        )
+      }
+    }
 
   // ── Speak with pagination ─────────────────────────────────────────────
 
@@ -738,6 +878,10 @@ class OverlayCaptureService :
     session = null
     pagination?.stop()
     pagination = null
+    translation?.stop()
+    translation = null
+    gemini?.shutdown()
+    gemini = null
     picker?.remove()
     picker = null
     ScreenOcrBus.readingActive = false

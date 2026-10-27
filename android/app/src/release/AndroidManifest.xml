@@ -1,10 +1,28 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- The release app is offline by design: OCR runs on-device and nothing
-         is uploaded. Removing INTERNET (including any declared by libraries,
-         such as ML Kit's usage logging) makes that a platform guarantee
-         rather than a promise. Debug keeps it for Metro. -->
-    <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+    <!-- Network policy for release builds.
+
+         INTERNET is kept for one purpose only: "Speak with Translation" sends
+         the extracted text (never a screenshot) to the Google Gemini API with
+         the user's own key, after explicit opt-in. Every other mode is fully
+         on-device.
+
+         ML Kit bundles Google's datatransport usage-logging uploader. While
+         the app had no INTERNET permission it could not send anything; now
+         that translation needs the network, its backend discovery and upload
+         schedulers are removed so it still sends nothing. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+
+    <application>
+        <service
+            android:name="com.google.android.datatransport.runtime.backends.TransportBackendDiscovery"
+            tools:node="remove" />
+        <service
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService"
+            tools:node="remove" />
+        <receiver
+            android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.AlarmManagerSchedulerBroadcastReceiver"
+            tools:node="remove" />
+    </application>
 </manifest>

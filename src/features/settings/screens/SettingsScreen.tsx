@@ -30,6 +30,7 @@ import { ReadingSection } from '../components/ReadingSection';
 import { SettingsSection } from '../components/SettingsSection';
 import { SettingSwitch } from '../components/SettingControls';
 import { SpeechSection } from '../components/SpeechSection';
+import { TranslateSection } from '../components/TranslateSection';
 
 type Toast = 'historyCleared' | 'resetPositionDone' | null;
 
@@ -40,6 +41,7 @@ type SectionKey =
   | 'speech'
   | 'reading'
   | 'pagination'
+  | 'translate'
   | 'clipboard';
 
 /**
@@ -145,6 +147,8 @@ export default function SettingsScreen() {
         <ReadingSection {...section('reading')} />
 
         <PaginationSection {...section('pagination')} />
+
+        <TranslateSection {...section('translate')} />
 
         <ExpandableCard
           title={t('settings.sectionClipboard')}

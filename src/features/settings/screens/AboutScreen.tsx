@@ -15,13 +15,15 @@ const PERMISSIONS: readonly {
     | 'permCapture'
     | 'permService'
     | 'permNotifications'
-    | 'permAccessibility';
+    | 'permAccessibility'
+    | 'permInternet';
 }[] = [
   { icon: 'layers', key: 'permOverlay' },
   { icon: 'monitor', key: 'permCapture' },
   { icon: 'shieldCheck', key: 'permService' },
   { icon: 'bell', key: 'permNotifications' },
   { icon: 'accessibility', key: 'permAccessibility' },
+  { icon: 'languages', key: 'permInternet' },
 ];
 
 const TIPS = [

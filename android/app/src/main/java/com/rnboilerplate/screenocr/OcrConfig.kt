@@ -32,7 +32,8 @@ enum class FloatingAction(val id: String) {
   COPY("copy"),
   SPEAK("speak"),
   SPEAK_SCROLL("speak_scroll"),
-  SPEAK_PAGINATION("speak_pagination");
+  SPEAK_PAGINATION("speak_pagination"),
+  SPEAK_TRANSLATE("speak_translate");
 
   val readsAloud: Boolean
     get() = this != COPY
@@ -83,6 +84,7 @@ data class OcrConfig(
   val speech: SpeechConfig = SpeechConfig(),
   val reading: ReadingConfig = ReadingConfig(),
   val pagination: PaginationConfig = PaginationConfig(),
+  val translate: TranslateConfig = TranslateConfig(),
 ) {
   companion object {
     const val MIN_SIZE_DP = 40
@@ -137,6 +139,19 @@ data class OcrConfig(
             maxNoNewText = r.optInt("maxNoNewText", dr.maxNoNewText).coerceIn(1, 10),
             manualFallback = r.optBoolean("manualFallback", dr.manualFallback),
           ),
+        translate =
+          (json.optJSONObject("translate") ?: JSONObject()).let { t ->
+            val dt = TranslateConfig()
+            val target = t.optString("target", dt.target)
+            val source = t.optString("source", dt.source)
+            TranslateConfig(
+              consent = t.optBoolean("consent", dt.consent),
+              target = if (target in SPEECH_LANGUAGES) target else dt.target,
+              source = if (source == "auto" || source in SPEECH_LANGUAGES) source else dt.source,
+              prompt = t.optString("prompt", dt.prompt).take(TranslationPrompt.MAX_PROMPT),
+              model = t.optString("model", dt.model).ifBlank { dt.model },
+            )
+          },
         pagination =
           (json.optJSONObject("pagination") ?: JSONObject()).let { p ->
             val dp = PaginationConfig()

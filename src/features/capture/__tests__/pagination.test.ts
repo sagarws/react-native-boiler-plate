@@ -49,7 +49,7 @@ afterEach(() => {
 
 describe('fourth action', () => {
   it('adds Speak with pagination after the existing three, unchanged', () => {
-    expect(FLOATING_ACTIONS).toEqual([
+    expect(FLOATING_ACTIONS.slice(0, 4)).toEqual([
       'copy',
       'speak',
       'speak_scroll',

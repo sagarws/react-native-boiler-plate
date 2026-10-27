@@ -38,13 +38,15 @@ export type FloatingAction =
   | 'copy'
   | 'speak'
   | 'speak_scroll'
-  | 'speak_pagination';
+  | 'speak_pagination'
+  | 'speak_translate';
 
 export const FLOATING_ACTIONS: readonly FloatingAction[] = [
   'copy',
   'speak',
   'speak_scroll',
   'speak_pagination',
+  'speak_translate',
 ];
 
 export function isFloatingAction(value: unknown): value is FloatingAction {
@@ -79,6 +81,17 @@ export interface SpeechSettings {
   /** In-app reading stops when you leave the screen; overlay reading stops when the screen turns off. */
   stopOnLeave: boolean;
   resumeAfterInterruption: boolean;
+}
+
+/** Speak with Translation (Google Gemini, user's own key). The key is not stored here. */
+export interface TranslateSettings {
+  /** The user allowed sending extracted text to Google Gemini. */
+  consent: boolean;
+  target: SpeechLanguage;
+  source: 'auto' | SpeechLanguage;
+  /** Instructions; {target} and {source} are substituted. */
+  prompt: string;
+  model: string;
 }
 
 /** Speak with pagination: timing and limits for page turns. */
@@ -134,6 +147,10 @@ export interface OcrResult {
   /** Time spent in OCR, excluding the screen grab. */
   durationMs: number;
   lineCount: number;
+  /** Speak with Translation: the translated text and its languages. */
+  translation?: string;
+  targetLanguage?: string;
+  sourceLanguage?: string;
 }
 
 /** User settings for capture; persisted in MMKV and mirrored to native. */
@@ -147,6 +164,7 @@ export interface CaptureSettings {
   speech: SpeechSettings;
   reading: ReadingSettings;
   pagination: PaginationSettings;
+  translate: TranslateSettings;
 }
 
 export type LanguageStatus = 'available' | 'missing_data' | 'not_supported';

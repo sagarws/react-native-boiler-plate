@@ -5,6 +5,7 @@ import {
   isSpeechLanguage,
   type CaptureSettings,
   type PaginationSettings,
+  type TranslateSettings,
   type ReadingSettings,
   type SpeechSettings,
 } from '../capture.types';
@@ -18,6 +19,19 @@ export const MAX_NO_NEW_TEXT = { min: 1, max: 5, step: 1 } as const;
 export const PAGE_LOAD_DELAY = { min: 500, max: 5000, step: 250 } as const;
 export const VERIFY_TIMEOUT = { min: 2000, max: 20000, step: 1000 } as const;
 export const MAX_PAGES = { min: 1, max: 200, step: 1 } as const;
+
+export const DEFAULT_TRANSLATE_PROMPT =
+  'Translate the text naturally into {target}. Keep names, numbers, prices and URLs unchanged. Keep paragraph breaks. Output only the translation.';
+export const MAX_TRANSLATE_PROMPT = 1000;
+export const DEFAULT_TRANSLATE_MODEL = 'gemini-2.5-flash';
+
+export const DEFAULT_TRANSLATE_SETTINGS: TranslateSettings = {
+  consent: false,
+  target: 'hi',
+  source: 'auto',
+  prompt: DEFAULT_TRANSLATE_PROMPT,
+  model: DEFAULT_TRANSLATE_MODEL,
+};
 
 export const DEFAULT_PAGINATION_SETTINGS: PaginationSettings = {
   pageLoadDelayMs: 1250,
@@ -54,6 +68,7 @@ export const DEFAULT_CAPTURE_SETTINGS: CaptureSettings = {
   speech: DEFAULT_SPEECH_SETTINGS,
   reading: DEFAULT_READING_SETTINGS,
   pagination: DEFAULT_PAGINATION_SETTINGS,
+  translate: DEFAULT_TRANSLATE_SETTINGS,
 };
 
 function clamp(
@@ -145,6 +160,26 @@ export function sanitizePaginationSettings(raw: unknown): PaginationSettings {
   };
 }
 
+export function sanitizeTranslateSettings(raw: unknown): TranslateSettings {
+  const d = DEFAULT_TRANSLATE_SETTINGS;
+  const r = record(raw);
+  const model =
+    typeof r.model === 'string' && /^[A-Za-z0-9._-]{3,64}$/.test(r.model.trim())
+      ? r.model.trim()
+      : d.model;
+  return {
+    consent: bool(r.consent, d.consent),
+    target: isSpeechLanguage(r.target) ? r.target : d.target,
+    source:
+      r.source === 'auto' || isSpeechLanguage(r.source) ? r.source : d.source,
+    prompt:
+      typeof r.prompt === 'string' && r.prompt.trim().length > 0
+        ? r.prompt.slice(0, MAX_TRANSLATE_PROMPT)
+        : d.prompt,
+    model,
+  };
+}
+
 /** Field-by-field validation: one bad value never resets the others. */
 export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
   const d = DEFAULT_CAPTURE_SETTINGS;
@@ -166,6 +201,7 @@ export function sanitizeCaptureSettings(raw: unknown): CaptureSettings {
     speech: sanitizeSpeechSettings(r.speech),
     reading: sanitizeReadingSettings(r.reading),
     pagination: sanitizePaginationSettings(r.pagination),
+    translate: sanitizeTranslateSettings(r.translate),
   };
 }
 
@@ -200,6 +236,12 @@ export const captureSettingsStore = {
     const current = captureSettingsStore.read();
     return captureSettingsStore.update({
       reading: { ...current.reading, ...patch },
+    });
+  },
+  updateTranslate(patch: Partial<TranslateSettings>): CaptureSettings {
+    const current = captureSettingsStore.read();
+    return captureSettingsStore.update({
+      translate: { ...current.translate, ...patch },
     });
   },
   updatePagination(patch: Partial<PaginationSettings>): CaptureSettings {

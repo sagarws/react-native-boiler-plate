@@ -31,6 +31,8 @@ class ScreenOcrModule(context: ReactApplicationContext) :
 
   override fun invalidate() {
     if (ScreenOcrBus.listener === this) ScreenOcrBus.listener = null
+    gemini?.shutdown()
+    gemini = null
     UiThreadUtil.runOnUiThread {
       speech?.shutdown()
       speech = null
@@ -273,6 +275,41 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     }
     val problem = TargetValidator.validate(target, ScreenGeometryReader.current(reactApplicationContext))
     promise.resolve(target.toJson().put("problem", problem.id).toString())
+  }
+
+  // ── Gemini key (never returned to JS) ─────────────────────────────────
+
+  private val keyStore by lazy { SecureKeyStore(reactApplicationContext) }
+  private var gemini: GeminiClient? = null
+
+  override fun setGeminiKey(apiKey: String, promise: Promise) {
+    val trimmed = apiKey.trim()
+    promise.resolve(trimmed.length in 10..512 && keyStore.save(trimmed))
+  }
+
+  override fun clearGeminiKey() {
+    keyStore.clear()
+  }
+
+  override fun getGeminiKeyStatus(promise: Promise) {
+    promise.resolve(JSONObject().put("hasKey", keyStore.hasKey).put("hint", keyStore.hint).toString())
+  }
+
+  override fun testGeminiKey(promise: Promise) {
+    val key = keyStore.read()
+    if (key == null) {
+      promise.resolve("no_key")
+      return
+    }
+    val client = gemini ?: GeminiClient().also { gemini = it }
+    client.test(key, prefs.readConfig().translate) { result ->
+      promise.resolve(
+        result.fold(
+          onSuccess = { "ok" },
+          onFailure = { ((it as? TranslateException)?.error ?: TranslateError.SERVER).name.lowercase() },
+        ),
+      )
+    }
   }
 
   override fun clearPaginationTarget() {

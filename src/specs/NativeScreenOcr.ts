@@ -71,6 +71,23 @@ export interface Spec extends TurboModule {
    * against the current screen; '' when none is saved.
    */
   getPaginationTarget(): Promise<string>;
+
+  /**
+   * Saves the user's Gemini API key encrypted with an Android Keystore key.
+   * Resolves false if encryption failed. The key can never be read back from
+   * JS — only `getGeminiKeyStatus`.
+   */
+  setGeminiKey(apiKey: string): Promise<boolean>;
+  clearGeminiKey(): void;
+  /** JSON {"hasKey": boolean, "hint": "last 4 chars"}. */
+  getGeminiKeyStatus(): Promise<string>;
+  /**
+   * Sends a tiny translation request with the saved key and current
+   * settings. Resolves 'ok' or an error code (no_key, no_internet,
+   * invalid_key, api_disabled, quota, safety_blocked, server, timeout,
+   * bad_response).
+   */
+  testGeminiKey(): Promise<string>;
   clearPaginationTarget(): void;
   /**
    * Shows the Next-button picker over other apps. Resolves 'started', or

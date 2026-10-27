@@ -73,3 +73,20 @@ export type {
 } from './capture.types';
 export { useVoicePreview } from './hooks/useVoicePreview';
 export type { UseVoicePreview } from './hooks/useVoicePreview';
+export { useGeminiKey } from './hooks/useGeminiKey';
+export type { UseGeminiKey } from './hooks/useGeminiKey';
+export {
+  translateService,
+  looksLikeApiKey,
+  parseKeyStatus,
+} from './services/translate.service';
+export type {
+  GeminiKeyStatus,
+  GeminiTestOutcome,
+} from './services/translate.service';
+export {
+  DEFAULT_TRANSLATE_MODEL,
+  DEFAULT_TRANSLATE_PROMPT,
+  MAX_TRANSLATE_PROMPT,
+} from './store/captureSettings.store';
+export type { TranslateSettings } from './capture.types';
