@@ -10,9 +10,9 @@ const ERRORS = {
   resume_invalid: 'The session ended. Click Connect to pair again.',
   bad_request: 'The phone rejected the request. Update Akshar and this extension.',
   unreachable:
-    "Can't reach the phone. Is sharing on in the app? The computer and phone must be on the same network — the first three numbers of their addresses should match (e.g. 192.168.1.x).",
+    "Can't reach the phone. Is sharing on in the app? On the same network, the first three numbers of both addresses must match (e.g. 192.168.1.x). Using 127.0.0.1 (USB)? Keep 'npm run usb' running — adb drops the forward when it restarts.",
   timeout:
-    "No answer from the phone. Usually the computer and phone are on different networks (e.g. guest Wi-Fi, or 192.168.1.x vs 192.168.10.x). Join the same network, or use USB: run 'adb forward tcp:47811 tcp:47811' and connect to 127.0.0.1:47811.",
+    "No answer from the phone. Usually the computer and phone are on different networks (e.g. guest Wi-Fi, or 192.168.1.x vs 192.168.10.x). Join the same network, or use USB: keep 'npm run usb' running (in the extension folder) and connect to 127.0.0.1:47811.",
   closed: 'The connection was lost.',
   bad_server: "That device isn't Akshar. Check the address.",
   bad_version: 'Update Akshar or this extension — their versions differ.',

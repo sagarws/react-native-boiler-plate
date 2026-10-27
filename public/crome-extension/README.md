@@ -114,8 +114,12 @@ Fixes, in order of preference:
    connect the phone to the main (non-guest) Wi-Fi, or set the second
    router/mesh to bridge or access-point mode.
 2. **USB (works anywhere):** plug the phone in with USB debugging on, run
-   `adb forward tcp:47811 tcp:47811`, and enter `127.0.0.1:47811` as the
-   phone address in the extension.
+   **`npm run usb`** in this folder and leave it running, then enter
+   `127.0.0.1:47811` as the phone address in the extension. A one-off
+   `adb forward tcp:47811 tcp:47811` also works, but adb drops the forward
+   whenever it restarts (cable re-plugged, `npm run android`, Android
+   Studio, app installs). `npm run usb` re-applies it every 3 s and prints
+   whether the phone is ready.
 
 ## End-to-end test (Node 22+)
 
