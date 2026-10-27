@@ -119,20 +119,11 @@ class DriveCredentialStore(private val context: Context) {
 
   /** Saved values, else the build defaults (unless removed). */
   /**
-   * Saved values, else the build defaults (unless removed). Build defaults
-   * are copied into the encrypted store the first time they are used, so
-   * from then on everything comes from the local store (editable in
-   * Settings) — and a later build without `.env` values keeps working.
+   * Values saved in Settings (an override), else the build's `.env`
+   * defaults — unless the user removed them. The defaults are never copied
+   * into the store, so a new build's `.env` takes effect unless overridden.
    */
-  fun read(): DriveCredentials? = saved() ?: adoptDefaults()
-
-  /** Copies the build defaults into the store once; null if none / removed. */
-  private fun adoptDefaults(): DriveCredentials? {
-    if (defaultsDisabled) return null
-    val d = defaults() ?: return null
-    save(d)
-    return d
-  }
+  fun read(): DriveCredentials? = saved() ?: if (defaultsDisabled) null else defaults()
 
   fun save(credentials: DriveCredentials): Boolean {
     if (!secure.save(credentials.toJson())) return false
@@ -160,9 +151,8 @@ class DriveCredentialStore(private val context: Context) {
 
   /** What Settings may show. Never the secret or the token. */
   fun statusJson(): JSONObject {
-    if (saved() == null) adoptDefaults()
     val stored = saved()
-    val active = stored
+    val active = stored ?: if (defaultsDisabled) null else defaults()
     return JSONObject()
       .put("configured", active != null)
       .put("source", if (stored != null) "saved" else if (active != null) "default" else "none")

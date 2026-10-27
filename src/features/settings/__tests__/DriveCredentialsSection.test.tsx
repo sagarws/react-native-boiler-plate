@@ -116,7 +116,7 @@ describe('Settings → File Management → Shared Google Drive', () => {
       CLIENT_ID,
     );
     expect(JSON.stringify(r.toJSON())).toContain(
-      'Saved (…0000). Leave blank to keep it.',
+      'Current value …0000. Leave blank to keep it, or type a new one to override.',
     );
     await act(() =>
       find(r, 'drive-creds-folder', 'onChangeText').props.onChangeText(

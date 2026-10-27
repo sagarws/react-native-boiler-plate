@@ -656,10 +656,10 @@
     "refreshToken": "Refresh token",
     "folderId": "Folder ID or folder link",
     "folderIdPlaceholder": "Drive folder id, or https://drive.google.com/drive/folders/…",
-    "secretSaved": "Saved (…{{hint}}). Leave blank to keep it.",
+    "secretSaved": "Current value …{{hint}}. Leave blank to keep it, or type a new one to override.",
     "secretNew": "Required",
     "save": "Save",
-    "saved": "Saved. File Share now uses this Drive when no account is connected.",
+    "saved": "Saved. These values now override the .env defaults.",
     "saveFailed": "Not saved — check that every value is filled in and in the right format (client ID ends with .apps.googleusercontent.com).",
     "test": "Test connection",
     "testing": "Testing…",
@@ -671,7 +671,7 @@
     "openFiles": "Open File Management",
     "openFilesHint": "Google Drive and File Share",
     "security": "Stored encrypted on this phone (Android Keystore). The secret and refresh token are never shown again or sent anywhere except Google. Anyone with this Drive’s refresh token can access its files — keep it private and rotate it if it leaks.",
-    "usingDefault": "Using this build’s default configuration. Save your own values to replace it, or Remove to turn it off.",
+    "usingDefault": "Using the default configuration from .env. Type new values and Save to override them; “Use default configuration” brings the .env values back.",
     "restoreDefault": "Use default configuration",
     "restored": "Back to this build’s default configuration."
   }
