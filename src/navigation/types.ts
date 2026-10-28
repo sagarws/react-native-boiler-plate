@@ -22,6 +22,23 @@ export type MainStackParamList = {
   Dashboard: undefined;
   ExtractedText: ExtractedTextParams;
   FileManagement: undefined;
+  /** Manage Life; `tab` opens a section directly. */
+  ManageLife:
+    | {
+        tab?:
+          | 'dashboard'
+          | 'projects'
+          | 'today'
+          | 'calendar'
+          | 'history'
+          | 'insights';
+      }
+    | undefined;
+  LifeProject: { projectId: string };
+  /** No projectId = new project. */
+  LifeProjectForm: { projectId?: string };
+  /** No taskId = new task in projectId. */
+  LifeTaskForm: { projectId: string; taskId?: string };
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
   Settings: { tab?: 'general' | 'ocr' | 'files' } | undefined;
   Appearance: undefined;

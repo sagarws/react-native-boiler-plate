@@ -437,6 +437,34 @@ class ScreenOcrModule(context: ReactApplicationContext) :
     }
   }
 
+  /**
+   * Manage Life AI recommendations with the user's Gemini key/model. Resolves
+   * JSON {"outcome": "ok", "text": <model JSON>} or {"outcome": error code,
+   * "status", "detail"} — never rejects, never logs the data.
+   */
+  override fun lifeRecommendations(data: String, promise: Promise) {
+    val key = keyStore.read()
+    if (key == null) {
+      promise.resolve(JSONObject().put("outcome", "no_key").toString())
+      return
+    }
+    val client = gemini ?: GeminiClient().also { gemini = it }
+    client.lifeRecommendations(key, prefs.readConfig().translate, data) { result ->
+      val report = JSONObject()
+      result.fold(
+        onSuccess = { report.put("outcome", "ok").put("text", it) },
+        onFailure = {
+          val failure = it as? TranslateException
+          report
+            .put("outcome", (failure?.error ?: TranslateError.SERVER).name.lowercase())
+            .put("status", failure?.status ?: 0)
+            .put("detail", failure?.detail.orEmpty())
+        },
+      )
+      promise.resolve(report.toString())
+    }
+  }
+
   override fun listGeminiModels(promise: Promise) {
     val key = keyStore.read()
     if (key == null) {

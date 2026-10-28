@@ -81,6 +81,25 @@ class GeminiClient {
     }
   }
 
+  /**
+   * One structured request (no chunking): Manage Life recommendations.
+   * Same retries, timeouts, cancellation and error mapping as translation.
+   */
+  fun lifeRecommendations(apiKey: String, config: TranslateConfig, data: String, onResult: (Result<String>) -> Unit) {
+    val gen = generation.incrementAndGet()
+    executor.execute {
+      val result =
+        try {
+          request(apiKey, config.model, data, gen, { text, thinking -> LifeCoach.requestBody(config, text, thinking) }) {
+            LifeCoach.parse(it)
+          }.map { it.text }
+        } catch (e: Exception) {
+          Result.failure(TranslateException(TranslateError.SERVER, detail = e.javaClass.simpleName))
+        }
+      main.post { if (gen == generation.get()) onResult(result) }
+    }
+  }
+
   /** A minimal translation to check the key, model and thinking setting work. */
   fun test(apiKey: String, config: TranslateConfig, onResult: (Result<TranslationResult>) -> Unit) =
     translate(apiKey, config.copy(target = "hi", source = "auto"), "Hello, how are you?", onResult)

@@ -60,3 +60,5 @@ export { ChoiceList } from './ChoiceList';
 export type { ChoiceListProps, Choice } from './ChoiceList';
 export { ExpandableCard, animateNextLayout } from './ExpandableCard';
 export type { ExpandableCardProps } from './ExpandableCard';
+export { TabBar } from './TabBar';
+export type { TabBarProps } from './TabBar';

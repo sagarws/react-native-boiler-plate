@@ -20,6 +20,7 @@ No account, no API keys, no backend; release builds have no internet permission 
 - One-time **onboarding**, permission recovery, privacy and troubleshooting screens
 
 How capture, OCR, permissions and lifecycle work: **[docs/SCREEN_OCR.md](./docs/SCREEN_OCR.md)**.
+Projects, measurable tasks, progress tracking and AI recommendations: **[docs/MANAGE_LIFE.md](./docs/MANAGE_LIFE.md)**.
 
 Built on a React Native **0.85.3** boilerplate (New Architecture, TypeScript strict,
 feature-sliced `src/`, native-stack + drawer, i18next with typed keys, MMKV, NDK r28 /

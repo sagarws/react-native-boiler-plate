@@ -312,3 +312,32 @@ export const darkColors: ColorPalette = buildPalette(
   DEFAULT_THEME_PRESET,
   'dark',
 );
+
+/**
+ * User-selectable colours for Manage Life projects and tasks. Mid-tone hues
+ * that keep white icons/text readable on top and stay visible on both light
+ * and dark surfaces.
+ */
+export const categoryPalette = {
+  violet: '#7C3AED',
+  indigo: '#4F46E5',
+  blue: '#2563EB',
+  teal: '#0F766E',
+  emerald: '#15803D',
+  amber: '#B45309',
+  orange: '#C2410C',
+  rose: '#E11D48',
+  pink: '#BE185D',
+  slate: '#475569',
+} as const;
+
+export type CategoryColor = keyof typeof categoryPalette;
+
+export const CATEGORY_COLORS = Object.keys(categoryPalette) as CategoryColor[];
+
+/** The palette colour for [key], falling back to violet for unknown keys. */
+export function categoryColor(key: string): string {
+  return (
+    (categoryPalette as Record<string, string>)[key] ?? categoryPalette.violet
+  );
+}

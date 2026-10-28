@@ -135,6 +135,13 @@ export interface Spec extends TurboModule {
   clearPreviewCache(): void;
   /** Plays a Drive video in the app's own player screen. */
   playVideo(url: string, authorization: string, title: string): void;
+  /**
+   * Manage Life AI recommendations (existing Gemini key/model). [data] is a
+   * compact JSON summary of the user's own history. Resolves JSON
+   * {"outcome": "ok", "text": <model JSON>} or {"outcome": error code,
+   * "status", "detail"}.
+   */
+  lifeRecommendations(data: string): Promise<string>;
   clearPaginationTarget(): void;
   /**
    * Shows the Next-button picker over other apps. Resolves 'started', or

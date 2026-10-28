@@ -4,6 +4,12 @@ import { ExtractedTextScreen } from '@/features/capture';
 import { DashboardScreen } from '@/features/dashboard';
 import { FileManagementScreen } from '@/features/files';
 import {
+  ManageLifeScreen,
+  ProjectDetailScreen,
+  ProjectFormScreen,
+  TaskFormScreen,
+} from '@/features/life';
+import {
   AboutScreen,
   AppearanceScreen,
   SettingsScreen,
@@ -35,6 +41,16 @@ export default function MainNavigator() {
           name={ROUTES.FILE_MANAGEMENT}
           component={FileManagementScreen}
         />
+        <Stack.Screen name={ROUTES.MANAGE_LIFE} component={ManageLifeScreen} />
+        <Stack.Screen
+          name={ROUTES.LIFE_PROJECT}
+          component={ProjectDetailScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.LIFE_PROJECT_FORM}
+          component={ProjectFormScreen}
+        />
+        <Stack.Screen name={ROUTES.LIFE_TASK_FORM} component={TaskFormScreen} />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />
         <Stack.Screen name={ROUTES.ABOUT} component={AboutScreen} />

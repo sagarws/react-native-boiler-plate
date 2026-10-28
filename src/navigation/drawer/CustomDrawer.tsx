@@ -15,6 +15,7 @@ import type { MainStackParamList } from '../types';
 type DrawerTarget =
   | 'Dashboard'
   | 'FileManagement'
+  | 'ManageLife'
   | 'Settings'
   | 'Appearance'
   | 'About';
@@ -22,10 +23,11 @@ type DrawerTarget =
 const ITEMS: readonly {
   screen: DrawerTarget;
   icon: IconName;
-  label: 'home' | 'files' | 'settings' | 'appearance' | 'about';
+  label: 'home' | 'files' | 'life' | 'settings' | 'appearance' | 'about';
 }[] = [
   { screen: ROUTES.DASHBOARD, icon: 'scanText', label: 'home' },
   { screen: ROUTES.FILE_MANAGEMENT, icon: 'folder', label: 'files' },
+  { screen: ROUTES.MANAGE_LIFE, icon: 'gauge', label: 'life' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
   { screen: ROUTES.APPEARANCE, icon: 'palette', label: 'appearance' },
   { screen: ROUTES.ABOUT, icon: 'shieldCheck', label: 'about' },

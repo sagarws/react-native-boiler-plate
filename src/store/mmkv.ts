@@ -15,4 +15,12 @@ export const StorageKeys = {
   OnboardingComplete: 'app.onboardingComplete',
   /** File Management: the "Akshar" folder id in each connected Google account's Drive. */
   DriveRootFolders: 'files.driveRootFolders',
+  /** Manage Life: schema version + change counter. */
+  LifeMeta: 'life.meta',
+  LifeProjects: 'life.projects',
+  LifeTasks: 'life.tasks',
+  LifeReports: 'life.reports',
+  LifeReviews: 'life.reviews',
+  /** Last AI recommendations (with the data version they were made from). */
+  LifeRecommendations: 'life.recommendations',
 } as const;
