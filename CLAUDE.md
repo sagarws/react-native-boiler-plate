@@ -35,12 +35,16 @@ src/config/           env.ts (validated .env) · apiEndpoint.ts (runtime overrid
 src/services/api/     client.ts · errors.ts · upload.ts
 src/services/realtime/
 src/store/mmkv.ts     every storage key, in one place
-src/specs/            TurboModule codegen spec — only features/capture/services may import it
+src/specs/            TurboModule codegen specs — each imported only by its owner's services/
+                      (NativeScreenOcr → capture, NativeFollowUp → followup, NativeUtility → utility)
 src/features/
   capture/            screen-OCR service wrapper, settings/history stores, review screen
   onboarding/         one-time setup
   dashboard/          home
   settings/           settings, appearance, about
+  life/               Manage Life (projects, targets, widget)
+  followup/           Follow Up CRM (contacts, follow-ups, reminders) — docs/FOLLOW_UP.md
+  utility/            Utility tools (scanner, documents, compass, AR measure, water eject) — docs/UTILITY.md
   auth/  session/     boilerplate login (disabled)
 src/navigation/  src/i18n/  src/theme/  src/types/
 src/shared/           assets/ components/ hooks/ utils/ — cross-feature only

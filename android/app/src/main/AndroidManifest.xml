@@ -6,6 +6,16 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Android 13+: lets the capture service's ongoing notification show. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Utility: QR/barcode scanner and AR Measure (asked only when one of
+         them is opened). Not required: the app installs on phones without a
+         camera or ARCore, and those tools explain they're unavailable. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
+    <!-- Utility: optional vibration in Speaker Water Eject. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Follow Up: re-arm reminder alarms after a reboot. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- "Display over other apps": draws the floating capture button. -->
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <!-- Android requires a foreground service of type mediaProjection while
@@ -60,7 +70,54 @@
             <category android:name="android.intent.category.DEFAULT" />
             <data android:scheme="rnboilerplate" android:host="life" />
         </intent-filter>
+        <!-- Follow Up reminder notifications open the contact. Not BROWSABLE. -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:scheme="rnboilerplate" android:host="followup" />
+        </intent-filter>
       </activity>
+
+      <!-- AR Measure works where ARCore is available; elsewhere it explains why not. -->
+      <meta-data android:name="com.google.ar.core" android:value="optional" />
+
+      <!-- Utility: full-screen camera tools (not exported). -->
+      <activity
+        android:name=".utility.BarcodeScanActivity"
+        android:exported="false"
+        android:screenOrientation="portrait"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+      <activity
+        android:name=".utility.MeasureActivity"
+        android:exported="false"
+        android:screenOrientation="portrait"
+        android:configChanges="orientation|screenSize"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
+      <!-- Follow Up reminders: fired by the app's own alarms only. -->
+      <receiver
+        android:name=".followup.ReminderReceiver"
+        android:exported="false" />
+      <receiver
+        android:name=".followup.ReminderBootReceiver"
+        android:exported="false">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+          <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+        </intent-filter>
+      </receiver>
+
+      <!-- Private files (attachments, scanned documents) handed to a viewer
+           or the share sheet with one-off read grants. -->
+      <provider
+        android:name="androidx.core.content.FileProvider"
+        android:authorities="${applicationId}.files"
+        android:exported="false"
+        android:grantUriPermissions="true">
+        <meta-data
+          android:name="android.support.FILE_PROVIDER_PATHS"
+          android:resource="@xml/file_paths" />
+      </provider>
 
       <!-- Shows the system screen-capture consent dialog; no UI of its own. -->
       <!-- File Management: in-app video player (not exported). -->

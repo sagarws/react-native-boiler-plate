@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Private app files that may be handed to a viewer or the share sheet via
+     content:// URIs (read-only, per-intent grants). Nothing here is public. -->
+<paths>
+  <files-path name="files" path="." />
+  <cache-path name="cache" path="." />
+</paths>

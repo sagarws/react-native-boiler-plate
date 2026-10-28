@@ -4,6 +4,11 @@ import { ExtractedTextScreen } from '@/features/capture';
 import { DashboardScreen } from '@/features/dashboard';
 import { FileManagementScreen } from '@/features/files';
 import {
+  ContactDetailScreen,
+  ContactFormScreen,
+  FollowUpScreen,
+} from '@/features/followup';
+import {
   ManageLifeScreen,
   ProjectDetailScreen,
   ProjectFormScreen,
@@ -14,6 +19,15 @@ import {
   AppearanceScreen,
   SettingsScreen,
 } from '@/features/settings';
+import {
+  CompassScreen,
+  DocumentScreen,
+  DocumentsScreen,
+  MeasureScreen,
+  ScannerScreen,
+  UtilityHubScreen,
+  WaterEjectScreen,
+} from '@/features/utility';
 import { DrawerHost } from './drawer';
 import { ROUTES } from './routes';
 import type { MainStackParamList } from './types';
@@ -51,6 +65,31 @@ export default function MainNavigator() {
           component={ProjectFormScreen}
         />
         <Stack.Screen name={ROUTES.LIFE_TASK_FORM} component={TaskFormScreen} />
+        <Stack.Screen name={ROUTES.FOLLOW_UP} component={FollowUpScreen} />
+        <Stack.Screen
+          name={ROUTES.FOLLOW_UP_CONTACT}
+          component={ContactDetailScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.FOLLOW_UP_CONTACT_FORM}
+          component={ContactFormScreen}
+        />
+        <Stack.Screen name={ROUTES.UTILITY} component={UtilityHubScreen} />
+        <Stack.Screen name={ROUTES.UTILITY_COMPASS} component={CompassScreen} />
+        <Stack.Screen name={ROUTES.UTILITY_SCANNER} component={ScannerScreen} />
+        <Stack.Screen
+          name={ROUTES.UTILITY_DOCUMENTS}
+          component={DocumentsScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.UTILITY_DOCUMENT}
+          component={DocumentScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.UTILITY_WATER_EJECT}
+          component={WaterEjectScreen}
+        />
+        <Stack.Screen name={ROUTES.UTILITY_MEASURE} component={MeasureScreen} />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />
         <Stack.Screen name={ROUTES.ABOUT} component={AboutScreen} />

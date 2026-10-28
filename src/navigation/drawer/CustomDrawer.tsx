@@ -1,5 +1,12 @@
 import React from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +23,8 @@ type DrawerTarget =
   | 'Dashboard'
   | 'FileManagement'
   | 'ManageLife'
+  | 'FollowUp'
+  | 'Utility'
   | 'Settings'
   | 'Appearance'
   | 'About';
@@ -23,11 +32,21 @@ type DrawerTarget =
 const ITEMS: readonly {
   screen: DrawerTarget;
   icon: IconName;
-  label: 'home' | 'files' | 'life' | 'settings' | 'appearance' | 'about';
+  label:
+    | 'home'
+    | 'files'
+    | 'life'
+    | 'followUp'
+    | 'utility'
+    | 'settings'
+    | 'appearance'
+    | 'about';
 }[] = [
   { screen: ROUTES.DASHBOARD, icon: 'scanText', label: 'home' },
   { screen: ROUTES.FILE_MANAGEMENT, icon: 'folder', label: 'files' },
   { screen: ROUTES.MANAGE_LIFE, icon: 'gauge', label: 'life' },
+  { screen: ROUTES.FOLLOW_UP, icon: 'users', label: 'followUp' },
+  { screen: ROUTES.UTILITY, icon: 'wrench', label: 'utility' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
   { screen: ROUTES.APPEARANCE, icon: 'palette', label: 'appearance' },
   { screen: ROUTES.ABOUT, icon: 'shieldCheck', label: 'about' },
@@ -107,7 +126,11 @@ export function CustomDrawer() {
         ) : null}
       </View>
 
-      <View style={{ padding: spacing.sm, gap: spacing.xs }}>
+      {/* Scrolls when the list is taller than the screen (e.g. landscape). */}
+      <ScrollView
+        style={styles.items}
+        contentContainerStyle={{ padding: spacing.sm, gap: spacing.xs }}
+      >
         {ITEMS.map(item => (
           <Pressable
             key={item.screen}
@@ -130,7 +153,7 @@ export function CustomDrawer() {
             </Text>
           </Pressable>
         ))}
-      </View>
+      </ScrollView>
 
       {FEATURES.auth ? (
         <View style={styles.footer}>
@@ -157,5 +180,6 @@ export function CustomDrawer() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 52 },
-  footer: { flex: 1, justifyContent: 'flex-end' },
+  items: { flexGrow: 1, flexShrink: 1 },
+  footer: { justifyContent: 'flex-end' },
 });

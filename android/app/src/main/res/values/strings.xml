@@ -107,6 +107,9 @@
 
     <!-- Manage Life widget (labels after the first update come from the app's i18n) -->
     <string name="life_widget_label">Manage Life</string>
+    <string name="followup_channel_name">Follow-up reminders</string>
+    <string name="followup_channel_description">Reminders for follow-ups and birthdays you scheduled in Follow Up.</string>
+    <string name="followup_reminder_public">Follow-up reminder</string>
     <string name="life_widget_description">Today\'s targets with progress and quick logging</string>
     <string name="life_widget_title">Today\'s targets</string>
     <string name="life_widget_setup">Open Akshar → Manage Life to add tasks.</string>

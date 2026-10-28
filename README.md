@@ -22,6 +22,10 @@ No account, no API keys, no backend; release builds have no internet permission 
 How capture, OCR, permissions and lifecycle work: **[docs/SCREEN_OCR.md](./docs/SCREEN_OCR.md)**.
 Projects, measurable tasks, progress tracking and AI recommendations: **[docs/MANAGE_LIFE.md](./docs/MANAGE_LIFE.md)**.
 
+A personal CRM — contacts, follow-ups, call/WhatsApp, reminders: **[docs/FOLLOW_UP.md](./docs/FOLLOW_UP.md)**.
+
+QR/barcode scanner, document scanner, compass, AR Measure and Speaker Water Eject: **[docs/UTILITY.md](./docs/UTILITY.md)**.
+
 Built on a React Native **0.85.3** boilerplate (New Architecture, TypeScript strict,
 feature-sliced `src/`, native-stack + drawer, i18next with typed keys, MMKV, NDK r28 /
 targetSdk 36). The boilerplate's login/session/API layers are kept but switched off with

@@ -23,4 +23,22 @@ export const StorageKeys = {
   LifeReviews: 'life.reviews',
   /** Last AI recommendations (with the data version they were made from). */
   LifeRecommendations: 'life.recommendations',
+  /** Follow Up: schema version + change counter. */
+  FollowUpMeta: 'followup.meta',
+  FollowUpContacts: 'followup.contacts',
+  FollowUpActivities: 'followup.activities',
+  FollowUpNotes: 'followup.notes',
+  /** App-observed timeline entries (dialer/WhatsApp opened, rescheduled). */
+  FollowUpEvents: 'followup.events',
+  FollowUpCategories: 'followup.categories',
+  FollowUpTags: 'followup.tags',
+  FollowUpSettings: 'followup.settings',
+  /** Utility: QR/barcode scan history. */
+  UtilityScans: 'utility.scans',
+  /** Utility: saved AR measurements. */
+  UtilityMeasurements: 'utility.measurements',
+  /** Utility: scanned documents (page files live in app storage). */
+  UtilityDocuments: 'utility.documents',
+  /** Utility: tool preferences (units, water-eject mode, …). */
+  UtilityPrefs: 'utility.prefs',
 } as const;

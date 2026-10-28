@@ -39,8 +39,22 @@ export type MainStackParamList = {
   LifeProjectForm: { projectId?: string };
   /** No taskId = new task in projectId. */
   LifeTaskForm: { projectId: string; taskId?: string };
+  /** Follow Up; `view` opens a list directly (e.g. from a reminder). */
+  FollowUp:
+    | { view?: 'pending' | 'today' | 'overdue' | 'upcoming' | 'done' | 'all' }
+    | undefined;
+  FollowUpContact: { contactId: string };
+  /** No contactId = new contact. */
+  FollowUpContactForm: { contactId?: string };
+  Utility: undefined;
+  UtilityCompass: undefined;
+  UtilityScanner: undefined;
+  UtilityDocuments: undefined;
+  UtilityDocument: { documentId: string };
+  UtilityWaterEject: undefined;
+  UtilityMeasure: undefined;
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
-  Settings: { tab?: 'general' | 'ocr' | 'files' } | undefined;
+  Settings: { tab?: 'general' | 'ocr' | 'files' | 'followup' } | undefined;
   Appearance: undefined;
   About: undefined;
 };

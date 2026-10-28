@@ -1,7 +1,7 @@
 import React from 'react';
 import { TabBar } from '@/shared/components';
 
-export type SettingsTab = 'general' | 'ocr' | 'files';
+export type SettingsTab = 'general' | 'ocr' | 'files' | 'followup';
 
 export interface SettingsTabsProps {
   value: SettingsTab;
@@ -10,7 +10,7 @@ export interface SettingsTabsProps {
   accessibilityLabel: string;
 }
 
-/** The General / OCR / File Management switcher at the top of Settings. */
+/** The General / OCR / File Management / Follow Up switcher at the top of Settings. */
 export function SettingsTabs(props: SettingsTabsProps) {
-  return <TabBar {...props} testID="settings-tab" />;
+  return <TabBar {...props} scrollable testID="settings-tab" />;
 }

@@ -5,6 +5,7 @@ import '@/i18n';
 import RootNavigator from '@/navigation/RootNavigator';
 import { setAuthTokenProvider } from '@/services/api';
 import { useCaptureSync } from '@/features/capture';
+import { useReminderSync } from '@/features/followup';
 import { useLifeWidgetSync } from '@/features/life';
 import { sessionStore } from '@/features/session';
 import { ThemeProvider, useTheme } from '@/theme';
@@ -19,6 +20,7 @@ function ThemedApp() {
   const { scheme, colors } = useTheme();
   useCaptureSync();
   useLifeWidgetSync();
+  useReminderSync();
 
   return (
     <>

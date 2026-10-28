@@ -6,7 +6,9 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.rnboilerplate.followup.FollowUpPackage
 import com.rnboilerplate.screenocr.ScreenOcrPackage
+import com.rnboilerplate.utility.UtilityPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -17,6 +19,8 @@ class MainApplication : Application(), ReactApplication {
         PackageList(this).packages.apply {
           // App-local native modules are not autolinked; register them here.
           add(ScreenOcrPackage())
+          add(FollowUpPackage())
+          add(UtilityPackage())
         },
     )
   }
