@@ -142,6 +142,13 @@ export interface Spec extends TurboModule {
    * "status", "detail"}.
    */
   lifeRecommendations(data: string): Promise<string>;
+  /** Manage Life widget: saves the snapshot JSON of today's tasks and redraws. */
+  updateLifeWidget(snapshot: string): void;
+  /**
+   * Quick logs made on the widget, as a JSON array of
+   * {id, task, day, q, at}; the native queue is cleared.
+   */
+  takeLifeWidgetLogs(): Promise<string>;
   clearPaginationTarget(): void;
   /**
    * Shows the Next-button picker over other apps. Resolves 'started', or

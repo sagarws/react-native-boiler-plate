@@ -54,6 +54,12 @@
             <category android:name="android.intent.category.DEFAULT" />
             <data android:scheme="rnboilerplate" android:host="capture" />
         </intent-filter>
+        <!-- The Manage Life widget opens Manage Life → Today. Not BROWSABLE. -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:scheme="rnboilerplate" android:host="life" />
+        </intent-filter>
       </activity>
 
       <!-- Shows the system screen-capture consent dialog; no UI of its own. -->
@@ -69,6 +75,23 @@
         android:excludeFromRecents="true"
         android:noHistory="false"
         android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+
+      <!-- Manage Life home-screen widget. Exported for the launcher; quick-log
+           broadcasts are only accepted with the widget's private token. -->
+      <receiver
+        android:name=".lifewidget.LifeWidgetProvider"
+        android:exported="true"
+        android:label="@string/life_widget_label">
+        <intent-filter>
+            <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            <!-- Redraw for the new day when the clock or timezone changes. -->
+            <action android:name="android.intent.action.TIME_SET" />
+            <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+        </intent-filter>
+        <meta-data
+            android:name="android.appwidget.provider"
+            android:resource="@xml/life_widget_info" />
+      </receiver>
 
       <!-- Allow / Deny on the audio-sharing connection request notification. -->
       <receiver

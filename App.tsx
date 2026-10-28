@@ -5,6 +5,7 @@ import '@/i18n';
 import RootNavigator from '@/navigation/RootNavigator';
 import { setAuthTokenProvider } from '@/services/api';
 import { useCaptureSync } from '@/features/capture';
+import { useLifeWidgetSync } from '@/features/life';
 import { sessionStore } from '@/features/session';
 import { ThemeProvider, useTheme } from '@/theme';
 
@@ -13,10 +14,11 @@ import { ThemeProvider, useTheme } from '@/theme';
 // `FEATURES.auth` is off — the OCR app makes no network requests.
 setAuthTokenProvider(() => sessionStore.read()?.accessToken);
 
-/** Everything that needs the theme: status bar, capture sync, navigation. */
+/** Everything that needs the theme: status bar, capture/widget sync, navigation. */
 function ThemedApp() {
   const { scheme, colors } = useTheme();
   useCaptureSync();
+  useLifeWidgetSync();
 
   return (
     <>

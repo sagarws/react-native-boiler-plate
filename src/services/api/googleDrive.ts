@@ -232,11 +232,14 @@ export function createDriveClient(getToken: DriveTokenProvider) {
     });
     if (!response.ok && response.status !== 206) {
       const data = await parse(response);
-      throw new ApiError(errorMessage(data, `Download failed (${response.status})`), {
-        status: response.status,
-        url,
-        body: data,
-      });
+      throw new ApiError(
+        errorMessage(data, `Download failed (${response.status})`),
+        {
+          status: response.status,
+          url,
+          body: data,
+        },
+      );
     }
     return response.text();
   }

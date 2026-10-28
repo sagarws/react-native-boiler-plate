@@ -124,5 +124,16 @@ export {
   PreviewUnavailable,
 } from './services/filePreview.service';
 export type { PreviewError } from './services/filePreview.service';
-export { lifeCoachService, parseLifeCoachReply } from './services/lifeCoach.service';
-export type { LifeCoachOutcome, LifeCoachReply } from './services/lifeCoach.service';
+export {
+  lifeCoachService,
+  parseLifeCoachReply,
+} from './services/lifeCoach.service';
+export type {
+  LifeCoachOutcome,
+  LifeCoachReply,
+} from './services/lifeCoach.service';
+export {
+  lifeWidgetService,
+  parseWidgetLogs,
+} from './services/lifeWidget.service';
+export type { WidgetLogEntry } from './services/lifeWidget.service';

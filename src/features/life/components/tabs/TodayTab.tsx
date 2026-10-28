@@ -13,7 +13,7 @@ const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const;
 
 /**
  * Today's targets with one-tap logging. Focus tasks first, then by priority;
- * this is also the in-app "quick entry" (there is no home-screen widget).
+ * also the in-app quick entry (the home-screen widget is the other).
  */
 export function TodayTab({ data, today, now, onLog, onOpenProject }: TabProps) {
   const { t } = useTranslation();

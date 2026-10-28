@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Manage Life widget colours (native; the RN UI uses theme tokens). -->
+<resources>
+    <color name="life_widget_background">#FFFFFFFF</color>
+    <color name="life_widget_row">#FFF3F1FA</color>
+    <color name="life_widget_text">#FF1C1B22</color>
+    <color name="life_widget_muted">#FF5F5B6B</color>
+    <color name="life_widget_primary">#FF7C3AED</color>
+    <color name="life_widget_on_primary">#FFFFFFFF</color>
+    <color name="life_widget_track">#FFE2DDF0</color>
+</resources>

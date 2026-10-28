@@ -975,7 +975,7 @@
     "pickDate": "Choose a date",
     "clear": "Clear",
     "done": "Done",
-    "widgetNote": "Quick logging lives on the Today tab (one tap per task). A home-screen widget isn’t available yet.",
+    "widgetNote": "Tip: add the “Manage Life” widget to your home screen to see progress and log with one tap.",
     "color_violet": "Violet",
     "color_indigo": "Indigo",
     "color_blue": "Blue",
@@ -1009,6 +1009,13 @@
     "icon_cloud": "Cloud",
     "icon_play": "Play",
     "local_early": "Keep logging — observations appear once a few target periods have ended.",
-    "legend_upcoming": "Upcoming"
+    "legend_upcoming": "Upcoming",
+    "widget_title": "Today’s targets",
+    "widget_empty": "No targets left for today.",
+    "widget_setup": "Open Akshar → Manage Life to add tasks.",
+    "widget_endsToday": "Ends today",
+    "widget_endsOn": "Ends {{date}}",
+    "widget_stale": "Open Akshar to update",
+    "widget_more": "+{{count}} more in the app"
   }
 }

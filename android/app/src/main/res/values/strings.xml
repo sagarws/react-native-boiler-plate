@@ -105,6 +105,12 @@
     <string name="picker_anchor_screen">Fixed position</string>
     <string name="picker_anchor_content">Moves with page</string>
 
+    <!-- Manage Life widget (labels after the first update come from the app's i18n) -->
+    <string name="life_widget_label">Manage Life</string>
+    <string name="life_widget_description">Today\'s targets with progress and quick logging</string>
+    <string name="life_widget_title">Today\'s targets</string>
+    <string name="life_widget_setup">Open Akshar → Manage Life to add tasks.</string>
+
     <!-- Accessibility service (shown in Android settings) -->
     <string name="scroll_service_label">Akshar page turner</string>
     <string name="scroll_service_summary">Scrolls or turns the page while Akshar reads it aloud</string>

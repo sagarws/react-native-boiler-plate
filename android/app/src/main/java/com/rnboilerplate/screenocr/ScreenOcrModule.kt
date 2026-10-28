@@ -1,5 +1,7 @@
 package com.rnboilerplate.screenocr
 
+import com.rnboilerplate.lifewidget.LifeWidgetProvider
+import com.rnboilerplate.lifewidget.LifeWidgetStore
 import com.rnboilerplate.screenocr.share.AudioShareHub
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -463,6 +465,17 @@ class ScreenOcrModule(context: ReactApplicationContext) :
       )
       promise.resolve(report.toString())
     }
+  }
+
+  /** Manage Life widget: stores the app's snapshot of today's tasks and redraws. */
+  override fun updateLifeWidget(snapshot: String) {
+    LifeWidgetStore(reactApplicationContext).saveSnapshot(snapshot)
+    LifeWidgetProvider.refresh(reactApplicationContext)
+  }
+
+  /** Quick logs made on the widget since the last call (the queue is cleared). */
+  override fun takeLifeWidgetLogs(promise: Promise) {
+    promise.resolve(LifeWidgetStore(reactApplicationContext).takeLogs().toString())
   }
 
   override fun listGeminiModels(promise: Promise) {
