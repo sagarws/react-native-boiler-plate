@@ -24,6 +24,17 @@ export interface Spec extends TurboModule {
     mimeType: string,
     content: string,
   ): Promise<boolean>;
+  /**
+   * Every phone contact with a number, as JSON
+   * `[{id, name, phones[], email?, organization?, birthday?}]`. Rejects
+   * `contacts_permission` without READ_CONTACTS.
+   */
+  getDeviceContacts(): Promise<string>;
+  /**
+   * The system contact picker (no permission needed). Resolves the chosen
+   * entry as JSON `{id, name, phones[]}`, or '' when cancelled.
+   */
+  pickDeviceContact(): Promise<string>;
   /** Opens a private attachment (file:// in app storage) in a viewer app. */
   openAttachment(uri: string, mimeType: string): Promise<boolean>;
 }

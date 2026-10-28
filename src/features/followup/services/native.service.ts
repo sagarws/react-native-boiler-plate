@@ -52,6 +52,34 @@ export const followUpNative = {
     }
   },
 
+  /** Address-book contacts (JSON); rejects 'contacts_permission'. */
+  async deviceContacts(): Promise<NativeOutcome<string>> {
+    if (!NativeFollowUp) return { ok: false, error: 'unavailable' };
+    try {
+      return { ok: true, value: await NativeFollowUp.getDeviceContacts() };
+    } catch (error) {
+      const code = (error as { code?: string })?.code;
+      if (code === 'contacts_permission')
+        return { ok: false, error: 'blocked' };
+      logger.warn(
+        'device contacts could not be read',
+        (error as Error)?.message,
+      );
+      return { ok: false, error: 'failed' };
+    }
+  },
+
+  /** The system contact picker; '' when cancelled. */
+  async pickContact(): Promise<NativeOutcome<string>> {
+    if (!NativeFollowUp) return { ok: false, error: 'unavailable' };
+    try {
+      return { ok: true, value: await NativeFollowUp.pickDeviceContact() };
+    } catch (error) {
+      logger.warn('contact picker failed', (error as Error)?.message);
+      return { ok: false, error: 'failed' };
+    }
+  },
+
   async openAttachment(uri: string, mime: string): Promise<boolean> {
     if (!NativeFollowUp) return false;
     try {

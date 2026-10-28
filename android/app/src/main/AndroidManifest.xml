@@ -14,6 +14,9 @@
     <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
     <!-- Utility: optional vibration in Speaker Water Eject. -->
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Follow Up: "fill from contacts" on the contact form (asked on tap;
+         without it the system picker is offered instead). -->
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
     <!-- Follow Up: re-arm reminder alarms after a reboot. -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- "Display over other apps": draws the floating capture button. -->

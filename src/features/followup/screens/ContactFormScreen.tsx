@@ -1,5 +1,12 @@
 import React, { useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   StackActions,
@@ -13,7 +20,9 @@ import { ROUTES } from '@/navigation/routes';
 import type { MainStackParamList } from '@/navigation/types';
 import {
   Button,
+  COUNTRIES,
   Header,
+  Icon,
   MobileNumberInput,
   Notice,
   ToggleSwitch,
@@ -22,6 +31,8 @@ import { todayKey, type DayKey } from '@/shared/utils/dayKey';
 import { pickPicture } from '@/shared/utils/pickFile';
 import { categoryColor, useTheme } from '@/theme';
 import { BirthDateInput } from '../components/BirthDateInput';
+import { DeviceContactsModal } from '../components/DeviceContactsModal';
+import { fillFrom, type DeviceContact } from '../services/deviceContacts';
 import { ContactAvatar } from '../components/ContactCard';
 import {
   LabelEditorSheet,
@@ -56,7 +67,7 @@ const FIELD_OF: Partial<Record<FollowUpError, FieldKey>> = {
 export default function ContactFormScreen() {
   const { t } = useTranslation();
   const { top, bottom } = useSafeAreaInsets();
-  const { colors, typography, spacing } = useTheme();
+  const { colors, typography, spacing, radius } = useTheme();
   const navigation = useNavigation();
   const { params } =
     useRoute<RouteProp<MainStackParamList, 'FollowUpContactForm'>>();
@@ -96,6 +107,33 @@ export default function ContactFormScreen() {
   });
   const [errors, setErrors] = useState<Partial<Record<FieldKey, string>>>({});
   const [label, setLabel] = useState<LabelTarget | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  // Remounts the birth-date boxes when a contact fills them.
+  const [birthKey, setBirthKey] = useState(0);
+  const [filledFrom, setFilledFrom] = useState<string | null>(null);
+
+  /** Fills the form from a phone contact; fields it doesn't have stay as typed. */
+  const fillFromContact = (contact: DeviceContact, phone: string) => {
+    const fill = fillFrom(
+      contact,
+      phone,
+      form.dial,
+      COUNTRIES.map(c => c.dial),
+    );
+    set({
+      name: fill.name || form.name,
+      dial: fill.dial,
+      phone: fill.phone,
+      email: fill.email || form.email,
+      organization: fill.organization || form.organization,
+      ...(fill.birthDate ? { birthDate: fill.birthDate } : {}),
+    });
+    if (fill.birthDate) {
+      setBirth(fill.birthDate);
+      setBirthKey(k => k + 1);
+    }
+    setFilledFrom(contact.name || phone);
+  };
   const saving = useRef(false);
 
   const set = (patch: Partial<ContactInput>) => {
@@ -265,14 +303,43 @@ export default function ContactFormScreen() {
           </View>
         </View>
 
-        <FormField
-          label={`${t('followUp.name')} *`}
-          value={form.name}
-          onChangeText={name => set({ name })}
-          maxLength={80}
-          autoCapitalize="words"
-          testID="contact-name"
-        />
+        {filledFrom ? (
+          <Notice
+            tone="success"
+            message={t('followUp.filledFromContact', { name: filledFrom })}
+            onDismiss={() => setFilledFrom(null)}
+            testID="contact-filled"
+          />
+        ) : null}
+        <View style={[styles.row, styles.bottom, { gap: spacing.sm }]}>
+          <View style={styles.flex}>
+            <FormField
+              label={`${t('followUp.name')} *`}
+              value={form.name}
+              onChangeText={name => set({ name })}
+              maxLength={80}
+              autoCapitalize="words"
+              testID="contact-name"
+            />
+          </View>
+          <Pressable
+            onPress={() => setPickerOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={t('followUp.pickFromContacts')}
+            accessibilityHint={t('followUp.pickFromContactsHint')}
+            testID="contact-pick"
+            style={[
+              styles.pick,
+              {
+                borderRadius: radius.md,
+                backgroundColor: colors.primarySoft,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            <Icon name="bookUser" size={22} color={colors.primaryText} />
+          </Pressable>
+        </View>
         {error('name')}
 
         <Field label={`${t('followUp.mobile')} *`}>
@@ -289,6 +356,7 @@ export default function ContactFormScreen() {
         </Field>
 
         <BirthDateInput
+          key={birthKey}
           value={form.birthDate ?? ''}
           onChange={setBirth}
           testID="contact-birth"
@@ -433,6 +501,11 @@ export default function ContactFormScreen() {
           testID="contact-save"
         />
       </ScrollView>
+      <DeviceContactsModal
+        visible={pickerOpen}
+        onClose={() => setPickerOpen(false)}
+        onSelect={fillFromContact}
+      />
       <LabelEditorSheet
         target={label}
         onClose={() => setLabel(null)}
@@ -450,4 +523,12 @@ const styles = StyleSheet.create({
   screen: { flex: 1 },
   row: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
+  bottom: { alignItems: 'flex-end' },
+  pick: {
+    width: 48,
+    height: 48,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

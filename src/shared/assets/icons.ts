@@ -14,6 +14,7 @@ export const icons = {
   audioLines: require('./icons/audio-lines.png'),
   bell: require('./icons/bell.png'),
   bookOpen: require('./icons/book-open.png'),
+  bookUser: require('./icons/book-user.png'),
   building2: require('./icons/building-2.png'),
   cake: require('./icons/cake.png'),
   calendar: require('./icons/calendar.png'),

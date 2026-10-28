@@ -17,15 +17,18 @@ import java.util.concurrent.Executors
  */
 class FollowUpModule(context: ReactApplicationContext) : NativeFollowUpSpec(context) {
   private val saver = DocumentSaver(context, REQUEST_SAVE)
+  private val picker = ContactPicker(context, REQUEST_PICK)
   private val io = Executors.newSingleThreadExecutor()
 
   override fun initialize() {
     super.initialize()
     saver.attach()
+    picker.attach()
   }
 
   override fun invalidate() {
     saver.detach()
+    picker.detach()
     io.shutdown()
     super.invalidate()
   }
@@ -55,9 +58,24 @@ class FollowUpModule(context: ReactApplicationContext) : NativeFollowUpSpec(cont
     promise.resolve(file != null && FileShare.open(reactApplicationContext, file, mimeType))
   }
 
+  override fun getDeviceContacts(promise: Promise) {
+    io.execute {
+      try {
+        promise.resolve(DeviceContacts.readAll(reactApplicationContext))
+      } catch (e: SecurityException) {
+        promise.reject("contacts_permission", "Contacts permission not granted", e)
+      } catch (e: Exception) {
+        promise.reject("read_failed", e.message ?: "Could not read contacts", e)
+      }
+    }
+  }
+
+  override fun pickDeviceContact(promise: Promise) = picker.pick(promise)
+
   companion object {
     const val NAME = NativeFollowUpSpec.NAME
     private const val REQUEST_SAVE = 0x4655
+    private const val REQUEST_PICK = 0x4657
   }
 }
 

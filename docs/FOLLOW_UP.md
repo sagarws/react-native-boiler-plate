@@ -14,6 +14,18 @@ Sidebar → **Follow Up**. Settings → **Follow Up** tab.
 | `ContactDetailScreen` | Details, call / WhatsApp / schedule / note, open follow-ups (mark done, change, cancel), full timeline, active/inactive, delete (confirmed). |
 | `FollowUpSettings` (Settings tab) | Reminders, defaults (country code, type, start view), categories & tags (create, rename, colour/icon, activate, delete), export CSV/JSON, delete all. |
 
+## Fill from phone contacts
+
+The contacts button at the right end of the Name field opens the phone’s
+contacts (`components/DeviceContactsModal.tsx`), searchable by name or number.
+Choosing one — or one of its numbers when it has several — fills name, country
+code + number (`+44 …` is split using the known codes; unknown codes use the
+`00…` form), email, organisation and birthday (only when it has a year).
+Contacts already in Follow Up are marked. `READ_CONTACTS` is asked only on tap;
+if refused, **Pick one contact instead** opens the system picker, which needs no
+permission. The list is read on the phone and held only while the screen is
+open; only the chosen contact is saved, after the usual duplicate check.
+
 ## Data model (`src/features/followup/types.ts`)
 
 - **Contact** — `dial` + national `phone` + normalised `e164` digits (used for `tel:` and `wa.me`).
@@ -61,7 +73,6 @@ follow-ups drop out with no duplicates.
 - Country picker lists the app’s existing countries; others work by typing `00` + code.
 - Reminder timing is approximate in battery-saving modes.
 - Attachments are private copies in app storage; the JSON backup references them but doesn’t embed them.
-- No import from the phone’s contacts (not requested; would need `READ_CONTACTS`).
 
 ## Tests
 
