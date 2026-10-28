@@ -42,9 +42,9 @@ const ITEMS: readonly {
     | 'appearance'
     | 'about';
 }[] = [
+  { screen: ROUTES.MANAGE_LIFE, icon: 'gauge', label: 'life' },
   { screen: ROUTES.DASHBOARD, icon: 'scanText', label: 'home' },
   { screen: ROUTES.FILE_MANAGEMENT, icon: 'folder', label: 'files' },
-  { screen: ROUTES.MANAGE_LIFE, icon: 'gauge', label: 'life' },
   { screen: ROUTES.FOLLOW_UP, icon: 'users', label: 'followUp' },
   { screen: ROUTES.UTILITY, icon: 'wrench', label: 'utility' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
