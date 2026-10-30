@@ -4,4 +4,6 @@
 <paths>
   <files-path name="files" path="." />
   <cache-path name="cache" path="." />
+  <!-- Recorder output before Android 10 (app-specific external folders). -->
+  <external-files-path name="external" path="." />
 </paths>

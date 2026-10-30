@@ -7,6 +7,7 @@ import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.rnboilerplate.followup.FollowUpPackage
+import com.rnboilerplate.recorder.RecorderPackage
 import com.rnboilerplate.screenocr.ScreenOcrPackage
 import com.rnboilerplate.utility.UtilityPackage
 
@@ -21,6 +22,7 @@ class MainApplication : Application(), ReactApplication {
           add(ScreenOcrPackage())
           add(FollowUpPackage())
           add(UtilityPackage())
+          add(RecorderPackage())
         },
     )
   }

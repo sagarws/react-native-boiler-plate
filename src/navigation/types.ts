@@ -53,8 +53,25 @@ export type MainStackParamList = {
   UtilityDocument: { documentId: string };
   UtilityWaterEject: undefined;
   UtilityMeasure: undefined;
+  UtilityRecorder: undefined;
+  /** `filter` opens a library tab directly (e.g. interrupted sessions). */
+  UtilityRecordings:
+    | {
+        filter?:
+          | 'all'
+          | 'screenshots'
+          | 'videos'
+          | 'audio'
+          | 'processing'
+          | 'interrupted'
+          | 'failed';
+      }
+    | undefined;
+  UtilityRecording: { recordingId: string };
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
-  Settings: { tab?: 'general' | 'ocr' | 'files' | 'followup' } | undefined;
+  Settings:
+    | { tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' }
+    | undefined;
   Appearance: undefined;
   About: undefined;
 };

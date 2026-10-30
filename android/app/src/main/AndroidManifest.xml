@@ -31,6 +31,9 @@
          recorded from the microphone. -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
+    <!-- Screen recorder: merging a recording's parts after capture has ended
+         runs as a short dataSync foreground service. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <!-- Android 11+ package visibility: lets the app list installed
          text-to-speech engines (to prefer Google Speech Services when present). -->
@@ -161,6 +164,27 @@
         android:name=".screenocr.OverlayCaptureService"
         android:exported="false"
         android:foregroundServiceType="mediaProjection|microphone" />
+
+      <!-- Utility → Screen Recorder: its own floating button, consent and
+           notification, independent of the OCR service above. Records only
+           after Android's capture consent; microphone only when chosen. -->
+      <service
+        android:name=".recorder.RecorderService"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection|microphone|dataSync" />
+      <activity
+        android:name=".recorder.RecorderConsentActivity"
+        android:exported="false"
+        android:excludeFromRecents="true"
+        android:taskAffinity=""
+        android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+      <activity
+        android:name=".recorder.ScreenshotEditorActivity"
+        android:exported="false"
+        android:excludeFromRecents="true"
+        android:taskAffinity=""
+        android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize"
+        android:theme="@android:style/Theme.Material.NoActionBar" />
 
       <!-- Optional, for "Speak with auto-scroll" only: scrolls the app being
            read. Off until the user turns it on in Android's accessibility

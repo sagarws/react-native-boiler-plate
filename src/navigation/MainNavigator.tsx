@@ -23,6 +23,9 @@ import {
   CompassScreen,
   DocumentScreen,
   DocumentsScreen,
+  RecorderScreen,
+  RecordingDetailScreen,
+  RecordingsScreen,
   MeasureScreen,
   ScannerScreen,
   UtilityHubScreen,
@@ -90,6 +93,18 @@ export default function MainNavigator() {
           component={WaterEjectScreen}
         />
         <Stack.Screen name={ROUTES.UTILITY_MEASURE} component={MeasureScreen} />
+        <Stack.Screen
+          name={ROUTES.UTILITY_RECORDER}
+          component={RecorderScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.UTILITY_RECORDINGS}
+          component={RecordingsScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.UTILITY_RECORDING}
+          component={RecordingDetailScreen}
+        />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />
         <Stack.Screen name={ROUTES.ABOUT} component={AboutScreen} />

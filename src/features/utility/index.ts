@@ -5,3 +5,7 @@ export { default as DocumentsScreen } from './screens/DocumentsScreen';
 export { default as DocumentScreen } from './screens/DocumentScreen';
 export { default as WaterEjectScreen } from './screens/WaterEjectScreen';
 export { default as MeasureScreen } from './screens/MeasureScreen';
+export { default as RecorderScreen } from './screens/RecorderScreen';
+export { default as RecordingsScreen } from './screens/RecordingsScreen';
+export { default as RecordingDetailScreen } from './screens/RecordingDetailScreen';
+export { RecordingSettings } from './components/RecordingSettings';

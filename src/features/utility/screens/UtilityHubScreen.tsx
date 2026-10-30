@@ -21,13 +21,14 @@ import {
 } from '../services/native.service';
 
 type Tool = {
-  key: 'compass' | 'measure' | 'scanner' | 'documents' | 'water';
+  key: 'compass' | 'measure' | 'scanner' | 'documents' | 'water' | 'recorder';
   route:
     | typeof ROUTES.UTILITY_COMPASS
     | typeof ROUTES.UTILITY_MEASURE
     | typeof ROUTES.UTILITY_SCANNER
     | typeof ROUTES.UTILITY_DOCUMENTS
-    | typeof ROUTES.UTILITY_WATER_EJECT;
+    | typeof ROUTES.UTILITY_WATER_EJECT
+    | typeof ROUTES.UTILITY_RECORDER;
   icon: IconName;
   color: string;
 };
@@ -62,6 +63,12 @@ const TOOLS: readonly Tool[] = [
     route: ROUTES.UTILITY_WATER_EJECT,
     icon: 'droplets',
     color: 'indigo',
+  },
+  {
+    key: 'recorder',
+    route: ROUTES.UTILITY_RECORDER,
+    icon: 'monitor',
+    color: 'rose',
   },
 ];
 
@@ -106,6 +113,8 @@ export default function UtilityHubScreen() {
         return docs === false
           ? { text: t('utility.docsUnavailableShort'), warn: true }
           : { text: t('utility.noPermissionNeeded'), warn: false };
+      case 'recorder':
+        return { text: t('utility.needsCaptureConsent'), warn: false };
       default:
         return { text: t('utility.usesSpeaker'), warn: false };
     }
