@@ -75,6 +75,8 @@ describe('device capability report', () => {
     expect(info.languages).toEqual({
       en: 'available',
       hi: 'available',
+      // Not in the engine report → treated as unsupported.
+      mr: 'not_supported',
       gu: 'missing_data',
     });
     expect(info.voices.map(v => v.name)).toEqual([

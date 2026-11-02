@@ -160,7 +160,7 @@ describe('voice grouping', () => {
 });
 
 describe('language-first voice picker', () => {
-  it('shows exactly English, Gujarati and Hindi, in that order', async () => {
+  it('shows exactly English, Gujarati, Hindi and Marathi, in that order', async () => {
     const renderer = await render();
     const languages = renderer.root
       .findAll(
@@ -173,10 +173,12 @@ describe('language-first voice picker', () => {
       'voice-language-en',
       'voice-language-gu',
       'voice-language-hi',
+      'voice-language-mr',
     ]);
     const texts = textsOf(renderer.root);
     expect(texts).toContain('ગુજરાતી · Gujarati');
     expect(texts).toContain('हिन्दी · Hindi');
+    expect(texts).toContain('मराठी · Marathi');
     expect(texts.join(' ')).not.toMatch(/fr-fr|French/);
   });
 

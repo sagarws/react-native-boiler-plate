@@ -1,13 +1,16 @@
 /**
  * Which recogniser(s) the floating button runs. `mixed` is Hindi + English
  * (its id predates Gujarati support and is kept for stored settings).
- * English: ML Kit Latin · Hindi: ML Kit Devanagari · Gujarati: Tesseract.
+ * English: ML Kit Latin · Hindi, Marathi: ML Kit Devanagari (same script) ·
+ * Gujarati: Tesseract.
  */
 export type OcrMode =
   | 'english'
   | 'hindi'
+  | 'marathi'
   | 'gujarati'
   | 'mixed'
+  | 'marathi_english'
   | 'gujarati_english'
   | 'hindi_gujarati'
   | 'all';
@@ -15,8 +18,10 @@ export type OcrMode =
 export const OCR_MODES: readonly OcrMode[] = [
   'english',
   'hindi',
+  'marathi',
   'gujarati',
   'mixed',
+  'marathi_english',
   'gujarati_english',
   'hindi_gujarati',
   'all',
@@ -26,8 +31,10 @@ export const OCR_MODES: readonly OcrMode[] = [
 export const OCR_MODE_SCRIPTS: Record<OcrMode, readonly SpeechLanguage[]> = {
   english: ['en'],
   hindi: ['hi'],
+  marathi: ['mr'],
   gujarati: ['gu'],
   mixed: ['hi', 'en'],
+  marathi_english: ['mr', 'en'],
   gujarati_english: ['gu', 'en'],
   hindi_gujarati: ['hi', 'gu'],
   all: ['hi', 'gu', 'en'],
@@ -55,9 +62,14 @@ export function isFloatingAction(value: unknown): value is FloatingAction {
 }
 
 /** Speech language — independent of the OCR mode. */
-export type SpeechLanguage = 'en' | 'hi' | 'gu';
+export type SpeechLanguage = 'en' | 'hi' | 'mr' | 'gu';
 
-export const SPEECH_LANGUAGES: readonly SpeechLanguage[] = ['en', 'hi', 'gu'];
+export const SPEECH_LANGUAGES: readonly SpeechLanguage[] = [
+  'en',
+  'hi',
+  'mr',
+  'gu',
+];
 
 export function isSpeechLanguage(value: unknown): value is SpeechLanguage {
   return (

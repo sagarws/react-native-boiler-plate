@@ -212,7 +212,8 @@ class ScreenOcrModule(context: ReactApplicationContext) :
           promise.resolve("voice_missing")
           return@whenReady
         }
-        val segments = SpeechSegmenter.segment(text, language, switchByScript, available)
+        val devanagari = SpeechSegmenter.devanagariLanguage(language, prefs.readConfig().mode.marathi)
+        val segments = SpeechSegmenter.segment(text, language, switchByScript, available, devanagari = devanagari)
         var settled = false
         p.speak(
           segments,

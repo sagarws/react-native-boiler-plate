@@ -586,7 +586,9 @@ class OverlayCaptureService :
         return@whenReady
       }
       val available = OcrConfig.SPEECH_LANGUAGES.filter { player.isLanguageUsable(it) }.toSet()
-      val segments = SpeechSegmenter.segment(text, s.language, s.switchByScript, available)
+      val marathi = (sessionConfig ?: prefs.readConfig()).mode.marathi
+      val devanagari = SpeechSegmenter.devanagariLanguage(s.language, marathi)
+      val segments = SpeechSegmenter.segment(text, s.language, s.switchByScript, available, devanagari = devanagari)
       requestAudioFocus()
       player.speak(segments, fromSegment, s.voiceName, s.rate, s.pitch, onProgress, onDone, onError)
     }

@@ -51,6 +51,12 @@ on first use.
 | Gujarati + English (`gujarati_english`) | Tesseract + Latin | `mergeMixed(…, GUJARATI)` |
 | Hindi + Gujarati (`hindi_gujarati`) | Devanagari + Tesseract | `mergeByConfidence` |
 | Hindi + Gujarati + English (`all`) | all three | `mergeByConfidence`, then `mergeMixed` with Latin |
+| Marathi (`marathi`) | ML Kit Devanagari | — (same as Hindi) |
+| Marathi + English (`marathi_english`) | Devanagari + Latin | `mergeMixed(…, DEVANAGARI)` |
+
+Marathi is written in Devanagari, so it uses the same bundled ML Kit model as Hindi
+and recognition is identical. A Marathi mode only changes the read-aloud voice for
+Devanagari text to Marathi (`OcrMode.marathi` → `SpeechSegmenter.devanagariLanguage`).
 
 `mixed` keeps its original id so settings saved by earlier versions still load.
 
@@ -375,10 +381,11 @@ no new permissions.
   speech fails with "voice not installed" and never falls back to another language.
 - **Mixed scripts:** voices are per language, and switching mid-sentence sounds broken,
   so `SpeechSegmenter` picks the voice **per sentence**:
-  - Gujarati script gets a Gujarati voice, Devanagari a Hindi voice, otherwise English;
+  - Gujarati script gets a Gujarati voice, Devanagari a Hindi voice (a Marathi voice
+    when the speech language or OCR mode is Marathi), otherwise English;
   - this happens only when "Switch voice by script" is on and that voice is installed,
     otherwise the chosen speech language is used;
-  - Hindi and Gujarati voices read embedded English words themselves.
+  - Hindi, Marathi and Gujarati voices read embedded English words themselves.
 
   Settings warns when the OCR scripts include a language the configured voices cannot
   pronounce.

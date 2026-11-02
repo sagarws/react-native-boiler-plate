@@ -18,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger
 /**
  * On-device OCR across three recognisers:
  * - ML Kit Text Recognition v2, Latin (English) — bundled model;
- * - ML Kit Text Recognition v2, Devanagari (Hindi) — bundled model;
+ * - ML Kit Text Recognition v2, Devanagari (Hindi, Marathi) — bundled model;
  * - Tesseract 5 `guj+eng` (Gujarati) — ML Kit has no Gujarati model.
  *
  * Only the recognisers the mode needs run, in parallel; their lines are then
@@ -93,9 +93,9 @@ class OcrEngine(context: Context) {
     val lines: List<OcrLine>? =
       when (mode) {
         OcrMode.ENGLISH -> lat
-        OcrMode.HINDI -> dev
+        OcrMode.HINDI, OcrMode.MARATHI -> dev
         OcrMode.GUJARATI -> guj
-        OcrMode.HINDI_ENGLISH -> pair(dev, lat) { d, l -> A.mergeMixed(d, l, A.DEVANAGARI) }
+        OcrMode.HINDI_ENGLISH, OcrMode.MARATHI_ENGLISH -> pair(dev, lat) { d, l -> A.mergeMixed(d, l, A.DEVANAGARI) }
         OcrMode.GUJARATI_ENGLISH -> pair(guj, lat) { g, l -> A.mergeMixed(g, l, A.GUJARATI) }
         OcrMode.HINDI_GUJARATI ->
           pair(dev, guj) { d, g -> A.mergeByConfidence(d, A.DEVANAGARI, g, A.GUJARATI) }

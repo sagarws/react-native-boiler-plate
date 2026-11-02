@@ -19,6 +19,7 @@ export const GOOGLE_TTS = 'com.google.android.tts';
 export const VOICE_SAMPLES: Record<SpeechLanguage, string> = {
   en: 'Hello! Your screen text is ready to read.',
   hi: 'नमस्ते! आपका स्क्रीन टेक्स्ट पढ़ने के लिए तैयार है।',
+  mr: 'नमस्कार! तुमचा स्क्रीनवरील मजकूर वाचण्यासाठी तयार आहे.',
   gu: 'નમસ્તે! તમારી સ્ક્રીનનો ટેક્સ્ટ વાંચવા માટે તૈયાર છે.',
 };
 
@@ -27,6 +28,7 @@ export const PREVIEW_SAMPLES: Record<SpeechLanguage, string> = {
   en: 'Hello! This is a preview of the selected voice.',
   gu: 'નમસ્તે! આ પસંદ કરેલા અવાજનો નમૂનો છે.',
   hi: 'नमस्ते! यह चुनी गई आवाज़ का नमूना है।',
+  mr: 'नमस्कार! हा निवडलेल्या आवाजाचा नमुना आहे.',
 };
 
 /** Language categories offered for speech, in display order. */
@@ -34,6 +36,7 @@ export const VOICE_LANGUAGE_ORDER: readonly SpeechLanguage[] = [
   'en',
   'gu',
   'hi',
+  'mr',
 ];
 
 /**
@@ -90,7 +93,12 @@ const UNSUPPORTED_INFO: SpeechInfo = {
   defaultEngine: '',
   googleInstalled: false,
   engines: [],
-  languages: { en: 'not_supported', hi: 'not_supported', gu: 'not_supported' },
+  languages: {
+    en: 'not_supported',
+    hi: 'not_supported',
+    mr: 'not_supported',
+    gu: 'not_supported',
+  },
   voices: [],
   scrollServiceEnabled: false,
 };

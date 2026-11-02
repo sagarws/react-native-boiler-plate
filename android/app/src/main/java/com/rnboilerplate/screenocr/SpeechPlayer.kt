@@ -174,6 +174,7 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
   fun localeFor(language: String): Locale =
     when (language) {
       "hi" -> Locale("hi", "IN")
+      "mr" -> Locale("mr", "IN")
       "gu" -> Locale("gu", "IN")
       else -> Locale("en", "IN")
     }
@@ -347,7 +348,7 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
   /** Engine, language and voice capabilities as JSON for the settings screen. */
   fun describe(): JSONObject {
     val languages = JSONObject()
-    for (language in listOf("en", "hi", "gu")) {
+    for (language in listOf("en", "hi", "mr", "gu")) {
       languages.put(
         language,
         when (languageStatus(language)) {
@@ -361,7 +362,7 @@ class SpeechPlayer(context: Context, private val preferGoogle: Boolean) {
     }
     val voices = JSONArray()
     voices()
-      .filter { it.locale.language in setOf("en", "hi", "gu") }
+      .filter { it.locale.language in OcrConfig.SPEECH_LANGUAGES }
       .sortedWith(compareBy({ it.locale.language }, { it.locale.country }, { it.name }))
       .forEach { v ->
         voices.put(

@@ -48,7 +48,8 @@ class MultiScriptMergeTest {
 
   @Test
   fun everyOcrModeParsesAndLegacyMixedMeansHindiEnglish() {
-    assertEquals(7, OcrMode.entries.size)
+    assertEquals(9, OcrMode.entries.size)
+    OcrMode.entries.forEach { assertEquals(it, OcrMode.from(it.id)) }
     assertEquals(OcrMode.HINDI_ENGLISH, OcrMode.from("mixed"))
     assertEquals(OcrMode.ALL, OcrMode.from("all"))
     assertEquals(OcrMode.HINDI_ENGLISH, OcrMode.from("klingon"))

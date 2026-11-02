@@ -12,7 +12,7 @@ import org.json.JSONObject
 data class TranslateConfig(
   /** "Apply translation" — also the user's consent to send extracted text to Gemini. */
   val enabled: Boolean = false,
-  /** Target language code: "en", "hi" or "gu". */
+  /** Target language code: "en", "hi", "mr" or "gu". */
   val target: String = "hi",
   /** "auto" or a language code. */
   val source: String = "auto",
@@ -62,7 +62,7 @@ object TranslationPrompt {
   const val MAX_PROMPT = 1000
   val THINKING_LEVELS = setOf("low", "medium", "high")
 
-  private val NAMES = mapOf("en" to "English", "hi" to "Hindi", "gu" to "Gujarati")
+  private val NAMES = mapOf("en" to "English", "hi" to "Hindi", "mr" to "Marathi", "gu" to "Gujarati")
 
   fun languageName(code: String): String = NAMES[code] ?: code
 

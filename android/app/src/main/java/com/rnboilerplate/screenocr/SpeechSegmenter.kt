@@ -1,7 +1,7 @@
 package com.rnboilerplate.screenocr
 
 /**
- * One utterance: text, the speech language ("en", "hi", "gu") to read it in,
+ * One utterance: text, the speech language ("en", "hi", "mr", "gu") to read it in,
  * and whether a paragraph ends after it (a short pause follows).
  */
 data class SpeechSegment(val text: String, val language: String, val paragraphEnd: Boolean = false)
@@ -19,7 +19,8 @@ data class SpeechSegment(val text: String, val language: String, val paragraphEn
  * Language: Android voices are per-language, and switching voices mid
  * sentence sounds broken, so the choice is made **per sentence**: a sentence
  * containing Gujarati is read by a Gujarati voice, Devanagari by a Hindi
- * voice, otherwise English — but only when [switchByScript] is on and a voice
+ * voice (or a Marathi one — see [devanagariLanguage]; the script can't tell
+ * the two apart), otherwise English — but only when [switchByScript] is on and a voice
  * for that language is in `available`. Otherwise the user's `primary`
  * language is used. Consecutive sentences in the same language within a
  * paragraph stay in one utterance; Hindi and Gujarati voices read embedded
@@ -31,12 +32,25 @@ object SpeechSegmenter {
   private val GUJARATI = Regex("[\\u0A80-\\u0AFF]")
   private val LATIN_LETTER = Regex("[A-Za-z]")
 
-  fun languageFor(sentence: String, primary: String, switchByScript: Boolean, available: Set<String>): String {
+  /**
+   * Which voice reads Devanagari: Marathi when the speech language is
+   * Marathi or the OCR mode is a Marathi one, otherwise Hindi.
+   */
+  fun devanagariLanguage(primary: String, marathiMode: Boolean): String =
+    if (primary == "mr" || marathiMode) "mr" else "hi"
+
+  fun languageFor(
+    sentence: String,
+    primary: String,
+    switchByScript: Boolean,
+    available: Set<String>,
+    devanagari: String = devanagariLanguage(primary, false),
+  ): String {
     if (!switchByScript) return primary
     val wanted =
       when {
         GUJARATI.containsMatchIn(sentence) -> "gu"
-        DEVANAGARI.containsMatchIn(sentence) -> "hi"
+        DEVANAGARI.containsMatchIn(sentence) -> devanagari
         LATIN_LETTER.containsMatchIn(sentence) -> "en"
         else -> primary
       }
@@ -49,6 +63,7 @@ object SpeechSegmenter {
     switchByScript: Boolean,
     available: Set<String>,
     maxLength: Int = 500,
+    devanagari: String = devanagariLanguage(primary, false),
   ): List<SpeechSegment> {
     val segments = ArrayList<SpeechSegment>()
     for (paragraph in ParagraphText.paragraphs(text)) {
@@ -56,7 +71,7 @@ object SpeechSegmenter {
       val sentences =
         paragraph.split(SENTENCE_END).map { it.trim() }.filter { it.isNotEmpty() }.flatMap { split(it, maxLength) }
       for (sentence in sentences) {
-        val language = languageFor(sentence, primary, switchByScript, available)
+        val language = languageFor(sentence, primary, switchByScript, available, devanagari)
         val last = segments.lastOrNull()
         // Join within the paragraph only — paragraphs always start a new utterance.
         if (segments.size > start && last != null && last.language == language &&

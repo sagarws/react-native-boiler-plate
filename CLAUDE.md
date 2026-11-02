@@ -2,7 +2,7 @@
 
 > **Orientation.** Read this header, then `AI_RULES.md` (imported below). Both are binding.
 
-**What it is:** Akshar, an Android floating-screen OCR app (English / Hindi / mixed) built
+**What it is:** Akshar, an Android floating-screen OCR app (English / Hindi / Marathi / Gujarati / mixed) built
 on a React Native boilerplate. Native capture + ML Kit OCR live in
 `android/app/src/main/java/com/rnboilerplate/screenocr/`; see `docs/SCREEN_OCR.md`. The
 boilerplate's login/session/API layers remain but are off (`FEATURES.auth = false`).

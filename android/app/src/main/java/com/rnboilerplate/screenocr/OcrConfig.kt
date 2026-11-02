@@ -9,18 +9,28 @@ import org.json.JSONObject
 
 /**
  * OCR language selection. Each mode names the recognisers it runs:
- * ML Kit Latin (English), ML Kit Devanagari (Hindi) and Tesseract
- * (Gujarati — ML Kit has no Gujarati model). Ids are persisted; `mixed`
- * keeps its original meaning (Hindi + English) for existing installs.
+ * ML Kit Latin (English), ML Kit Devanagari (Hindi and Marathi — same
+ * script, same model) and Tesseract (Gujarati — ML Kit has no Gujarati
+ * model). [marathi] only changes how Devanagari text is read aloud (Marathi
+ * voice instead of Hindi). Ids are persisted; `mixed` keeps its original
+ * meaning (Hindi + English) for existing installs.
  */
-enum class OcrMode(val id: String, val latin: Boolean, val devanagari: Boolean, val gujarati: Boolean) {
+enum class OcrMode(
+  val id: String,
+  val latin: Boolean,
+  val devanagari: Boolean,
+  val gujarati: Boolean,
+  val marathi: Boolean = false,
+) {
   ENGLISH("english", latin = true, devanagari = false, gujarati = false),
   HINDI("hindi", latin = false, devanagari = true, gujarati = false),
   GUJARATI("gujarati", latin = false, devanagari = false, gujarati = true),
   HINDI_ENGLISH("mixed", latin = true, devanagari = true, gujarati = false),
   GUJARATI_ENGLISH("gujarati_english", latin = true, devanagari = false, gujarati = true),
   HINDI_GUJARATI("hindi_gujarati", latin = false, devanagari = true, gujarati = true),
-  ALL("all", latin = true, devanagari = true, gujarati = true);
+  ALL("all", latin = true, devanagari = true, gujarati = true),
+  MARATHI("marathi", latin = false, devanagari = true, gujarati = false, marathi = true),
+  MARATHI_ENGLISH("marathi_english", latin = true, devanagari = true, gujarati = false, marathi = true);
 
   companion object {
     fun from(id: String?): OcrMode = entries.firstOrNull { it.id == id } ?: HINDI_ENGLISH
@@ -45,7 +55,7 @@ enum class FloatingAction(val id: String) {
 }
 
 data class SpeechConfig(
-  /** "en", "hi" or "gu". Independent of the OCR mode. */
+  /** "en", "hi", "mr" or "gu". Independent of the OCR mode. */
   val language: String = "en",
   /** An installed voice name, or "" for the language's default voice. */
   val voiceName: String = "",
@@ -92,7 +102,7 @@ data class OcrConfig(
     const val MIN_SIZE_DP = 40
     const val MAX_SIZE_DP = 80
     const val MIN_OPACITY = 0.3f
-    val SPEECH_LANGUAGES = setOf("en", "hi", "gu")
+    val SPEECH_LANGUAGES = setOf("en", "hi", "mr", "gu")
 
     private fun color(json: JSONObject, key: String, fallback: Int): Int =
       try {

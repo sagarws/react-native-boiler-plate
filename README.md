@@ -6,8 +6,9 @@ No account, no API keys, no backend; release builds have no internet permission 
 
 - **Floating button** drawn over other apps: draggable, snaps to an edge, remembers its
   position, size and opacity configurable, shows a spinner while reading
-- **On-device OCR**: ML Kit (English, Hindi) and Tesseract (Gujarati; ML Kit has no
-  Gujarati model). Seven modes: English, Hindi, Gujarati and every combination
+- **On-device OCR**: ML Kit (English, Hindi, Marathi) and Tesseract (Gujarati; ML Kit
+  has no Gujarati model). Nine modes: English, Hindi, Marathi, Gujarati and their
+  combinations. Marathi uses the same Devanagari model as Hindi, with a Marathi voice
 - **Three tap actions**: copy text, read it aloud, or read a long page aloud with
   auto-scroll (optional accessibility service, or manual-scroll fallback)
 - **Speech** through Android text-to-speech (Google Speech Services preferred when
