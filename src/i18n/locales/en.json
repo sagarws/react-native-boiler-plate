@@ -1119,7 +1119,9 @@
     "projectChartTitle": "Progress over time",
     "projectChartEmpty": "No task has a target schedule yet.",
     "projectChartHow": "Each line is a share (%) of that task’s whole plan: its targets from its start to its end date, or to the project deadline. “Done” counts each period up to its target, so doing extra one day doesn’t hide a missed one. “Average planned” is where tasks would be if every target were met by that day (the current period counts in proportion to its elapsed days). Paused periods are left out. Tap a name to show or hide its line.",
-    "taskReasonsTitle": "Reasons for missed targets"
+    "taskReasonsTitle": "Reasons for missed targets",
+    "calendarLogTip": "Double-tap a day (or press and hold) to log progress for it.",
+    "calendarLogHint": "Press and hold to log progress for this day"
   },
   "followUp": {
     "title": "Follow Up",

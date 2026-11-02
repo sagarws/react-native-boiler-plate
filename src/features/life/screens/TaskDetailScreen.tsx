@@ -251,10 +251,16 @@ export default function TaskDetailScreen() {
               onMonthChange={setMonth}
               selected={selected}
               onSelect={setSelected}
+              onDoublePress={day => {
+                // Only days with a target period can take progress.
+                if (calendar[day]?.state) setLogging({ task, day });
+              }}
+              doublePressHint={t('life.calendarLogHint')}
               today={today}
               heat={heat}
               testID="task-calendar"
             />
+            <Text style={caption}>{t('life.calendarLogTip')}</Text>
             <LevelLegend base={base} />
             <Text style={caption}>{t('life.taskCalendarHow')}</Text>
             <TaskDayDetail

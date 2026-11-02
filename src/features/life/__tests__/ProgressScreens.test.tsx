@@ -162,6 +162,62 @@ describe('TaskDetailScreen', () => {
     expect(has(r2, 'task-chart-empty')).toBe(true);
   });
 
+  it('double-tapping a day opens Log progress for that date', async () => {
+    const { read } = seed();
+    mockParams = { taskId: read.id };
+    const r = await render(<TaskDetailScreen />);
+    const day = 'task-calendar-day-2026-10-23';
+    await press(r, day);
+    await ReactTestRenderer.act(async () => {
+      jest.advanceTimersByTime(150);
+    });
+    await press(r, day);
+    expect(has(r, 'log-amount')).toBe(true);
+    await ReactTestRenderer.act(async () => {
+      r.root
+        .findAll(
+          n => n.props.testID === 'log-amount' && 'onChangeText' in n.props,
+        )[0]
+        .props.onChangeText('20');
+    });
+    await press(r, 'log-save');
+    expect(
+      lifeStore
+        .read()
+        .reports.filter(x => x.taskId === read.id && x.day === '2026-10-23')
+        .map(x => x.quantity),
+    ).toEqual([20]);
+  });
+
+  it('two slow taps only select; long press also opens the log', async () => {
+    const { read } = seed();
+    mockParams = { taskId: read.id };
+    const r = await render(<TaskDetailScreen />);
+    const day = 'task-calendar-day-2026-10-24';
+    await press(r, day);
+    await ReactTestRenderer.act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+    await press(r, day);
+    expect(has(r, 'log-amount')).toBe(false);
+    expect(textIn(r, 'task-day-detail')).toContain('24');
+
+    await ReactTestRenderer.act(async () => {
+      byId(r, day).props.onLongPress();
+    });
+    expect(has(r, 'log-amount')).toBe(true);
+  });
+
+  it('ignores a double tap on a day without a target', async () => {
+    const { read } = seed();
+    mockParams = { taskId: read.id };
+    const r = await render(<TaskDetailScreen />);
+    await press(r, 'task-calendar-prev');
+    await press(r, 'task-calendar-day-2026-09-10');
+    await press(r, 'task-calendar-day-2026-09-10');
+    expect(has(r, 'log-amount')).toBe(false);
+  });
+
   it('handles a deleted task', async () => {
     mockParams = { taskId: 'gone' };
     const r = await render(<TaskDetailScreen />);

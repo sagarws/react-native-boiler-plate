@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/shared/components';
@@ -25,6 +25,9 @@ export interface HeatDay {
   a11y: string;
 }
 
+/** Two taps on the same day within this window count as a double tap. */
+export const DOUBLE_TAP_MS = 350;
+
 export interface MonthCalendarProps {
   /** Any day in the month to show. */
   month: DayKey;
@@ -36,6 +39,13 @@ export interface MonthCalendarProps {
   marks?: Record<DayKey, DayMark>;
   /** Shaded cells with a value label (progress calendars); overrides marks. */
   heat?: Record<DayKey, HeatDay>;
+  /**
+   * Double tap (or long press, which screen-reader users can reach) on a
+   * shaded day. The first tap still selects the day as usual.
+   */
+  onDoublePress?: (day: DayKey) => void;
+  /** Spoken hint for days that respond to [onDoublePress]. */
+  doublePressHint?: string;
   min?: DayKey;
   max?: DayKey;
   testID?: string;
@@ -50,10 +60,29 @@ export function MonthCalendar({
   today,
   marks,
   heat,
+  onDoublePress,
+  doublePressHint,
   min,
   max,
   testID = 'calendar',
 }: MonthCalendarProps) {
+  const lastTap = useRef<{ day: DayKey; at: number } | null>(null);
+  const pressShaded = (day: DayKey) => {
+    const now = Date.now();
+    const prev = lastTap.current;
+    onSelect(day);
+    if (
+      onDoublePress &&
+      prev &&
+      prev.day === day &&
+      now - prev.at <= DOUBLE_TAP_MS
+    ) {
+      lastTap.current = null;
+      onDoublePress(day);
+      return;
+    }
+    lastTap.current = { day, at: now };
+  };
   const { t } = useTranslation();
   const { colors, typography, radius, spacing } = useTheme();
   const first = monthStart(month);
@@ -139,13 +168,22 @@ export function MonthCalendar({
               <Pressable
                 key={day}
                 disabled={!!disabled}
-                onPress={() => onSelect(day)}
+                onPress={() => pressShaded(day)}
+                onLongPress={
+                  onDoublePress
+                    ? () => {
+                        onSelect(day);
+                        onDoublePress(day);
+                      }
+                    : undefined
+                }
                 accessibilityRole="button"
                 accessibilityState={{
                   selected: isSelected,
                   disabled: !!disabled,
                 }}
                 accessibilityLabel={`${formatLongDay(day)}, ${shade.a11y}`}
+                accessibilityHint={onDoublePress ? doublePressHint : undefined}
                 testID={`${testID}-day-${day}`}
                 style={[styles.cell, styles.heatCell]}
               >
