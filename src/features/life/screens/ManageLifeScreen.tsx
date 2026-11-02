@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   useNavigation,
@@ -9,8 +9,9 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ROUTES } from '@/navigation/routes';
 import type { MainStackParamList } from '@/navigation/types';
-import { Header, TabBar } from '@/shared/components';
+import { Header, Icon, TabBar } from '@/shared/components';
 import { useTheme } from '@/theme';
+import { BackupSheet } from '../components/BackupSheet';
 import { LogProgressSheet } from '../components/LogProgressSheet';
 import { ReviewSheet } from '../components/ReviewSheet';
 import { CalendarTab } from '../components/tabs/CalendarTab';
@@ -46,6 +47,7 @@ export default function ManageLifeScreen() {
   const { t } = useTranslation();
   const { top, bottom } = useSafeAreaInsets();
   const { colors, spacing } = useTheme();
+  const [backupOpen, setBackupOpen] = useState(false);
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<MainStackParamList, 'ManageLife'>>();
   const data = useLifeData();
@@ -71,7 +73,20 @@ export default function ManageLifeScreen() {
         { backgroundColor: colors.background, paddingTop: top },
       ]}
     >
-      <Header label={t('life.title')} />
+      <Header
+        label={t('life.title')}
+        right={
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('life.backupTitle')}
+            onPress={() => setBackupOpen(true)}
+            style={styles.headerButton}
+            testID="life-backup"
+          >
+            <Icon name="folder" size={22} color={colors.textPrimary} />
+          </Pressable>
+        }
+      />
       <TabBar
         scrollable
         value={tab}
@@ -116,8 +131,17 @@ export default function ManageLifeScreen() {
         today={today}
         onClose={() => setReviewing(null)}
       />
+      <BackupSheet visible={backupOpen} onClose={() => setBackupOpen(false)} />
     </View>
   );
 }
 
-const styles = StyleSheet.create({ screen: { flex: 1 } });
+const styles = StyleSheet.create({
+  screen: { flex: 1 },
+  headerButton: {
+    width: 48,
+    height: 48,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

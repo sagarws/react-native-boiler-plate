@@ -108,7 +108,11 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
 
 jest.mock('@react-native-documents/picker', () => ({
   pick: jest.fn().mockResolvedValue([]),
-  types: { allFiles: '*/*', images: 'image/*' },
+  types: {
+    allFiles: '*/*',
+    images: 'image/*',
+    xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  },
   keepLocalCopy: jest.fn().mockResolvedValue([{ status: 'success', localUri: 'file:///copy.jpg', sourceUri: '' }]),
   errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },
   isErrorWithCode: error => Boolean(error && typeof error.code === 'string'),

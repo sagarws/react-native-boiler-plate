@@ -76,6 +76,37 @@ the app.
 - **Offline fallback:** `localInsights` gives rule-based observations when AI
   isn't available.
 
+## Backup & restore (Excel)
+
+Manage Life header → folder icon → **Backup & restore**.
+
+- **Export to Excel** writes one `.xlsx` workbook (`akshar-manage-life-YYYY-MM-DD.xlsx`)
+  to a place the user picks (system "Save to" screen, no storage permission). Sheets:
+  About (format marker, version, counts), Projects, Tasks, Targets (every target
+  version), Pauses, Progress, Progress edits, Reviews. Row 1 holds the column keys.
+  Task/project names and units are added as readable helper columns and ignored on
+  import. Pictures are not included (they are files on the phone), and neither is the
+  cached AI advice.
+- **Import from Excel** picks an `.xlsx`, shows what it holds, and changes nothing until
+  the user chooses:
+  - **Merge**: new ids are added, and an existing id is replaced only when the backup's
+    copy is newer (`updatedAt`). Nothing is deleted.
+  - **Replace all** (asks for confirmation first): current data is swapped for the
+    backup's.
+- Every imported row goes through the same validation as stored data
+  (`lifeStore.restore`). Rows that are invalid, or whose project/task is missing, are
+  skipped and counted.
+- Files edited in Excel or Google Sheets still import: columns are matched by header
+  (any order), Excel date serials become dates, and numbers typed as text are read.
+
+| Layer | Code |
+|---|---|
+| Screen | `components/BackupSheet.tsx` (opened from `ManageLifeScreen`) |
+| Hook | `hooks/useLifeBackup.ts` |
+| Service | `services/backup.ts` (pure mapping, tested), `services/backup.service.ts` |
+| Store | `lifeStore.restore` (merge / replace) |
+| Native | `lifebackup/Xlsx.kt` (`.xlsx` writer and reader, java.util.zip + DOM, no library), `LifeBackupModule.kt` |
+
 ## Tests
 
 - `__tests__/periods.test.ts`: periods, versions, pauses, DST and streaks.

@@ -39,7 +39,8 @@ src/services/realtime/
 src/store/mmkv.ts     every storage key, in one place
 src/specs/            TurboModule codegen specs — each imported only by its owner's services/
                       (NativeScreenOcr → capture, NativeFollowUp → followup,
-                      NativeUtility + NativeRecorder → utility)
+                      NativeUtility + NativeRecorder + NativeYouTubeDownloader → utility,
+                      NativeLifeBackup → life)
 src/features/
   capture/            screen-OCR service wrapper, settings/history stores, review screen
   onboarding/         one-time setup

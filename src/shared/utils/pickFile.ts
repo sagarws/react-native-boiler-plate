@@ -48,3 +48,11 @@ export async function pickPicture(): Promise<string | null> {
 /** Any file (image, PDF, document), copied into app storage. */
 export const pickAttachment = (): Promise<PickedFile | null> =>
   pickCopy([types.allFiles]);
+
+/**
+ * An .xlsx spreadsheet, copied into app storage. Some file managers label
+ * downloaded .xlsx files as generic binary, so that type is allowed too;
+ * the reader rejects anything that isn't a workbook.
+ */
+export const pickSpreadsheet = (): Promise<PickedFile | null> =>
+  pickCopy([types.xlsx, 'application/octet-stream']);

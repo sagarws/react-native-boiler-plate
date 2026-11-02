@@ -817,11 +817,142 @@ export const lifeStore = {
     listeners.forEach(l => l());
   },
 
+  // ── Backup ──
+  /**
+   * Restores a backup. Every record goes through the same validation as
+   * data loaded from storage; records that fail it, or that point at a
+   * project/task that doesn't exist, are skipped and counted.
+   * - `merge`: new ids are added; an existing id is replaced only when the
+   *   backup's copy is newer (`updatedAt`). Nothing is deleted.
+   * - `replace`: current data is swapped for the backup's.
+   */
+  restore(input: BackupInput, mode: RestoreMode): RestoreSummary {
+    const clean = <T>(list: unknown[], fn: (r: R) => T | null) =>
+      list
+        .map(x => (x && typeof x === 'object' ? fn(x as R) : null))
+        .filter((x): x is T => x !== null);
+    const incoming = {
+      projects: clean(input.projects, cleanProject),
+      tasks: clean(input.tasks, cleanTask),
+      reports: clean(input.reports, cleanReport),
+      reviews: clean(input.reviews, cleanReview),
+    };
+    const invalid =
+      input.projects.length +
+      input.tasks.length +
+      input.reports.length +
+      input.reviews.length -
+      (incoming.projects.length +
+        incoming.tasks.length +
+        incoming.reports.length +
+        incoming.reviews.length);
+
+    const d = read();
+    let added = 0;
+    let updated = 0;
+    const mergeById = <T extends { id: string; updatedAt: string }>(
+      current: T[],
+      next: T[],
+    ): T[] => {
+      if (mode === 'replace') return next;
+      const byId = new Map(current.map(x => [x.id, x]));
+      for (const item of next) {
+        const existing = byId.get(item.id);
+        if (!existing) {
+          byId.set(item.id, item);
+          added++;
+        } else if (item.updatedAt > existing.updatedAt) {
+          byId.set(item.id, item);
+          updated++;
+        }
+      }
+      return [...byId.values()];
+    };
+
+    const projects = mergeById(d.projects, incoming.projects);
+    const projectIds = new Set(projects.map(p => p.id));
+    const tasks = mergeById(d.tasks, incoming.tasks).filter(t =>
+      projectIds.has(t.projectId),
+    );
+    const taskIds = new Set(tasks.map(t => t.id));
+    const reports = mergeById(d.reports, incoming.reports).filter(r =>
+      taskIds.has(r.taskId),
+    );
+    // One review per task + period: keep the first (existing data first).
+    const seen = new Set<string>();
+    const reviews = mergeById(d.reviews, incoming.reviews).filter(r => {
+      const key = `${r.taskId}|${r.periodStart}`;
+      if (!taskIds.has(r.taskId) || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    const orphaned =
+      (mode === 'replace'
+        ? incoming.projects.length +
+          incoming.tasks.length +
+          incoming.reports.length +
+          incoming.reviews.length
+        : d.projects.length +
+          d.tasks.length +
+          d.reports.length +
+          d.reviews.length +
+          added) -
+      (projects.length + tasks.length + reports.length + reviews.length);
+
+    commit(
+      {
+        projects,
+        tasks,
+        reports,
+        reviews,
+        // AI advice describes the old data; drop it after a full replace.
+        recommendations: mode === 'replace' ? null : d.recommendations,
+      },
+      ['projects', 'tasks', 'reports', 'reviews', 'recommendations'],
+    );
+    return {
+      projects: projects.length,
+      tasks: tasks.length,
+      reports: reports.length,
+      reviews: reviews.length,
+      added:
+        mode === 'replace'
+          ? projects.length + tasks.length + reports.length + reviews.length
+          : added,
+      updated,
+      skipped: invalid + Math.max(0, orphaned),
+    };
+  },
+
   /** Tests only. */
   resetCacheForTest() {
     cache = null;
   },
 };
+
+export type RestoreMode = 'merge' | 'replace';
+
+/** Raw records from a backup; validated by `restore`. */
+export interface BackupInput {
+  projects: unknown[];
+  tasks: unknown[];
+  reports: unknown[];
+  reviews: unknown[];
+}
+
+export interface RestoreSummary {
+  /** Totals after the restore. */
+  projects: number;
+  tasks: number;
+  reports: number;
+  reviews: number;
+  /** Records newly added (replace: everything kept). */
+  added: number;
+  /** Existing records replaced by a newer backup copy (merge only). */
+  updated: number;
+  /** Invalid rows, and rows whose project/task is missing. */
+  skipped: number;
+}
 
 function patchTask(id: string, change: (t: Task) => Task): Result<Task> {
   const d = read();
