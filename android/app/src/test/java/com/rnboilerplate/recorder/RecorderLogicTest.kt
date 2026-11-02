@@ -96,6 +96,8 @@ class RecorderConfigTest {
         audioSource = AudioSource.SYSTEM_MIC,
         segmentMinutes = 1,
         keepSegments = true,
+        hideDuringRecording = true,
+        stopOnScreenOff = true,
         videoPreset = "custom",
         customVideo = VideoQuality(1080, 60, 9_000_000),
         dirs = mapOf(OutputKind.SCREENSHOT to "content://tree/x"),
@@ -126,6 +128,8 @@ class RecorderConfigTest {
     assertEquals(5, d.segmentMinutes)
     assertTrue(d.autoMerge)
     assertFalse(d.autoSaveScreenshot)
+    // The button shows in recordings unless the user hides it.
+    assertFalse(d.hideDuringRecording)
     assertEquals(VideoQuality.MEDIUM, d.video)
   }
 }

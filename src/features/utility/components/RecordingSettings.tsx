@@ -208,6 +208,24 @@ export function RecordingSettings() {
           value={config.showControls}
           onChange={showControls => set({ showControls })}
         />
+        <SwitchRow
+          divider
+          icon="eye"
+          title={t('recorder.hideDuringRecording')}
+          subtitle={t('recorder.hideDuringRecordingHint')}
+          value={config.hideDuringRecording}
+          onChange={hideDuringRecording => set({ hideDuringRecording })}
+          testID="rec-hide-during"
+        />
+        <SwitchRow
+          divider
+          icon="lock"
+          title={t('recorder.stopOnScreenOff')}
+          subtitle={t('recorder.stopOnScreenOffHint')}
+          value={config.stopOnScreenOff}
+          onChange={stopOnScreenOff => set({ stopOnScreenOff })}
+          testID="rec-stop-screen-off"
+        />
         <View style={{ padding: spacing.lg, gap: spacing.md }}>
           <LabeledSlider
             label={t('recorder.previewSeconds')}

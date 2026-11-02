@@ -54,6 +54,10 @@ export interface RecorderConfig {
   mode: RecorderMode;
   longPressMenu: boolean;
   showControls: boolean;
+  /** Button and controls off screen during screen recording (not in the video). */
+  hideDuringRecording: boolean;
+  /** Locking the phone stops the recording. */
+  stopOnScreenOff: boolean;
   previewSeconds: number;
   autoSaveScreenshot: boolean;
   keepCaptureSession: boolean;

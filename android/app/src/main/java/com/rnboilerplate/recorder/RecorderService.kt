@@ -71,6 +71,8 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
   private var capture: CaptureSource? = null
   private var awaitingConsent = false
   private var endCaptureAfterSession = false
+  /** The button is off screen for this recording ("Hide button while recording"). */
+  private var hiddenForRecording = false
 
   // Current recording
   private var recorder: SegmentedRecorder? = null
@@ -95,6 +97,13 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
     }
   private var lastStorageCheck = 0L
 
+  private val screenOff =
+    object : android.content.BroadcastReceiver() {
+      override fun onReceive(context: Context, intent: Intent) {
+        if (config.stopOnScreenOff && machine.state.capturing) stopRecording(null)
+      }
+    }
+
   override fun onBind(intent: Intent?): IBinder? = null
 
   override fun onCreate() {
@@ -104,6 +113,12 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
     store = RecordingStore.get(this)
     config = prefs.read()
     running = this
+    ContextCompat.registerReceiver(
+      this,
+      screenOff,
+      android.content.IntentFilter(Intent.ACTION_SCREEN_OFF),
+      ContextCompat.RECEIVER_NOT_EXPORTED,
+    )
     // A previous process may have died mid-session: keep what it finished.
     val startedAt = System.currentTimeMillis()
     io.execute { store.recoverStale(startedAt) { MediaCheck.verify(this, storage, it) } }
@@ -149,7 +164,10 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
       return
     }
     bubble = b
-    if (machine.state.capturing) b.setActive(true, machine.state == RecordingState.PAUSED)
+    if (machine.state.capturing) {
+      b.setActive(true, machine.state == RecordingState.PAUSED)
+      if (hiddenForRecording) b.setHidden(true)
+    }
     publish()
   }
 
@@ -516,6 +534,12 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
         audioQuality = if (pcm != null) config.audio else null,
         listener = this,
       )
+    // Off screen before the first frame is captured, so it's never in the video.
+    val hideOverlay = config.hideDuringRecording && mode.video
+    if (hideOverlay) {
+      preview?.remove()
+      bubble?.setHidden(true)
+    }
     try {
       rec.prepare()
       if (plan != null && source != null) source.attachEncoder(rec.inputSurface!!, plan.width, plan.height)
@@ -524,6 +548,7 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
       Log.w(TAG, "Recorder failed to start: ${e.javaClass.simpleName}")
       pcm?.release()
       source?.detach()
+      bubble?.setHidden(false)
       store.update(id) { it.put("status", RecordingStore.STATUS_FAILED); it.put("error", "encoder") }
       return failStart("encoder")
     }
@@ -535,9 +560,10 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
     pausedAt = 0
     machine.move(RecordingState.RECORDING)
     preview?.remove()
+    hiddenForRecording = hideOverlay
     bubble?.setActive(true)
     bubble?.let { b ->
-      if (config.showControls) {
+      if (config.showControls && !hideOverlay) {
         val c = controls ?: RecordingControls(overlayContext(), ::pauseResume) { stopRecording(null) }.also { controls = it }
         c.show(config, b)
       }
@@ -548,6 +574,12 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
     main.post(ticker)
     RecorderEvents.emit("recording_started", JSONObject().put("id", id))
     publish()
+  }
+
+  private fun showHiddenBubble() {
+    if (!hiddenForRecording) return
+    hiddenForRecording = false
+    bubble?.setHidden(false)
   }
 
   private fun contentLabel(video: Boolean, audio: String): String {
@@ -638,6 +670,7 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
     main.removeCallbacks(ticker)
     controls?.remove()
     bubble?.setActive(false)
+    showHiddenBubble()
     setKeepScreenOn(false)
     rec.stop()
     publish()
@@ -698,6 +731,7 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
         main.removeCallbacks(ticker)
         controls?.remove()
         bubble?.setActive(false)
+        showHiddenBubble()
       }
     }
   }
@@ -1057,6 +1091,10 @@ class RecorderService : Service(), RecorderBubble.Listener, ScreenshotPreview.Li
 
   override fun onDestroy() {
     main.removeCallbacksAndMessages(null)
+    try {
+      unregisterReceiver(screenOff)
+    } catch (_: IllegalArgumentException) {
+    }
     // Process ending with a session open: close the files cleanly if we can.
     recorder?.stop()
     menu?.remove()

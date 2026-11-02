@@ -1771,6 +1771,11 @@
     "notificationsOn": "Shows status and Stop while recording.",
     "notificationsOff": "Notifications are off for Akshar — allow them in Android settings to see Stop in the notification.",
     "fileNames": "File names",
-    "fileNamesHint": "Date and time, e.g. Screenshot_2026-10-30_10-30-15.png, ScreenRecording_…_Final.mp4. Never overwritten."
+    "fileNamesHint": "Date and time, e.g. Screenshot_2026-10-30_10-30-15.png, ScreenRecording_…_Final.mp4. Never overwritten.",
+    "hideDuringRecording": "Hide button while recording",
+    "hideDuringRecordingHint": "The button and controls leave the screen during screen recording, so they aren’t in the video. Stop from the notification or by locking the phone (if turned on below).",
+    "stopOnScreenOff": "Stop when the screen turns off",
+    "stopOnScreenOffHint": "Press the power button to stop — nothing extra appears in the video. The notification’s Stop also works, but the pulled-down shade shows in the last second.",
+    "hiddenHint": "The button is hidden while recording. Stop from the notification, here, or by locking the phone if “Stop when the screen turns off” is on."
   }
 }

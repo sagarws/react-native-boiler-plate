@@ -85,6 +85,10 @@ data class RecorderConfig(
   val mode: RecorderMode = RecorderMode.SCREENSHOT,
   val longPressMenu: Boolean = true,
   val showControls: Boolean = true,
+  /** Take the button (and controls) off screen while recording, so they're not in the video. */
+  val hideDuringRecording: Boolean = false,
+  /** Locking the phone stops the recording (a stop that never appears in the video). */
+  val stopOnScreenOff: Boolean = false,
   val previewSeconds: Int = 5,
   /** Save the screenshot when the preview times out; otherwise it is discarded. */
   val autoSaveScreenshot: Boolean = false,
@@ -124,6 +128,8 @@ data class RecorderConfig(
       put("mode", mode.id)
       put("longPressMenu", longPressMenu)
       put("showControls", showControls)
+      put("hideDuringRecording", hideDuringRecording)
+      put("stopOnScreenOff", stopOnScreenOff)
       put("previewSeconds", previewSeconds)
       put("autoSaveScreenshot", autoSaveScreenshot)
       put("keepCaptureSession", keepCaptureSession)
@@ -192,6 +198,8 @@ data class RecorderConfig(
         mode = if (json.has("mode")) RecorderMode.from(json.optString("mode")) else base.mode,
         longPressMenu = bool("longPressMenu", base.longPressMenu),
         showControls = bool("showControls", base.showControls),
+        hideDuringRecording = bool("hideDuringRecording", base.hideDuringRecording),
+        stopOnScreenOff = bool("stopOnScreenOff", base.stopOnScreenOff),
         previewSeconds = int("previewSeconds", base.previewSeconds, 2, 30),
         autoSaveScreenshot = bool("autoSaveScreenshot", base.autoSaveScreenshot),
         keepCaptureSession = bool("keepCaptureSession", base.keepCaptureSession),

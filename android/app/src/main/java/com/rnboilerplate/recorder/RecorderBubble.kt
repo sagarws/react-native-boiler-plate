@@ -175,8 +175,13 @@ class RecorderBubble(
     if (attached) wm.updateViewLayout(root, params)
   }
 
+  /** Off screen (screenshots, or recording with "Hide button while recording"); touches pass through. */
   fun setHidden(hidden: Boolean) {
     root.visibility = if (hidden) View.INVISIBLE else View.VISIBLE
+    params.flags =
+      if (hidden) params.flags or WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+      else params.flags and WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE.inv()
+    if (attached) wm.updateViewLayout(root, params)
   }
 
   private fun render() {

@@ -192,6 +192,18 @@ export default function RecorderScreen() {
                     content: status.content,
                   })}
                 </Text>
+                {config.hideDuringRecording &&
+                status.sessionMode !== 'voice' ? (
+                  <Text
+                    style={[
+                      typography.caption,
+                      { color: colors.textSecondary },
+                    ]}
+                    testID="rec-hidden-hint"
+                  >
+                    {t('recorder.hiddenHint')}
+                  </Text>
+                ) : null}
                 <View style={[styles.row, { gap: spacing.sm }]}>
                   <Button
                     size="sm"

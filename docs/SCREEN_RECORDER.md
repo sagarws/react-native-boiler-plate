@@ -48,6 +48,14 @@ time. A recording in progress is finalized normally if that happens.
   they survive restarts.
 - While recording the button turns red with a stop glyph; tap = Stop.
   Long-press is disabled until the session ends (mode can't change mid-session).
+- **Keeping the button out of the video.** Android can't exclude an app's own
+  overlay from a screen capture (FLAG_SECURE only turns it into a black box), so
+  "Hide button while recording" takes the button and controls off screen (and
+  untouchable) before the first frame of a screen recording and brings them back
+  on Stop. Stop then comes from the notification (the pulled-down shade is in the
+  last ~second), the app, or — with "Stop when the screen turns off" — the power
+  button, which leaves nothing in the video. "Recording controls" off hides only
+  the controls pill. Voice-only recordings keep the button (nothing is filmed).
 - Turning the button off during a recording asks first and keeps recording
   (controls + notification Stop remain).
 

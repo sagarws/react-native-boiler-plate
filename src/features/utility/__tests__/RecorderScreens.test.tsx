@@ -391,6 +391,22 @@ describe('RecordingSettings', () => {
     expect(patches).toContainEqual({ segmentMinutes: 7 });
   });
 
+  it('turns on hiding the button while recording', async () => {
+    const r = await render(<RecordingSettings />);
+    await ReactTestRenderer.act(async () => {
+      byId(r, 'rec-section-button').props.onToggle();
+    });
+    await ReactTestRenderer.act(async () => {
+      byId(r, 'rec-hide-during').props.onChange(true);
+    });
+    await ReactTestRenderer.act(async () => {
+      byId(r, 'rec-stop-screen-off').props.onChange(true);
+    });
+    const patches = native.updateConfig.mock.calls.map(c => JSON.parse(c[0]));
+    expect(patches).toContainEqual({ hideDuringRecording: true });
+    expect(patches).toContainEqual({ stopOnScreenOff: true });
+  });
+
   it('shows the quality actually applied on this phone', async () => {
     const r = await render(<RecordingSettings />);
     await ReactTestRenderer.act(async () => {
