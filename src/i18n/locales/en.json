@@ -17,7 +17,8 @@
     "retry": "Retry",
     "on": "On",
     "off": "Off",
-    "somethingWentWrong": "Something went wrong. Please try again."
+    "somethingWentWrong": "Something went wrong. Please try again.",
+    "openMenu": "Open menu"
   },
   "ocrMode": {
     "label": "OCR language",

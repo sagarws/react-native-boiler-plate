@@ -2,6 +2,9 @@ import React, { type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+// Direct file import (not the drawer index): the context has no dependencies,
+// while the index pulls in CustomDrawer, which imports shared/components.
+import { useDrawer } from '@/navigation/drawer/DrawerContext';
 import { useTheme } from '@/theme';
 import { Icon } from '../Icon';
 
@@ -12,13 +15,21 @@ export interface HeaderProps {
   onBackPress?: () => void;
   /** Actions on the right edge. */
   right?: ReactNode;
+  /**
+   * Shows the global menu button (opens the side drawer). Defaults to on,
+   * except for headers with a custom `onBackPress` (modals and screens that
+   * must clean up before leaving). Only appears inside the signed-in app.
+   */
+  menu?: boolean;
 }
 
-/** Screen header: back button, title, optional actions. */
-export function Header({ label, onBackPress, right }: HeaderProps) {
+/** Screen header: back button, title, optional actions, global menu. */
+export function Header({ label, onBackPress, right, menu }: HeaderProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const navigation = useNavigation();
+  const drawer = useDrawer();
+  const showMenu = drawer.available && (menu ?? !onBackPress);
 
   const handleBack = () => {
     if (onBackPress) {
@@ -54,6 +65,20 @@ export function Header({ label, onBackPress, right }: HeaderProps) {
         {label}
       </Text>
       {right ? <View style={styles.right}>{right}</View> : null}
+      {showMenu ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.openMenu')}
+          onPress={drawer.openDrawer}
+          testID="header-menu"
+          style={({ pressed }) => [
+            styles.back,
+            pressed && { backgroundColor: colors.surfaceMuted },
+          ]}
+        >
+          <Icon name="menu" size={22} color={colors.textPrimary} />
+        </Pressable>
+      ) : null}
     </View>
   );
 }
