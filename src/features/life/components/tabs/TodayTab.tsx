@@ -15,7 +15,7 @@ const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 } as const;
  * Today's targets with one-tap logging. Focus tasks first, then by priority;
  * also the in-app quick entry (the home-screen widget is the other).
  */
-export function TodayTab({ data, today, now, onLog, onOpenProject }: TabProps) {
+export function TodayTab({ data, today, now, onLog, onOpenTask }: TabProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const input = { reports: data.reports, reviews: data.reviews, today };
@@ -54,7 +54,7 @@ export function TodayTab({ data, today, now, onLog, onOpenProject }: TabProps) {
       now={now}
       today={today}
       onLog={onLog}
-      onOpen={x => onOpenProject(x.projectId)}
+      onOpen={x => onOpenTask(x.id)}
       onToggleFocus={x =>
         lifeActions.setFocus(x.id, x.focusDay === today ? null : today)
       }

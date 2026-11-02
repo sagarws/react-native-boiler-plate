@@ -113,6 +113,9 @@ export default function ManageLifeScreen() {
           now={now}
           onLog={(task, day) => setLogging({ task, day })}
           onReview={setReviewing}
+          onOpenTask={taskId =>
+            navigation.navigate(ROUTES.LIFE_TASK, { taskId })
+          }
           onOpenProject={projectId =>
             navigation.navigate(ROUTES.LIFE_PROJECT, { projectId })
           }

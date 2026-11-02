@@ -27,6 +27,8 @@ export interface TabProps {
   onLog: (task: Task, day?: DayKey) => void;
   onReview: (item: PeriodState & { task: Task }) => void;
   onOpenProject: (projectId: string) => void;
+  /** Opens a task's detail page. */
+  onOpenTask: (taskId: string) => void;
   onNewProject: () => void;
   onTab: (tab: LifeTab) => void;
 }

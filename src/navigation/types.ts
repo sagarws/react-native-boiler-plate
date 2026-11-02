@@ -39,6 +39,8 @@ export type MainStackParamList = {
   LifeProjectForm: { projectId?: string };
   /** No taskId = new task in projectId. */
   LifeTaskForm: { projectId: string; taskId?: string };
+  /** A task's detail page: calendar, chart, history. */
+  LifeTask: { taskId: string };
   /** Follow Up; `view` opens a list directly (e.g. from a reminder). */
   FollowUp:
     | { view?: 'pending' | 'today' | 'overdue' | 'upcoming' | 'done' | 'all' }

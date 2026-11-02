@@ -76,6 +76,30 @@ the app.
 - **Offline fallback:** `localInsights` gives rule-based observations when AI
   isn't available.
 
+## Task and project detail pages (`services/progress.ts`)
+
+Tap a task (on a project, or on the Today tab) to open its **task page**. Tap a project to open its **project page**. All numbers come from saved targets and reports through the period service.
+
+**Calendar shading** (`taskCalendar`, `projectCalendar`, `levelFor`):
+- A day takes the evaluated state of the **target period** that contains it, so weekly and every-N-days targets shade their whole period, never a day on its own.
+- Neutral: no target that day, a paused period, a future period, or nothing reported.
+- Levels by reported completion (completed ÷ target): low < ⅓ ≤ partial < ⅔ ≤ high < 1 ≤ full.
+- The scale uses the task's or project's own colour. Every cell also prints its percent and reads it out, so the meaning never depends on colour alone.
+- Project day: the mean of min(ratio, 1) over the task targets scheduled that day. A scheduled task with no report counts as 0%, but the day stays neutral if none of them has a report. Units are never added together.
+
+**Task chart** (`taskPeriodBars`): one bar per target period with the amount done in the task's unit, a marker at the period's target and the percent above it. Paused periods are left out, and the chart pages through periods ten at a time.
+
+**Project chart** (`projectChart`): cumulative percent of each task's **whole plan**.
+- **Plan:** every unpaused target period from the task's start to its end date, or to the project deadline when the task has none. Each period counts its own target version.
+- **A task line:** Σ min(done in period up to the day, period target) ÷ plan total. The cap means over-achieving one period can't hide a missed one.
+- **Average done:** the mean of the task lines that have started.
+- **Average planned:** the mean of each task's planned share by that day. Ended periods count in full and the current one in proportion to its elapsed days, so 50% means half the planned work should be done.
+- **Display:** up to 30 sample days from the project start to today (within the deadline). Each line toggles on its own; with more than 6 tasks, the extra task lines start hidden.
+
+**Task counts** (`taskStanding`): completed = marked completed. Overdue = past its end date, or an ended period short of target still needs a reason. Pending = everything else.
+
+Charts and calendars are drawn with plain views (no chart library or SVG), like the other Manage Life charts.
+
 ## Backup & restore (Excel)
 
 Manage Life header → folder icon → **Backup & restore**.

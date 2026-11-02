@@ -12,6 +12,7 @@ import type { MainStackParamList } from '@/navigation/types';
 import { Button, Card, EmptyState, Header, Notice } from '@/shared/components';
 import { categoryColor, useTheme } from '@/theme';
 import { LogProgressSheet } from '../components/LogProgressSheet';
+import { ProjectProgressSection } from '../components/ProjectProgressSection';
 import { ReviewSheet } from '../components/ReviewSheet';
 import { TaskCard } from '../components/TaskCard';
 import { Avatar, ProgressBar } from '../components/visuals';
@@ -72,6 +73,8 @@ export default function ProjectDetailScreen() {
   );
   const caption = [typography.caption, { color: colors.textSecondary }];
   const body = [typography.body, { color: colors.textPrimary }];
+  const openTask = (task: Task) =>
+    navigation.navigate(ROUTES.LIFE_TASK, { taskId: task.id });
 
   const confirmDeleteProject = () => {
     const ids = new Set(
@@ -199,6 +202,13 @@ export default function ProjectDetailScreen() {
           </View>
         </Card>
 
+        <ProjectProgressSection
+          data={data}
+          project={project}
+          today={today}
+          onOpenTask={openTask}
+        />
+
         {pending.length ? (
           <Card>
             <Text style={[typography.label, { color: colors.textPrimary }]}>
@@ -266,6 +276,7 @@ export default function ProjectDetailScreen() {
               now={now}
               today={today}
               onLog={setLogging}
+              onOpen={openTask}
               onToggleFocus={x =>
                 lifeActions.setFocus(x.id, x.focusDay === today ? null : today)
               }

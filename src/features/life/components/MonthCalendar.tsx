@@ -15,6 +15,16 @@ import {
 } from '../utils/dates';
 import { formatLongDay, formatMonth } from '../utils/format';
 
+/** A shaded day (progress calendars): colours, a short label and a spoken description. */
+export interface HeatDay {
+  background: string;
+  foreground: string;
+  /** e.g. "75%"; null shows nothing under the number. */
+  label: string | null;
+  /** Read after the date, e.g. "75% of target". */
+  a11y: string;
+}
+
 export interface MonthCalendarProps {
   /** Any day in the month to show. */
   month: DayKey;
@@ -24,6 +34,8 @@ export interface MonthCalendarProps {
   today: DayKey;
   /** Status dot per day (calendar view); omit for a plain date picker. */
   marks?: Record<DayKey, DayMark>;
+  /** Shaded cells with a value label (progress calendars); overrides marks. */
+  heat?: Record<DayKey, HeatDay>;
   min?: DayKey;
   max?: DayKey;
   testID?: string;
@@ -37,6 +49,7 @@ export function MonthCalendar({
   onSelect,
   today,
   marks,
+  heat,
   min,
   max,
   testID = 'calendar',
@@ -120,6 +133,64 @@ export function MonthCalendar({
           const isSelected = day === selected;
           const mark = marks?.[day];
           const dot = mark ? markColor[mark] : null;
+          const shade = heat?.[day];
+          if (shade) {
+            return (
+              <Pressable
+                key={day}
+                disabled={!!disabled}
+                onPress={() => onSelect(day)}
+                accessibilityRole="button"
+                accessibilityState={{
+                  selected: isSelected,
+                  disabled: !!disabled,
+                }}
+                accessibilityLabel={`${formatLongDay(day)}, ${shade.a11y}`}
+                testID={`${testID}-day-${day}`}
+                style={[styles.cell, styles.heatCell]}
+              >
+                <View
+                  style={[
+                    styles.heatBox,
+                    {
+                      backgroundColor: shade.background,
+                      borderRadius: radius.md,
+                      borderColor: isSelected
+                        ? colors.textPrimary
+                        : day === today
+                        ? colors.primary
+                        : 'transparent',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      typography.label,
+                      {
+                        color: disabled
+                          ? colors.disabledForeground
+                          : shade.foreground,
+                      },
+                    ]}
+                  >
+                    {Number(day.slice(8))}
+                  </Text>
+                  {shade.label ? (
+                    <Text
+                      style={[
+                        typography.overline,
+                        styles.heatLabel,
+                        { color: shade.foreground },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {shade.label}
+                    </Text>
+                  ) : null}
+                </View>
+              </Pressable>
+            );
+          }
           return (
             <Pressable
               key={day}
@@ -202,4 +273,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mark: { width: 6, height: 6, marginTop: 2 },
+  heatCell: { padding: 2 },
+  heatBox: {
+    minHeight: 44,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heatLabel: { textTransform: 'none', letterSpacing: 0 },
 });

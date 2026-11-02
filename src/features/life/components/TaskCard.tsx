@@ -80,6 +80,7 @@ export function TaskCard({
         style={[styles.row, { gap: spacing.md }]}
         accessibilityRole={onOpen ? 'button' : undefined}
         accessibilityLabel={task.name}
+        testID={`task-open-${task.id}`}
       >
         <Avatar
           icon={task.icon}
