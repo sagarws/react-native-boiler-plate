@@ -27,6 +27,7 @@ export const ROUTES = {
   UTILITY_RECORDER: 'UtilityRecorder',
   UTILITY_RECORDINGS: 'UtilityRecordings',
   UTILITY_RECORDING: 'UtilityRecording',
+  UTILITY_YOUTUBE: 'UtilityYouTube',
   SETTINGS: 'Settings',
   APPEARANCE: 'Appearance',
   ABOUT: 'About',

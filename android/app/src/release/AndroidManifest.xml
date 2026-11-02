@@ -3,10 +3,13 @@
 
     <!-- Network policy for release builds.
 
-         INTERNET is kept for one purpose only: "Speak with Translation" sends
-         the extracted text (never a screenshot) to the Google Gemini API with
-         the user's own key, after explicit opt-in. Every other mode is fully
-         on-device.
+         INTERNET is kept for two user-started features only:
+         - "Speak with Translation" sends the extracted text (never a
+           screenshot) to the Google Gemini API with the user's own key,
+           after explicit opt-in.
+         - Utility → YouTube Downloader fetches the video page and streams
+           for a link the user pastes (nothing is uploaded).
+         Every other mode is fully on-device.
 
          ML Kit bundles Google's datatransport usage-logging uploader. While
          the app had no INTERNET permission it could not send anything; now

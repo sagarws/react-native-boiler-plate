@@ -29,6 +29,7 @@ import {
   MeasureScreen,
   ScannerScreen,
   UtilityHubScreen,
+  YouTubeDownloadScreen,
   WaterEjectScreen,
 } from '@/features/utility';
 import { DrawerHost } from './drawer';
@@ -104,6 +105,10 @@ export default function MainNavigator() {
         <Stack.Screen
           name={ROUTES.UTILITY_RECORDING}
           component={RecordingDetailScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.UTILITY_YOUTUBE}
+          component={YouTubeDownloadScreen}
         />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />

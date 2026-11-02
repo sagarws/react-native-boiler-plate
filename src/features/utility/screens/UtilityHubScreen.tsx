@@ -21,14 +21,22 @@ import {
 } from '../services/native.service';
 
 type Tool = {
-  key: 'compass' | 'measure' | 'scanner' | 'documents' | 'water' | 'recorder';
+  key:
+    | 'compass'
+    | 'measure'
+    | 'scanner'
+    | 'documents'
+    | 'water'
+    | 'recorder'
+    | 'youtube';
   route:
     | typeof ROUTES.UTILITY_COMPASS
     | typeof ROUTES.UTILITY_MEASURE
     | typeof ROUTES.UTILITY_SCANNER
     | typeof ROUTES.UTILITY_DOCUMENTS
     | typeof ROUTES.UTILITY_WATER_EJECT
-    | typeof ROUTES.UTILITY_RECORDER;
+    | typeof ROUTES.UTILITY_RECORDER
+    | typeof ROUTES.UTILITY_YOUTUBE;
   icon: IconName;
   color: string;
 };
@@ -69,6 +77,12 @@ const TOOLS: readonly Tool[] = [
     route: ROUTES.UTILITY_RECORDER,
     icon: 'monitor',
     color: 'rose',
+  },
+  {
+    key: 'youtube',
+    route: ROUTES.UTILITY_YOUTUBE,
+    icon: 'download',
+    color: 'orange',
   },
 ];
 
@@ -115,6 +129,8 @@ export default function UtilityHubScreen() {
           : { text: t('utility.noPermissionNeeded'), warn: false };
       case 'recorder':
         return { text: t('utility.needsCaptureConsent'), warn: false };
+      case 'youtube':
+        return { text: t('utility.needsInternet'), warn: false };
       default:
         return { text: t('utility.usesSpeaker'), warn: false };
     }

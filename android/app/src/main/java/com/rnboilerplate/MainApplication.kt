@@ -10,6 +10,7 @@ import com.rnboilerplate.followup.FollowUpPackage
 import com.rnboilerplate.recorder.RecorderPackage
 import com.rnboilerplate.screenocr.ScreenOcrPackage
 import com.rnboilerplate.utility.UtilityPackage
+import com.rnboilerplate.ytdownload.YouTubeDownloaderPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -23,6 +24,7 @@ class MainApplication : Application(), ReactApplication {
           add(FollowUpPackage())
           add(UtilityPackage())
           add(RecorderPackage())
+          add(YouTubeDownloaderPackage())
         },
     )
   }

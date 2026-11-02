@@ -6,7 +6,9 @@
 on a React Native boilerplate. Native capture + ML Kit OCR live in
 `android/app/src/main/java/com/rnboilerplate/screenocr/`; see `docs/SCREEN_OCR.md`. The
 boilerplate's login/session/API layers remain but are off (`FEATURES.auth = false`).
-Offline by design: no backend, no network calls, release builds strip `INTERNET`.
+Offline by design: no backend; OCR, screenshots and extracted text never touch the network.
+Network use is limited to features the user starts explicitly — Speak with Translation
+(Gemini, own key) and Utility → YouTube Downloader (`docs/UTILITY.md`).
 
 |  |  |
 |---|---|
@@ -66,8 +68,10 @@ src/shared/           assets/ components/ hooks/ utils/ — cross-feature only
 - **Do not lower `targetSdk` below 36 or the NDK below r28** — Play Store floor and 16KB
   page-size compliance.
 - **Do not commit secrets** — `.env`, keystores and signing passwords stay out of git.
-- **Do not add network access or log extracted text.** Screenshots and OCR text never
-  leave the device or reach logs/notifications.
+- **Do not add network access beyond the approved, user-started features** (Speak with
+  Translation, YouTube Downloader) **or log extracted text.** Screenshots and OCR text
+  never leave the device or reach logs/notifications. Any new network use needs the
+  user's explicit approval first.
 - **Do not bypass Android capture consent** or secure-screen (`FLAG_SECURE`) protection.
 
 ## Definition of done

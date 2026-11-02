@@ -8,4 +8,5 @@ export { default as MeasureScreen } from './screens/MeasureScreen';
 export { default as RecorderScreen } from './screens/RecorderScreen';
 export { default as RecordingsScreen } from './screens/RecordingsScreen';
 export { default as RecordingDetailScreen } from './screens/RecordingDetailScreen';
+export { default as YouTubeDownloadScreen } from './screens/YouTubeDownloadScreen';
 export { RecordingSettings } from './components/RecordingSettings';

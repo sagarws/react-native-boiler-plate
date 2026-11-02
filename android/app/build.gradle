@@ -133,6 +133,11 @@ android {
             }
         }
     }
+    // NewPipeExtractor (YouTube Downloader) uses java.nio / java.time APIs
+    // missing below Android 13; desugaring backports them (minSdk 24).
+    compileOptions {
+        coreLibraryDesugaringEnabled true
+    }
     // JVM unit tests: Android framework stubs (e.g. Color.parseColor in
     // config defaults) return defaults instead of throwing.
     testOptions {
@@ -187,6 +192,12 @@ dependencies {
     // AR Measure. "AR Optional" in the manifest: installs everywhere, and
     // the tool explains when a phone doesn't support ARCore.
     implementation("com.google.ar:core:1.57.0")
+
+    // Utility → YouTube Downloader (ytdownload/): reads video details and
+    // stream URLs and solves YouTube's player challenges. JitPack; needs the
+    // nio desugaring below and the Rhino keep rules in proguard-rules.pro.
+    implementation("com.github.teamnewpipe:NewPipeExtractor:v0.26.5")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
 
     // JVM unit tests for the pure OCR text assembly (src/test).
     testImplementation("junit:junit:4.13.2")

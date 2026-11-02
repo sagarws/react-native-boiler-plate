@@ -68,6 +68,7 @@ export type MainStackParamList = {
       }
     | undefined;
   UtilityRecording: { recordingId: string };
+  UtilityYouTube: undefined;
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
   Settings:
     | { tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' }

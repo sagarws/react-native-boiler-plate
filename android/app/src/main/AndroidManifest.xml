@@ -168,6 +168,13 @@
       <!-- Utility → Screen Recorder: its own floating button, consent and
            notification, independent of the OCR service above. Records only
            after Android's capture consent; microphone only when chosen. -->
+      <!-- Utility → YouTube Downloader: one download at a time in the
+           foreground (progress notification with Cancel). -->
+      <service
+        android:name=".ytdownload.YtDownloadService"
+        android:exported="false"
+        android:foregroundServiceType="dataSync" />
+
       <service
         android:name=".recorder.RecorderService"
         android:exported="false"

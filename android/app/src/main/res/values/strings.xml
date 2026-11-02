@@ -200,4 +200,12 @@
     <string name="rec_color_blue">Blue</string>
     <string name="rec_color_white">White</string>
     <string name="rec_color_black">Black</string>
+    <!-- Utility → YouTube Downloader (ytdownload/) -->
+    <string name="yt_channel_name">Video downloads</string>
+    <string name="yt_notif_starting">Starting…</string>
+    <string name="yt_notif_downloading">Downloading</string>
+    <string name="yt_notif_merging">Saving</string>
+    <string name="yt_notif_done">Download complete</string>
+    <string name="yt_notif_failed">Download failed</string>
+    <string name="yt_action_cancel">Cancel</string>
 </resources>
