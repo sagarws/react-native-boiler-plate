@@ -14,31 +14,42 @@ import { Button, Icon, Notice } from '@/shared/components';
 import { useTheme } from '@/theme';
 import { lifeActions, useLifeData } from '../hooks/useLife';
 import { evaluate, periodContaining, reportsIn } from '../services/periods';
-import type { ProgressReport, Task } from '../types';
+import type { DayKey, ProgressReport, Task } from '../types';
 import { addDays } from '../utils/dates';
-import { formatPeriod, formatQty, parseAmount } from '../utils/format';
+import {
+  addToAmount,
+  formatPeriod,
+  formatQty,
+  parseAmount,
+  quickAddSteps,
+} from '../utils/format';
+import { DateField } from './pickers';
 
 export interface LogProgressSheetProps {
   task: Task | null;
   today: string;
+  /** Day the sheet opens on (e.g. the day picked in the calendar); default today. */
+  initialDay?: DayKey;
   onClose: () => void;
 }
 
 /**
- * Quick progress entry: amount (with quick-add chips), day (today /
- * yesterday), optional note. Shows what the period total will be, and the
+ * Quick progress entry: amount (with +5/+10/+15 quick-add chips), day
+ * (today, yesterday or any other date — past or future — within the
+ * task's dates), optional note. Shows what the period total will be, and the
  * period's entries for correcting or deleting. Several entries add up.
  */
 export function LogProgressSheet({
   task,
   today,
+  initialDay,
   onClose,
 }: LogProgressSheetProps) {
   const { t } = useTranslation();
   const { bottom } = useSafeAreaInsets();
   const { colors, typography, spacing, radius } = useTheme();
   const data = useLifeData();
-  const [day, setDay] = useState(today);
+  const [day, setDay] = useState(initialDay ?? today);
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [editing, setEditing] = useState<ProgressReport | null>(null);
@@ -49,12 +60,12 @@ export function LogProgressSheet({
   const saving = useRef(false);
 
   useEffect(() => {
-    setDay(today);
+    setDay(initialDay ?? today);
     setAmount('');
     setNote('');
     setEditing(null);
     setMessage(null);
-  }, [task?.id, today]);
+  }, [task?.id, today, initialDay]);
 
   const live = task ? data.tasks.find(x => x.id === task.id) ?? task : null;
   const period = live ? periodContaining(live, editing?.day ?? day) : null;
@@ -77,20 +88,14 @@ export function LogProgressSheet({
       )
     : [];
   const value = parseAmount(amount);
-  const valid = Number.isFinite(value) && value > 0;
+  const valid = Number.isFinite(value) && value > 0 && !!period;
   const target =
     state?.target.quantity ?? live.targets[live.targets.length - 1].quantity;
   const after =
     (state?.completed ?? 0) - (editing?.quantity ?? 0) + (valid ? value : 0);
   const yesterday = addDays(today, -1);
   const canYesterday = !!periodContaining(live, yesterday);
-  const quick = [
-    ...new Set(
-      [target * 0.25, target * 0.5, state?.remaining ?? target].map(
-        n => Math.round(n * 10) / 10,
-      ),
-    ),
-  ].filter(n => n > 0);
+  const quick = quickAddSteps(target);
 
   const save = () => {
     if (!valid || saving.current) return;
@@ -239,6 +244,24 @@ export function LogProgressSheet({
                       )
                     : null}
                 </View>
+                <DateField
+                  label={t('life.logPickDay')}
+                  value={day}
+                  onChange={next => {
+                    if (next) setDay(next);
+                    setMessage(null);
+                  }}
+                  today={today}
+                  min={live.startDate}
+                  testID="log-day-pick"
+                />
+                {!period ? (
+                  <Notice
+                    tone="warning"
+                    message={t('life.logNoTarget')}
+                    testID="log-no-target"
+                  />
+                ) : null}
               </View>
             ) : null}
             <View style={{ gap: spacing.xs }}>
@@ -262,7 +285,10 @@ export function LogProgressSheet({
                   chip(
                     t('life.quickAdd', { amount: formatQty(q) }),
                     false,
-                    () => setAmount(String(q)),
+                    () => {
+                      setAmount(prev => addToAmount(prev, q));
+                      setMessage(null);
+                    },
                     `log-quick-${q}`,
                   ),
                 )}

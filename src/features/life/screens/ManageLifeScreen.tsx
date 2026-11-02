@@ -26,7 +26,7 @@ import {
 } from '../components/tabs/shared';
 import { useClock, useLifeData } from '../hooks/useLife';
 import type { PeriodState } from '../services/periods';
-import type { Task } from '../types';
+import type { DayKey, Task } from '../types';
 
 const TABS: Record<LifeTab, React.ComponentType<TabProps>> = {
   dashboard: DashboardTab,
@@ -51,7 +51,10 @@ export default function ManageLifeScreen() {
   const data = useLifeData();
   const { now, today } = useClock();
   const [tab, setTab] = useState<LifeTab>(params?.tab ?? 'dashboard');
-  const [logging, setLogging] = useState<Task | null>(null);
+  const [logging, setLogging] = useState<{
+    task: Task;
+    day?: DayKey;
+  } | null>(null);
   const [reviewing, setReviewing] = useState<
     (PeriodState & { task: Task }) | null
   >(null);
@@ -93,7 +96,7 @@ export default function ManageLifeScreen() {
           data={data}
           today={today}
           now={now}
-          onLog={setLogging}
+          onLog={(task, day) => setLogging({ task, day })}
           onReview={setReviewing}
           onOpenProject={projectId =>
             navigation.navigate(ROUTES.LIFE_PROJECT, { projectId })
@@ -103,7 +106,8 @@ export default function ManageLifeScreen() {
         />
       </ScrollView>
       <LogProgressSheet
-        task={logging}
+        task={logging?.task ?? null}
+        initialDay={logging?.day}
         today={today}
         onClose={() => setLogging(null)}
       />

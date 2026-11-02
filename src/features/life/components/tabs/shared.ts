@@ -23,7 +23,8 @@ export interface TabProps {
   data: LifeData;
   today: DayKey;
   now: Date;
-  onLog: (task: Task) => void;
+  /** Opens Log progress; [day] preselects a date (default today). */
+  onLog: (task: Task, day?: DayKey) => void;
   onReview: (item: PeriodState & { task: Task }) => void;
   onOpenProject: (projectId: string) => void;
   onNewProject: () => void;

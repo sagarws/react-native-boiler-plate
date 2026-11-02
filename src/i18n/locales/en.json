@@ -769,7 +769,7 @@
     "error_dates_invalid": "The end date must be on or after the start date.",
     "error_not_found": "This item no longer exists.",
     "error_duplicate": "That entry was just saved — it wasn’t added twice.",
-    "error_day_out_of_range": "Pick a day within the task’s dates, not in the future.",
+    "error_day_out_of_range": "Pick a day within the task’s start and end dates.",
     "error_period_open": "This period hasn’t ended yet.",
     "error_target_met": "This target was met — no reason needed.",
     "error_already_reviewed": "A reason was already given for this period.",
@@ -1020,7 +1020,9 @@
     "widget_endsToday": "Ends today",
     "widget_endsOn": "Ends {{date}}",
     "widget_stale": "Open Akshar to update",
-    "widget_more": "+{{count}} more in the app"
+    "widget_more": "+{{count}} more in the app",
+    "logPickDay": "Other date",
+    "logNoTarget": "This task has no target on that day. Pick a day between its start and end dates."
   },
   "followUp": {
     "title": "Follow Up",

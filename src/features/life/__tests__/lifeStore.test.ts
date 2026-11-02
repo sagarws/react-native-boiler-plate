@@ -252,6 +252,7 @@ describe('progress reports', () => {
         '2026-10-20',
       ).ok,
     ).toBe(false);
+    // Before the task's start date.
     expect(
       lifeStore.addReport(
         { taskId: task.id, day: '2026-10-19', quantity: 5 },
@@ -261,15 +262,38 @@ describe('progress reports', () => {
       ok: false,
       error: 'day_out_of_range',
     });
+    // After the task's end date.
+    const ended = lifeStore.createTask(
+      taskInput(task.projectId, { name: 'Short', endDate: '2026-10-25' }),
+    );
+    if (!ended.ok) throw new Error(ended.error);
     expect(
       lifeStore.addReport(
-        { taskId: task.id, day: '2026-10-21', quantity: 5 },
+        { taskId: ended.value.id, day: '2026-10-26', quantity: 5 },
         '2026-10-20',
       ),
-    ).toEqual({
-      ok: false,
-      error: 'day_out_of_range',
-    });
+    ).toEqual({ ok: false, error: 'day_out_of_range' });
+  });
+
+  it('logs progress on any day within the task — past or future', () => {
+    const { task } = setup();
+    const past = lifeStore.addReport(
+      { taskId: task.id, day: '2026-10-21', quantity: 100 },
+      '2026-10-28',
+    );
+    const future = lifeStore.addReport(
+      { taskId: task.id, day: '2026-11-15', quantity: 200 },
+      '2026-10-28',
+    );
+    expect(past.ok && past.value.day).toBe('2026-10-21');
+    expect(future.ok && future.value.day).toBe('2026-11-15');
+    expect(
+      evaluate(task, periodContaining(task, '2026-11-15')!, {
+        reports: lifeStore.read().reports,
+        reviews: [],
+        today: '2026-10-28',
+      }).completed,
+    ).toBe(200);
   });
 });
 

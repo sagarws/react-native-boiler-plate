@@ -43,6 +43,13 @@ the app.
     given (`missed`).
   - Periods fully covered by a pause, or ending before the task was created,
     don't count.
+- **Logging progress:** you can log on any day within the task's start and end
+  dates, past (catching up) or future (pre-logging). Use the Today / Yesterday
+  chips, the date picker in the Log progress sheet, or pick the day in the
+  Calendar tab and tap Log progress. A future entry counts toward that day's
+  period. Quick-add chips add +5 / +10 / +15 to the amount. Targets under 5 use
+  +1 / +2 / +3, and targets of 1,000 or more scale by tens
+  (`utils/format.ts` `quickAddSteps`).
 - **Different units are never added together.** Rates are "periods met / periods
   judged", and quantity charts are per task in that task's unit.
 - **Countdown:** the time left until local midnight after the period's last day.

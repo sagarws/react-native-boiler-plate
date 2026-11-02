@@ -648,10 +648,15 @@ export const lifeStore = {
   },
 
   // ── Progress reports ──
-  /** Logs progress; adds to the period's total (never replaces it). */
+  /**
+   * Logs progress; adds to the period's total (never replaces it). Any day
+   * within the task's dates is allowed — past (catching up) or future
+   * (planned/pre-logged).
+   */
   addReport(
     input: { taskId: string; day: DayKey; quantity: number; note?: string },
-    today: DayKey,
+    // Kept for callers; future days are allowed, so it's no longer used.
+    _today: DayKey,
     at: Date = new Date(),
   ): Result<ProgressReport> {
     const d = read();
@@ -666,11 +671,7 @@ export const lifeStore = {
     ) {
       return fail('quantity_invalid');
     }
-    if (
-      !isDayKey(input.day) ||
-      input.day > today ||
-      !periodContaining(task, input.day)
-    )
+    if (!isDayKey(input.day) || !periodContaining(task, input.day))
       return fail('day_out_of_range');
     const note = clip(input.note);
     const duplicate = d.reports.some(

@@ -167,14 +167,14 @@ export function CalendarTab({
                     {s.review.note ? ` — ${s.review.note}` : ''}
                   </Text>
                 ) : null}
-                {s.status === 'active' ? (
-                  <Button
-                    size="sm"
-                    variant="soft"
-                    label={t('life.logProgress')}
-                    onPress={() => onLog(s.task)}
-                  />
-                ) : null}
+                {/* Any day with a target can be logged — past or future. */}
+                <Button
+                  size="sm"
+                  variant="soft"
+                  label={t('life.logProgress')}
+                  onPress={() => onLog(s.task, selected)}
+                  testID={`calendar-log-${s.task.id}`}
+                />
                 {s.status === 'report_required' ? (
                   <Button
                     size="sm"

@@ -164,6 +164,77 @@ describe('ManageLifeScreen', () => {
     );
   });
 
+  it('quick-add chips (+5, +10, +15) add to the amount', async () => {
+    const { task } = seed();
+    mockParams = { tab: 'today' };
+    const r = await render(<ManageLifeScreen />);
+    await press(r, `task-log-${task.id}`);
+    expect(has(r, 'log-quick-5')).toBe(true);
+    expect(has(r, 'log-quick-15')).toBe(true);
+    await press(r, 'log-quick-10');
+    await press(r, 'log-quick-5');
+    expect(byId(r, 'log-amount').props.value).toBe('15');
+    await press(r, 'log-save');
+    expect(
+      lifeStore.read().reports.filter(x => x.day === TODAY)[0].quantity,
+    ).toBe(15);
+  });
+
+  it('logs progress for a past calendar day', async () => {
+    const { task } = seed();
+    mockParams = { tab: 'calendar' };
+    const r = await render(<ManageLifeScreen />);
+    await press(r, 'life-calendar-day-2026-10-22');
+    await press(r, `calendar-log-${task.id}`);
+    await type(r, 'log-amount', '7');
+    await press(r, 'log-save');
+    expect(
+      lifeStore
+        .read()
+        .reports.filter(x => x.day === '2026-10-22')
+        .map(x => x.quantity),
+    ).toEqual([10, 7]);
+  });
+
+  it('logs progress for a future calendar day', async () => {
+    const { task } = seed();
+    mockParams = { tab: 'calendar' };
+    const r = await render(<ManageLifeScreen />);
+    await press(r, 'life-calendar-next');
+    await press(r, 'life-calendar-day-2026-11-03');
+    await press(r, `calendar-log-${task.id}`);
+    await type(r, 'log-amount', '20');
+    await press(r, 'log-save');
+    expect(
+      lifeStore.read().reports.filter(x => x.day === '2026-11-03'),
+    ).toHaveLength(1);
+  });
+
+  it('picks any other date in the sheet', async () => {
+    const { task } = seed();
+    mockParams = { tab: 'today' };
+    const r = await render(<ManageLifeScreen />);
+    await press(r, `task-log-${task.id}`);
+    // The DateField component shares its testID with its inner button.
+    await ReactTestRenderer.act(async () => {
+      r.root
+        .findAll(
+          n =>
+            n.props.testID === 'log-day-pick' &&
+            typeof n.props.onPress === 'function',
+        )[0]
+        .props.onPress();
+    });
+    await press(r, 'log-day-pick-calendar-next');
+    await press(r, 'log-day-pick-calendar-day-2026-11-10');
+    await type(r, 'log-amount', '9');
+    await press(r, 'log-save');
+    expect(
+      lifeStore.read().reports.filter(x => x.day === '2026-11-10'),
+    ).toHaveLength(1);
+    expect(has(r, 'log-no-target')).toBe(false);
+  });
+
   it('requires a reason (and a note for "other") at period end', async () => {
     const { task } = seed();
     const r = await render(<ManageLifeScreen />);
