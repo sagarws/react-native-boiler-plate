@@ -20,6 +20,11 @@ import { HistoryTab } from '../components/tabs/HistoryTab';
 import { InsightsTab } from '../components/tabs/InsightsTab';
 import { ProjectsTab } from '../components/tabs/ProjectsTab';
 import { TodayTab } from '../components/tabs/TodayTab';
+import { PlannerTab } from '../planner/components/PlannerTab';
+import {
+  usePlannerData,
+  usePlannerReminderSync,
+} from '../planner/hooks/usePlanner';
 import {
   LIFE_TABS,
   type LifeTab,
@@ -36,6 +41,7 @@ const TABS: Record<LifeTab, React.ComponentType<TabProps>> = {
   calendar: CalendarTab,
   history: HistoryTab,
   insights: InsightsTab,
+  planner: ({ today }: TabProps) => <PlannerTab today={today} />,
 };
 
 /**
@@ -48,6 +54,7 @@ export default function ManageLifeScreen() {
   const { top, bottom } = useSafeAreaInsets();
   const { colors, spacing } = useTheme();
   const [backupOpen, setBackupOpen] = useState(false);
+  usePlannerReminderSync(usePlannerData());
   const navigation = useNavigation();
   const { params } = useRoute<RouteProp<MainStackParamList, 'ManageLife'>>();
   const data = useLifeData();

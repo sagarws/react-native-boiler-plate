@@ -112,6 +112,7 @@ jest.mock('@react-native-documents/picker', () => ({
     allFiles: '*/*',
     images: 'image/*',
     xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    zip: 'application/zip',
   },
   keepLocalCopy: jest.fn().mockResolvedValue([{ status: 'success', localUri: 'file:///copy.jpg', sourceUri: '' }]),
   errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },

@@ -20,6 +20,32 @@ export interface Spec extends TurboModule {
    * resolves its sheets JSON. Rejects `not_xlsx` / `too_large`.
    */
   readWorkbook(uri: string): Promise<string>;
+  /** "Save to…" for a text file (planner-only JSON export). */
+  saveText(fileName: string, mimeType: string, content: string): Promise<boolean>;
+  /** Opens a private app file (attachment) in a viewer app. */
+  openFile(uri: string, mimeType: string): Promise<boolean>;
+  /**
+   * Full backup: writes [entriesJson] ([{path, text} | {path, file}]) plus
+   * manifest.json (the given manifest + file sizes and SHA-256s) as a .zip
+   * where the user chooses. Resolves false when cancelled.
+   */
+  saveZip(fileName: string, manifestJson: string, entriesJson: string): Promise<boolean>;
+  /**
+   * Validates and reads a picked .zip; attachments go to a staging folder.
+   * JSON {stageId, manifest, texts, files, checksumErrors}. Rejects
+   * not_zip / unsafe_entry / duplicate_entry / too_large / no_manifest / bad_manifest.
+   */
+  readZip(uri: string): Promise<string>;
+  /** Keeps staged attachments; JSON {stagedUri: permanentUri}. */
+  adoptStaged(stageId: string): Promise<string>;
+  /**
+   * Replaces the Long-Term Planner reminders (keys "plan:…") with the JSON
+   * array [{key, at, title, body, link}]; Follow Up reminders are untouched.
+   * Resolves how many were armed, or -1 when notifications are blocked.
+   */
+  syncPlannerReminders(json: string): Promise<number>;
+  /** Deletes staged attachments (restore cancelled). */
+  discardStaged(stageId: string): void;
 }
 
 export default TurboModuleRegistry.get<Spec>('LifeBackup');

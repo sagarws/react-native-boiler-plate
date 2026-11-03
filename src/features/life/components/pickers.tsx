@@ -5,6 +5,7 @@ import type { IconName } from '@/shared/assets';
 import { Button, Icon } from '@/shared/components';
 import { CATEGORY_COLORS, categoryColor, useTheme } from '@/theme';
 import type { DayKey } from '../types';
+import { addMonths } from '../utils/dates';
 import { formatLongDay } from '../utils/format';
 import { MonthCalendar } from './MonthCalendar';
 
@@ -138,6 +139,7 @@ export function DateField({
   min,
   allowClear,
   emptyLabel,
+  yearNav,
   testID,
 }: {
   label: string;
@@ -147,6 +149,8 @@ export function DateField({
   min?: DayKey;
   allowClear?: boolean;
   emptyLabel?: string;
+  /** Adds −10 / −1 / +1 / +10 year buttons (plans spanning decades). */
+  yearNav?: boolean;
   testID: string;
 }) {
   const { t } = useTranslation();
@@ -212,6 +216,29 @@ export function DateField({
               },
             ]}
           >
+            {yearNav ? (
+              <View style={[styles.row, styles.years, { gap: spacing.xs }]}>
+                {[-10, -1, 1, 10].map(step => (
+                  <Pressable
+                    key={step}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('life.yearStep', { count: step })}
+                    onPress={() => setMonth(m => addMonths(m, step * 12))}
+                    style={[
+                      styles.yearButton,
+                      { borderColor: colors.border, borderRadius: radius.pill },
+                    ]}
+                    testID={`${testID}-year${step > 0 ? '+' : ''}${step}`}
+                  >
+                    <Text
+                      style={[typography.label, { color: colors.textPrimary }]}
+                    >
+                      {step > 0 ? `+${step}` : step}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+            ) : null}
             <MonthCalendar
               month={month}
               onMonthChange={setMonth}
@@ -277,5 +304,13 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   row: { flexDirection: 'row' },
   scrim: { flex: 1, justifyContent: 'center' },
+  years: { justifyContent: 'center' },
+  yearButton: {
+    borderWidth: 1,
+    minWidth: 48,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   sheet: { maxWidth: 420, width: '100%', alignSelf: 'center' },
 });

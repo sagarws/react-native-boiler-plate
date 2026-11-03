@@ -46,7 +46,8 @@ src/features/
   onboarding/         one-time setup
   dashboard/          home
   settings/           settings, appearance, about
-  life/               Manage Life (projects, targets, widget)
+  life/               Manage Life (projects, targets, widget, backup) and planner/ —
+                      the Long-Term Planner mind map (docs/LONG_TERM_PLANNER.md)
   followup/           Follow Up CRM (contacts, follow-ups, reminders) — docs/FOLLOW_UP.md
   utility/            Utility tools (scanner, documents, compass, AR measure, water eject,
                       screen recorder) — docs/UTILITY.md, docs/SCREEN_RECORDER.md

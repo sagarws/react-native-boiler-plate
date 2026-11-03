@@ -15,6 +15,8 @@ export const ROUTES = {
   LIFE_PROJECT_FORM: 'LifeProjectForm',
   LIFE_TASK_FORM: 'LifeTaskForm',
   LIFE_TASK: 'LifeTask',
+  PLANNER_MAP: 'PlannerMap',
+  PLANNER_PROJECT_FORM: 'PlannerProjectForm',
   FOLLOW_UP: 'FollowUp',
   FOLLOW_UP_CONTACT: 'FollowUpContact',
   FOLLOW_UP_CONTACT_FORM: 'FollowUpContactForm',

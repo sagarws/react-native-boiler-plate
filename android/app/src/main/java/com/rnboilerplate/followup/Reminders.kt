@@ -18,16 +18,21 @@ import com.rnboilerplate.R
 import org.json.JSONArray
 import org.json.JSONObject
 
-/** One scheduled Follow Up notification (texts already translated by JS). */
+/**
+ * One scheduled notification (texts already translated by JS). Follow Up
+ * reminders open [contactId]; others (e.g. Long-Term Planner, key "plan:…")
+ * open their own in-app [link].
+ */
 data class Reminder(
   val key: String,
   val at: Long,
   val title: String,
   val body: String,
   val contactId: String,
+  val link: String = "",
 ) {
   fun toJson(): JSONObject =
-    JSONObject().put("key", key).put("at", at).put("title", title).put("body", body).put("contactId", contactId)
+    JSONObject().put("key", key).put("at", at).put("title", title).put("body", body).put("contactId", contactId).put("link", link)
 
   companion object {
     private val KEY_RE = Regex("^[a-z]+:[A-Za-z0-9-]{1,60}$")
@@ -39,7 +44,8 @@ data class Reminder(
       val at = o.optLong("at", -1)
       val title = o.optString("title").take(200)
       if (!KEY_RE.matches(key) || at <= 0 || title.isBlank()) return null
-      return Reminder(key, at, title, o.optString("body").take(500), o.optString("contactId").take(60))
+      val link = o.optString("link").take(300).takeIf { it.startsWith("rnboilerplate://") } ?: ""
+      return Reminder(key, at, title, o.optString("body").take(500), o.optString("contactId").take(60), link)
     }
 
     fun parseAll(json: String): List<Reminder> {
@@ -96,20 +102,32 @@ object ReminderScheduler {
     return PendingIntent.getBroadcast(context, key.hashCode(), intent, flags or PendingIntent.FLAG_IMMUTABLE)
   }
 
-  /** Replaces all reminders with [next]. Returns how many were armed. */
+  /** Long-Term Planner reminders use keys "plan:<nodeId>". */
+  const val PLANNER_PREFIX = "plan:"
+  const val PLANNER_CHANNEL = "planner_reminders"
+
+  fun isPlanner(key: String) = key.startsWith(PLANNER_PREFIX)
+
+  /**
+   * Replaces the reminders of one group with [next]: only keys in [inGroup]
+   * are touched, so Follow Up and the planner never wipe each other's.
+   * Returns how many were armed.
+   */
   @Synchronized
-  fun sync(context: Context, next: List<Reminder>): Int {
+  fun sync(context: Context, next: List<Reminder>, inGroup: (String) -> Boolean = { !isPlanner(it) }): Int {
     val alarms = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-    for (old in stored(context)) {
+    val (mine, others) = stored(context).partition { inGroup(it.key) }
+    for (old in mine) {
       pending(context, old.key, PendingIntent.FLAG_NO_CREATE)?.let {
         alarms.cancel(it)
         it.cancel()
       }
     }
     val now = System.currentTimeMillis()
-    val armed = next.filter { it.at > now }.sortedBy { it.at }.take(MAX)
+    val room = (MAX - others.size).coerceAtLeast(0)
+    val armed = next.filter { inGroup(it.key) && it.at > now }.sortedBy { it.at }.take(room)
     for (r in armed) arm(context, alarms, r)
-    store(context, armed)
+    store(context, others + armed)
     return armed.size
   }
 
@@ -137,9 +155,12 @@ object ReminderScheduler {
     val r = list.firstOrNull { it.key == key } ?: return
     store(context, list.filter { it.key != key })
     if (!notificationsAllowed(context)) return
-    ensureChannel(context)
+    val planner = isPlanner(r.key)
+    val channel = if (planner) PLANNER_CHANNEL else CHANNEL
+    ensureChannel(context, channel)
+    val target = r.link.ifEmpty { "rnboilerplate://followup/contact/${Uri.encode(r.contactId)}" }
     val open =
-      Intent(Intent.ACTION_VIEW, Uri.parse("rnboilerplate://followup/contact/${Uri.encode(r.contactId)}"))
+      Intent(Intent.ACTION_VIEW, Uri.parse(target))
         .setPackage(context.packageName)
         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     val tap =
@@ -151,12 +172,12 @@ object ReminderScheduler {
       )
     // The lock screen shows only a generic line, never the contact's name.
     val public =
-      NotificationCompat.Builder(context, CHANNEL)
+      NotificationCompat.Builder(context, channel)
         .setSmallIcon(R.drawable.ic_bell)
-        .setContentTitle(context.getString(R.string.followup_reminder_public))
+        .setContentTitle(context.getString(if (planner) R.string.planner_reminder_public else R.string.followup_reminder_public))
         .build()
     val notification =
-      NotificationCompat.Builder(context, CHANNEL)
+      NotificationCompat.Builder(context, channel)
         .setSmallIcon(R.drawable.ic_bell)
         .setContentTitle(r.title)
         .setContentText(r.body)
@@ -175,16 +196,19 @@ object ReminderScheduler {
     }
   }
 
-  private fun ensureChannel(context: Context) {
+  private fun ensureChannel(context: Context, id: String) {
     if (Build.VERSION.SDK_INT < 26) return
     val manager = context.getSystemService(NotificationManager::class.java) ?: return
-    if (manager.getNotificationChannel(CHANNEL) != null) return
+    if (manager.getNotificationChannel(id) != null) return
+    val planner = id == PLANNER_CHANNEL
     manager.createNotificationChannel(
       NotificationChannel(
-        CHANNEL,
-        context.getString(R.string.followup_channel_name),
+        id,
+        context.getString(if (planner) R.string.planner_channel_name else R.string.followup_channel_name),
         NotificationManager.IMPORTANCE_DEFAULT,
-      ).apply { description = context.getString(R.string.followup_channel_description) },
+      ).apply {
+        description = context.getString(if (planner) R.string.planner_channel_description else R.string.followup_channel_description)
+      },
     )
   }
 }

@@ -100,6 +100,11 @@ Tap a task (on a project, or on the Today tab) to open its **task page**. Tap a 
 
 Charts and calendars are drawn with plain views (no chart library or SVG), like the other Manage Life charts.
 
+## Long-Term Planner
+
+The Long-Term Planner tab plans decades as an interactive mind map. See
+[LONG_TERM_PLANNER.md](./LONG_TERM_PLANNER.md), which also describes the full ZIP backup.
+
 ## Backup & restore (Excel)
 
 Manage Life header → folder icon → **Backup & restore**.

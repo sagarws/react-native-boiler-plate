@@ -3,6 +3,8 @@ export { default as ProjectDetailScreen } from './screens/ProjectDetailScreen';
 export { default as ProjectFormScreen } from './screens/ProjectFormScreen';
 export { default as TaskFormScreen } from './screens/TaskFormScreen';
 export { default as TaskDetailScreen } from './screens/TaskDetailScreen';
+export { default as PlannerMapScreen } from './planner/screens/PlannerMapScreen';
+export { default as PlannerProjectFormScreen } from './planner/screens/PlannerProjectFormScreen';
 export { useLifeWidgetSync } from './hooks/useLifeWidgetSync';
 export { LIFE_TABS } from './components/tabs/shared';
 export type { LifeTab } from './components/tabs/shared';

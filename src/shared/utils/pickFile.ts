@@ -56,3 +56,11 @@ export const pickAttachment = (): Promise<PickedFile | null> =>
  */
 export const pickSpreadsheet = (): Promise<PickedFile | null> =>
   pickCopy([types.xlsx, 'application/octet-stream']);
+
+/** A .zip archive (backups), copied into app storage. */
+export const pickZip = (): Promise<PickedFile | null> =>
+  pickCopy([
+    types.zip,
+    'application/x-zip-compressed',
+    'application/octet-stream',
+  ]);

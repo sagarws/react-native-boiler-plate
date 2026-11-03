@@ -10,6 +10,8 @@ import {
 } from '@/features/followup';
 import {
   ManageLifeScreen,
+  PlannerMapScreen,
+  PlannerProjectFormScreen,
   ProjectDetailScreen,
   ProjectFormScreen,
   TaskDetailScreen,
@@ -71,6 +73,11 @@ export default function MainNavigator() {
         />
         <Stack.Screen name={ROUTES.LIFE_TASK_FORM} component={TaskFormScreen} />
         <Stack.Screen name={ROUTES.LIFE_TASK} component={TaskDetailScreen} />
+        <Stack.Screen name={ROUTES.PLANNER_MAP} component={PlannerMapScreen} />
+        <Stack.Screen
+          name={ROUTES.PLANNER_PROJECT_FORM}
+          component={PlannerProjectFormScreen}
+        />
         <Stack.Screen name={ROUTES.FOLLOW_UP} component={FollowUpScreen} />
         <Stack.Screen
           name={ROUTES.FOLLOW_UP_CONTACT}

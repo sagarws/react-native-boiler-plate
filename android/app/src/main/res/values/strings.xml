@@ -208,4 +208,8 @@
     <string name="yt_notif_done">Download complete</string>
     <string name="yt_notif_failed">Download failed</string>
     <string name="yt_action_cancel">Cancel</string>
+    <!-- Long-Term Planner reminders (shared scheduler, own channel) -->
+    <string name="planner_channel_name">Long-term plan reminders</string>
+    <string name="planner_channel_description">Reminders you set on long-term goals and milestones.</string>
+    <string name="planner_reminder_public">Plan reminder</string>
 </resources>

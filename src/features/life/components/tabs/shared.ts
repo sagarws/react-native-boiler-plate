@@ -7,7 +7,8 @@ export type LifeTab =
   | 'today'
   | 'calendar'
   | 'history'
-  | 'insights';
+  | 'insights'
+  | 'planner';
 
 export const LIFE_TABS: readonly LifeTab[] = [
   'dashboard',
@@ -16,6 +17,7 @@ export const LIFE_TABS: readonly LifeTab[] = [
   'calendar',
   'history',
   'insights',
+  'planner',
 ];
 
 /** What every Manage Life tab receives from the screen. */

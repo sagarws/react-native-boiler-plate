@@ -41,4 +41,13 @@ export const StorageKeys = {
   UtilityDocuments: 'utility.documents',
   /** Utility: tool preferences (units, water-eject mode, …). */
   UtilityPrefs: 'utility.prefs',
+  /** Long-Term Planner (Manage Life): schema version + change counter. */
+  PlannerMeta: 'planner.meta',
+  PlannerProjects: 'planner.projects',
+  PlannerNodes: 'planner.nodes',
+  PlannerStatuses: 'planner.statuses',
+  PlannerCategories: 'planner.categories',
+  PlannerNotes: 'planner.notes',
+  /** Per-project canvas views (zoom/pan). */
+  PlannerSettings: 'planner.settings',
 } as const;

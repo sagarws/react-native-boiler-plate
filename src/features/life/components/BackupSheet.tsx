@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button, Card, Icon, Notice } from '@/shared/components';
 import { useTheme } from '@/theme';
 import { useLifeBackup } from '../hooks/useLifeBackup';
+import { FullBackupSection } from './FullBackupSection';
 
 const ERRORS = new Set([
   'not_xlsx',
@@ -109,6 +110,11 @@ export function BackupSheet({ visible, onClose }: BackupSheetProps) {
                 message={t('life.backupError_unavailable')}
               />
             ) : null}
+
+            <FullBackupSection />
+            <View
+              style={[styles.divider, { backgroundColor: colors.divider }]}
+            />
 
             <View style={{ gap: spacing.sm }}>
               <Text style={label}>{t('life.backupExportTitle')}</Text>
@@ -233,6 +239,7 @@ const styles = StyleSheet.create({
   sheet: { maxHeight: '90%' },
   row: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },
+  divider: { height: StyleSheet.hairlineWidth },
   close: {
     width: 44,
     height: 44,

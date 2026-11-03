@@ -11,6 +11,7 @@ import type { RootStackParamList } from './types';
  * - rnboilerplate://life/today — the Manage Life home-screen widget.
  * - rnboilerplate://followup/contact/<id> · followup/view/<view> — Follow Up
  *   reminder notifications.
+ * - rnboilerplate://planner/<projectId>/<nodeId> — Long-Term Planner reminders.
  */
 export const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['rnboilerplate://'],
@@ -34,6 +35,7 @@ export const linking: LinkingOptions<RootStackParamList> = {
                   : 'today',
             },
           },
+          [ROUTES.PLANNER_MAP]: { path: 'planner/:projectId/:focusNodeId?' },
           [ROUTES.MANAGE_LIFE]: {
             path: 'life/:tab',
             parse: {

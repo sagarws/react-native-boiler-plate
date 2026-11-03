@@ -41,6 +41,10 @@ export type MainStackParamList = {
   LifeTaskForm: { projectId: string; taskId?: string };
   /** A task's detail page: calendar, chart, history. */
   LifeTask: { taskId: string };
+  /** Long-Term Planner mind map; focusNodeId reveals and highlights a node. */
+  PlannerMap: { projectId: string; focusNodeId?: string };
+  /** No projectId = new long-term project. */
+  PlannerProjectForm: { projectId?: string };
   /** Follow Up; `view` opens a list directly (e.g. from a reminder). */
   FollowUp:
     | { view?: 'pending' | 'today' | 'overdue' | 'upcoming' | 'done' | 'all' }
