@@ -141,19 +141,46 @@ export const NodeCard = memo(function NodeCardView({
   const background = highlighted ? colors.primarySoft : colors.card;
   const corner = data.milestone ? radius.xl : radius.lg;
   if (compact) {
-    // Zoomed far out: a plain block is enough and much cheaper to draw.
+    // Zoomed far out: one bold title on the node colour, sized large so it
+    // stays legible after the canvas scales it down; details are dropped.
     return (
       <View
         style={[
           styles.card,
+          styles.compact,
           {
             backgroundColor: data.color,
             borderColor: border,
             borderRadius: radius.lg,
             borderWidth: blockBorder,
+            paddingHorizontal: spacing.sm,
+            gap: spacing.xs,
           },
         ]}
-      />
+      >
+        <Icon
+          name={
+            (data.milestone
+              ? 'mapPin'
+              : data.icon ||
+                (data.root ? 'compass' : 'circleCheck')) as IconName
+          }
+          size={26}
+          color={colors.primaryForeground}
+        />
+        <Text
+          style={[
+            typography.h1,
+            styles.flex,
+            { color: colors.primaryForeground },
+          ]}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.6}
+        >
+          {data.name}
+        </Text>
+      </View>
     );
   }
   return (
@@ -289,6 +316,7 @@ export const NodeCard = memo(function NodeCardView({
 
 const styles = StyleSheet.create({
   card: { width: NODE_W, height: NODE_H, overflow: 'hidden' },
+  compact: { flexDirection: 'row', alignItems: 'center' },
   edge: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
   row: { flexDirection: 'row', alignItems: 'center' },
   flex: { flex: 1 },

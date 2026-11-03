@@ -347,6 +347,35 @@ describe('layouts', () => {
     expect(time.years[time.years.length - 1].year).toBeGreaterThanOrEqual(2046);
   });
 
+  it('draws connectors as smooth curves with no sharp corners', () => {
+    const { p } = sample();
+    for (const style of MAP_STYLES) {
+      const l = computeLayout(nodesOf(p.id), p.rootNodeId, style);
+      for (const e of l.edges) {
+        const pts = e.points;
+        // Curves are finely sampled: every joint between two straight pieces
+        // bends only slightly (a two-point edge is already straight).
+        if (pts.length > 2) {
+          for (let i = 1; i < pts.length - 1; i++) {
+            const h1 = Math.atan2(
+              pts[i].y - pts[i - 1].y,
+              pts[i].x - pts[i - 1].x,
+            );
+            const h2 = Math.atan2(
+              pts[i + 1].y - pts[i].y,
+              pts[i + 1].x - pts[i].x,
+            );
+            let turn = Math.abs(h2 - h1);
+            if (turn > Math.PI) turn = 2 * Math.PI - turn;
+            // Timeline's straight runs join the arc tangentially; nothing
+            // bends more than ~20° at a single joint.
+            expect(turn).toBeLessThan(0.35);
+          }
+        }
+      }
+    }
+  });
+
   it('no two tree siblings overlap', () => {
     const p = makeProject();
     for (let i = 0; i < 6; i++) {

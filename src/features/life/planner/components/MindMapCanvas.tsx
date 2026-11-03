@@ -89,15 +89,18 @@ function Segment({
   const length = Math.hypot(b.x - a.x, b.y - a.y);
   if (length < 0.5) return null;
   const angle = Math.atan2(b.y - a.y, b.x - a.x);
+  // Overhang by the stroke width so neighbouring pieces' round caps overlap
+  // and the curve reads as one smooth line, with no notches at the joints.
+  const span = length + width;
   return (
     <View
       pointerEvents="none"
       style={[
         styles.abs,
         {
-          left: (a.x + b.x) / 2 - length / 2,
+          left: (a.x + b.x) / 2 - span / 2,
           top: (a.y + b.y) / 2 - width / 2,
-          width: length,
+          width: span,
           height: width,
           borderRadius: width / 2,
           backgroundColor: color,

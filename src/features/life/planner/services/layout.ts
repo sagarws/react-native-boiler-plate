@@ -154,12 +154,24 @@ function subtreeExtent(
   return ext;
 }
 
+/** Max length of one straight piece of a sampled curve, in layout units. */
+const CURVE_STEP = 12;
+/** Timeline elbow: corner radius and the samples that draw it. */
+const ELBOW_RADIUS = 18;
+const ELBOW_STEPS = 6;
+
+/** Samples for a curve between a and b: enough that it reads as smooth. */
+export function curveSteps(a: Point, b: Point): number {
+  const dist = Math.hypot(b.x - a.x, b.y - a.y);
+  return Math.max(8, Math.min(48, Math.ceil((dist * 1.2) / CURVE_STEP)));
+}
+
 /** Cubic S-curve between two points, sampled into a polyline. */
 export function sCurve(
   a: Point,
   b: Point,
   vertical: boolean,
-  steps = 8,
+  steps = curveSteps(a, b),
 ): Point[] {
   const c1 = vertical
     ? { x: a.x, y: (a.y + b.y) / 2 }
@@ -169,7 +181,8 @@ export function sCurve(
     : { x: (a.x + b.x) / 2, y: b.y };
   const pts: Point[] = [];
   for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
+    // Ease the samples toward both ends, where an S-curve bends hardest.
+    const t = (1 - Math.cos((i / steps) * Math.PI)) / 2;
     const u = 1 - t;
     pts.push({
       x:
@@ -402,8 +415,9 @@ function edgesFor(
         const my = (a.y + b.y) / 2;
         const ctrl = { x: mx - (b.y - a.y) * 0.12, y: my + (b.x - a.x) * 0.12 };
         points = [];
-        for (let i = 0; i <= 8; i++) {
-          const t = i / 8;
+        const steps = curveSteps(a, b);
+        for (let i = 0; i <= steps; i++) {
+          const t = i / steps;
           const u = 1 - t;
           points.push({
             x: u * u * a.x + 2 * u * t * ctrl.x + t * t * b.x,
@@ -412,12 +426,31 @@ function edgesFor(
         }
       } else {
         // Timeline elbow: down from the parent's left edge, across to the child.
+        // The corner is a quarter-round arc rather than a sharp bend.
         const sx = p.x + 10;
-        points = [
-          { x: sx, y: p.y + p.h },
-          { x: sx, y: c.y + c.h / 2 },
-          { x: c.x, y: c.y + c.h / 2 },
-        ];
+        const top = p.y + p.h;
+        const cy = c.y + c.h / 2;
+        const r = Math.max(
+          0,
+          Math.min(ELBOW_RADIUS, Math.abs(cy - top), Math.abs(c.x - sx)),
+        );
+        const dirY = cy >= top ? 1 : -1;
+        const dirX = c.x >= sx ? 1 : -1;
+        points = [{ x: sx, y: top }];
+        for (let i = 0; i <= ELBOW_STEPS; i++) {
+          const ang = ((i / ELBOW_STEPS) * Math.PI) / 2;
+          points.push({
+            x: sx + dirX * r * (1 - Math.cos(ang)),
+            y: cy - dirY * r * (1 - Math.sin(ang)),
+          });
+        }
+        points.push({ x: c.x, y: cy });
+        // The arc can end exactly on a straight run's end: drop repeats.
+        points = points.filter(
+          (q, i) =>
+            i === 0 ||
+            Math.hypot(q.x - points[i - 1].x, q.y - points[i - 1].y) > 0.01,
+        );
       }
       edges.push({ from: parentId, to: k.id, points });
     }
