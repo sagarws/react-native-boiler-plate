@@ -8,6 +8,7 @@ export {
   DEFAULT_THEME_PRESET,
   categoryPalette,
   categoryColor,
+  isCustomColor,
   CATEGORY_COLORS,
   type CategoryColor,
   type ColorPalette,

@@ -3,8 +3,14 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import type { IconName } from '@/shared/assets';
 import { Button, Icon } from '@/shared/components';
-import { CATEGORY_COLORS, categoryColor, useTheme } from '@/theme';
+import {
+  CATEGORY_COLORS,
+  categoryColor,
+  isCustomColor,
+  useTheme,
+} from '@/theme';
 import type { DayKey } from '../types';
+import { CustomColorSheet } from './CustomColorSheet';
 import { addMonths } from '../utils/dates';
 import { formatLongDay } from '../utils/format';
 import { MonthCalendar } from './MonthCalendar';
@@ -46,6 +52,8 @@ export function ColorPicker({
 }) {
   const { t } = useTranslation();
   const { colors, radius, spacing } = useTheme();
+  const [customOpen, setCustomOpen] = useState(false);
+  const custom = isCustomColor(value);
   return (
     <View
       style={[styles.wrap, { gap: spacing.sm }]}
@@ -76,6 +84,42 @@ export function ColorPicker({
           </Pressable>
         );
       })}
+      {/* Any other colour: opens the custom colour panel. */}
+      <Pressable
+        testID={`${testID}-custom`}
+        accessibilityRole="radio"
+        accessibilityState={{ selected: custom }}
+        accessibilityLabel={
+          custom
+            ? t('life.color_customValue', { hex: value.toUpperCase() })
+            : t('life.color_custom')
+        }
+        onPress={() => setCustomOpen(true)}
+        style={[
+          styles.swatch,
+          {
+            borderRadius: radius.pill,
+            backgroundColor: custom ? categoryColor(value) : colors.surfaceMuted,
+          },
+          custom ? { borderColor: colors.textPrimary } : null,
+        ]}
+      >
+        <Icon
+          name={custom ? 'check' : 'palette'}
+          size={18}
+          color={custom ? colors.primaryForeground : colors.textPrimary}
+        />
+      </Pressable>
+      <CustomColorSheet
+        visible={customOpen}
+        initial={categoryColor(value)}
+        onSave={hex => {
+          onChange(hex);
+          setCustomOpen(false);
+        }}
+        onClose={() => setCustomOpen(false)}
+        testID={`${testID}-custom-sheet`}
+      />
     </View>
   );
 }

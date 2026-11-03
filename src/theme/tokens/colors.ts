@@ -335,8 +335,17 @@ export type CategoryColor = keyof typeof categoryPalette;
 
 export const CATEGORY_COLORS = Object.keys(categoryPalette) as CategoryColor[];
 
-/** The palette colour for [key], falling back to violet for unknown keys. */
+/** True for a user-picked custom colour, stored as `#RRGGBB`. */
+export function isCustomColor(value: string): boolean {
+  return /^#[0-9a-f]{6}$/i.test(value);
+}
+
+/**
+ * The colour for [key]: a palette key, or a custom `#RRGGBB` the user picked.
+ * Unknown keys fall back to violet.
+ */
 export function categoryColor(key: string): string {
+  if (isCustomColor(key)) return key.toUpperCase();
   return (
     (categoryPalette as Record<string, string>)[key] ?? categoryPalette.violet
   );
