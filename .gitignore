@@ -89,3 +89,6 @@ yarn-error.log
 graphify-out
 # Chrome extension build output
 public/crome-extension-dist/
+
+# Local media downloads
+downloads/
