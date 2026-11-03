@@ -92,3 +92,4 @@ public/crome-extension-dist/
 
 # Local media downloads
 downloads/
+api-network-records*.json
