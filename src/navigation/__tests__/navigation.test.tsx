@@ -66,6 +66,17 @@ async function pressId(
   });
 }
 
+/**
+ * Expense Tracker is the start screen; the OCR flows below begin from OCR
+ * home, one drawer tap away.
+ */
+async function renderHome() {
+  const renderer = await renderApp();
+  await pressLabel(renderer, 'Open menu');
+  await pressLabel(renderer, 'OCR');
+  return renderer;
+}
+
 function checked(
   renderer: ReactTestRenderer.ReactTestRenderer,
   testID: string,
@@ -86,7 +97,7 @@ afterEach(async () => {
 });
 
 describe('first launch', () => {
-  it('walks through onboarding and lands on home, without any login', async () => {
+  it('walks through onboarding and lands on Expense Tracker, without any login', async () => {
     const renderer = await renderApp();
     expect(textsOf(renderer.root)).toContain('Welcome to Akshar');
 
@@ -105,7 +116,9 @@ describe('first launch', () => {
     await pressId(renderer, 'onboarding-next');
 
     expect(onboardingStore.isComplete()).toBe(true);
-    expect(textsOf(renderer.root)).toContain('Capture text from anywhere');
+    // Lands on the start screen: Expense Tracker.
+    expect(textsOf(renderer.root)).toContain('Expense Tracker');
+    expect(textsOf(renderer.root)).toContain('Spent today');
   });
 });
 
@@ -113,7 +126,7 @@ describe('after onboarding', () => {
   beforeEach(() => onboardingStore.complete());
 
   it('shows the home dashboard with status, language, guide and empty history', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     const texts = textsOf(renderer.root);
 
     expect(texts).toContain('Capture text from anywhere');
@@ -138,7 +151,7 @@ describe('after onboarding', () => {
         lineCount: 1,
       },
     ]);
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressId(renderer, 'result-h1');
 
     const editor = renderer.root.findAll(
@@ -159,7 +172,7 @@ describe('after onboarding', () => {
         lineCount: 1,
       },
     ]);
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressId(renderer, 'result-h1');
     await pressId(renderer, 'extracted-edit');
 
@@ -189,7 +202,7 @@ describe('after onboarding', () => {
         lineCount: 1,
       },
     ]);
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await ReactTestRenderer.act(async () => {
       historyStore.clear();
     });
@@ -197,7 +210,7 @@ describe('after onboarding', () => {
   });
 
   it('splits Settings into General and OCR tabs', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     // Home is the OCR part of the app.
     expect(
       renderer.root.findAll(n => n.props.testID === 'home-title')[0].props
@@ -237,7 +250,7 @@ describe('after onboarding', () => {
   });
 
   it('shows every settings group collapsed to a one-line summary', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-tab-ocr');
     const texts = textsOf(renderer.root);
@@ -259,7 +272,7 @@ describe('after onboarding', () => {
   });
 
   it('keeps one settings group open at a time and never changes values when collapsing', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-ocr-header');
@@ -280,7 +293,7 @@ describe('after onboarding', () => {
   });
 
   it('changes the OCR language from Settings', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-ocr-header');
@@ -291,7 +304,7 @@ describe('after onboarding', () => {
   });
 
   it('offers all seven OCR modes, including Gujarati combinations', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-ocr-header');
@@ -312,7 +325,7 @@ describe('after onboarding', () => {
   });
 
   it('selects the floating-button click action and persists it', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-floating-header');
@@ -327,7 +340,7 @@ describe('after onboarding', () => {
   });
 
   it('offers Speak with pagination as the fourth action, with its settings', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-floating-header');
@@ -346,7 +359,7 @@ describe('after onboarding', () => {
   });
 
   it('shows Speech & voice and Auto-scroll reading settings', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-speech-header');
     // Without the native module the speech section says so instead of guessing.
@@ -368,7 +381,7 @@ describe('after onboarding', () => {
   });
 
   it('turns history off from Settings', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-tab-ocr');
     await pressId(renderer, 'settings-clipboard-header');
@@ -382,7 +395,7 @@ describe('after onboarding', () => {
   });
 
   it('applies a colour preset and a text style immediately and persists them', async () => {
-    const renderer = await renderApp();
+    const renderer = await renderHome();
     await pressLabel(renderer, 'Open settings');
     await pressId(renderer, 'settings-appearance');
     expect(textsOf(renderer.root)).toContain('Theme colours');
@@ -405,6 +418,24 @@ describe('after onboarding', () => {
       fontFamily?: string;
     }[];
     expect(flat.some(s => s?.fontFamily === 'serif')).toBe(true);
+  });
+
+  it('opens on Expense Tracker and lists it first in the drawer', async () => {
+    const renderer = await renderApp();
+    expect(textsOf(renderer.root)).toContain('Expense Tracker');
+    await pressLabel(renderer, 'Open menu');
+    const drawerLabels = renderer.root
+      .findAll(
+        n =>
+          n.props.accessibilityRole === 'button' &&
+          typeof n.props.onPress === 'function' &&
+          typeof n.props.accessibilityLabel === 'string',
+      )
+      .map(n => n.props.accessibilityLabel as string);
+    const first = drawerLabels.indexOf('Expense Tracker');
+    expect(first).toBeGreaterThanOrEqual(0);
+    expect(first).toBeLessThan(drawerLabels.indexOf('Manage Life'));
+    expect(first).toBeLessThan(drawerLabels.indexOf('OCR'));
   });
 
   it('reaches every main screen from the drawer', async () => {

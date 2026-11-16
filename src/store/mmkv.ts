@@ -41,4 +41,12 @@ export const StorageKeys = {
   UtilityDocuments: 'utility.documents',
   /** Utility: tool preferences (units, water-eject mode, …). */
   UtilityPrefs: 'utility.prefs',
+  /** Expense Tracker: schema version (drives migrations). */
+  ExpenseMeta: 'expense.meta',
+  /** Expense Tracker: the "expenses" table. */
+  ExpenseRecords: 'expense.records',
+  /** Expense Tracker: the "expense_categories" table (defaults + custom). */
+  ExpenseCategories: 'expense.categories',
+  /** Expense Tracker: monthly budget and the payment awaiting confirmation. */
+  ExpenseSettings: 'expense.settings',
 } as const;

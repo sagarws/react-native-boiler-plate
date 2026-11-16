@@ -9,3 +9,6 @@ export { default as RecorderScreen } from './screens/RecorderScreen';
 export { default as RecordingsScreen } from './screens/RecordingsScreen';
 export { default as RecordingDetailScreen } from './screens/RecordingDetailScreen';
 export { RecordingSettings } from './components/RecordingSettings';
+// The camera QR scanner, reused by Expense Tracker's "Scan QR & Pay".
+export { utilityNative, UtilityError } from './services/native.service';
+export { ensureCamera, openAppSettings } from './services/camera';

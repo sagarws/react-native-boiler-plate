@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ExtractedTextScreen } from '@/features/capture';
 import { DashboardScreen } from '@/features/dashboard';
+import { ExpenseTrackerScreen } from '@/features/expense';
 import { FileManagementScreen } from '@/features/files';
 import {
   ContactDetailScreen,
@@ -46,9 +47,14 @@ export default function MainNavigator() {
   return (
     <DrawerHost>
       <Stack.Navigator
-        initialRouteName={ROUTES.DASHBOARD}
+        // Expense Tracker is the start screen; OCR home is one drawer tap away.
+        initialRouteName={ROUTES.EXPENSE_TRACKER}
         screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
       >
+        <Stack.Screen
+          name={ROUTES.EXPENSE_TRACKER}
+          component={ExpenseTrackerScreen}
+        />
         <Stack.Screen name={ROUTES.DASHBOARD} component={DashboardScreen} />
         <Stack.Screen
           name={ROUTES.EXTRACTED_TEXT}

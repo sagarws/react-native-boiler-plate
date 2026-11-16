@@ -20,6 +20,10 @@ export type ExtractedTextParams =
  */
 export type MainStackParamList = {
   Dashboard: undefined;
+  /** Expense Tracker — the app's start screen; `tab` opens a section directly. */
+  ExpenseTracker:
+    | { tab?: 'overview' | 'add' | 'history' | 'analytics' }
+    | undefined;
   ExtractedText: ExtractedTextParams;
   FileManagement: undefined;
   /** Manage Life; `tab` opens a section directly. */

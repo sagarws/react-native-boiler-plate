@@ -133,7 +133,15 @@ export function HBars({
   emptyText,
   testID,
 }: {
-  rows: { label: string; value: number; suffix?: string }[];
+  /** [display] replaces "value+suffix" as the shown text (e.g. "₹1,250");
+   *  [color] tints the bar. */
+  rows: {
+    label: string;
+    value: number;
+    suffix?: string;
+    display?: string;
+    color?: string;
+  }[];
   emptyText: string;
   testID?: string;
 }) {
@@ -154,7 +162,9 @@ export function HBars({
       {rows.map(r => (
         <View
           key={r.label}
-          accessibilityLabel={`${r.label}: ${r.value}${r.suffix ?? ''}`}
+          accessibilityLabel={`${r.label}: ${
+            r.display ?? `${r.value}${r.suffix ?? ''}`
+          }`}
         >
           <View style={styles.hRow}>
             <Text
@@ -168,8 +178,7 @@ export function HBars({
               {r.label}
             </Text>
             <Text style={[typography.caption, { color: colors.textSecondary }]}>
-              {r.value}
-              {r.suffix ?? ''}
+              {r.display ?? `${r.value}${r.suffix ?? ''}`}
             </Text>
           </View>
           <View
@@ -185,7 +194,7 @@ export function HBars({
               style={{
                 width: `${(r.value / max) * 100}%`,
                 ...styles.hbarFill,
-                backgroundColor: colors.primary,
+                backgroundColor: r.color ?? colors.primary,
                 borderRadius: radius.pill,
               }}
             />

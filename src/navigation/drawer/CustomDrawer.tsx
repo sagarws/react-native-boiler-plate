@@ -20,6 +20,7 @@ import { ROUTES } from '../routes';
 import type { MainStackParamList } from '../types';
 
 type DrawerTarget =
+  | 'ExpenseTracker'
   | 'Dashboard'
   | 'FileManagement'
   | 'ManageLife'
@@ -33,6 +34,7 @@ const ITEMS: readonly {
   screen: DrawerTarget;
   icon: IconName;
   label:
+    | 'expense'
     | 'home'
     | 'files'
     | 'life'
@@ -42,6 +44,7 @@ const ITEMS: readonly {
     | 'appearance'
     | 'about';
 }[] = [
+  { screen: ROUTES.EXPENSE_TRACKER, icon: 'wallet', label: 'expense' },
   { screen: ROUTES.MANAGE_LIFE, icon: 'gauge', label: 'life' },
   { screen: ROUTES.DASHBOARD, icon: 'scanText', label: 'home' },
   { screen: ROUTES.FILE_MANAGEMENT, icon: 'folder', label: 'files' },

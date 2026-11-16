@@ -8,6 +8,7 @@ export const ROUTES = {
   ONBOARDING: 'Onboarding',
   MAIN: 'Main',
   DASHBOARD: 'Dashboard',
+  EXPENSE_TRACKER: 'ExpenseTracker',
   EXTRACTED_TEXT: 'ExtractedText',
   FILE_MANAGEMENT: 'FileManagement',
   MANAGE_LIFE: 'ManageLife',

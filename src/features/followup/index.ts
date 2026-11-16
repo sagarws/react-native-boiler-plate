@@ -5,3 +5,7 @@ export { FollowUpSettings } from './components/FollowUpSettings';
 export { useReminderSync } from './hooks/useReminderSync';
 export { FOLLOW_UP_VIEWS } from './services/views';
 export type { FollowUpView } from './services/views';
+// Sheet and form widgets other features reuse (candidates for shared/).
+export { Chip, ChipRow, Field, Sheet } from './components/Sheet';
+export { useNow } from './hooks/useFollowUp';
+export { instantOf, parseTime, timeOf } from './utils/time';

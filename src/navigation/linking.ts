@@ -17,8 +17,9 @@ export const linking: LinkingOptions<RootStackParamList> = {
   config: {
     screens: {
       [ROUTES.MAIN]: {
-        // Back from a deep-linked screen returns to home, not out of the app.
-        initialRouteName: ROUTES.DASHBOARD,
+        // Back from a deep-linked screen returns to the start screen (Expense
+        // Tracker), not out of the app.
+        initialRouteName: ROUTES.EXPENSE_TRACKER,
         screens: {
           [ROUTES.EXTRACTED_TEXT]: {
             path: 'capture/:source',

@@ -12,10 +12,18 @@ export interface HeaderProps {
   onBackPress?: () => void;
   /** Actions on the right edge. */
   right?: ReactNode;
+  /** Shows a menu button (opens the side drawer) instead of back — for a
+   *  screen at the root of the stack. */
+  onMenuPress?: () => void;
 }
 
 /** Screen header: back button, title, optional actions. */
-export function Header({ label, onBackPress, right }: HeaderProps) {
+export function Header({
+  label,
+  onBackPress,
+  right,
+  onMenuPress,
+}: HeaderProps) {
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const navigation = useNavigation();
@@ -37,14 +45,20 @@ export function Header({ label, onBackPress, right }: HeaderProps) {
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={t('common.back')}
-        onPress={handleBack}
+        accessibilityLabel={
+          onMenuPress ? t('common.openMenu') : t('common.back')
+        }
+        onPress={onMenuPress ?? handleBack}
         style={({ pressed }) => [
           styles.back,
           pressed && { backgroundColor: colors.surfaceMuted },
         ]}
       >
-        <Icon name="arrowLeft" size={22} color={colors.textPrimary} />
+        <Icon
+          name={onMenuPress ? 'menu' : 'arrowLeft'}
+          size={22}
+          color={colors.textPrimary}
+        />
       </Pressable>
       <Text
         accessibilityRole="header"

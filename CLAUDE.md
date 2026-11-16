@@ -37,8 +37,10 @@ src/services/realtime/
 src/store/mmkv.ts     every storage key, in one place
 src/specs/            TurboModule codegen specs — each imported only by its owner's services/
                       (NativeScreenOcr → capture, NativeFollowUp → followup,
-                      NativeUtility + NativeRecorder → utility)
+                      NativeUtility + NativeRecorder → utility, NativeExpense → expense)
 src/features/
+  expense/            Expense Tracker + Scan QR & Pay (UPI intents) — the start screen;
+                      docs/EXPENSE_TRACKER.md
   capture/            screen-OCR service wrapper, settings/history stores, review screen
   onboarding/         one-time setup
   dashboard/          home

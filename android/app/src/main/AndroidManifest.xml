@@ -36,10 +36,21 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <!-- Android 11+ package visibility: lets the app list installed
-         text-to-speech engines (to prefer Google Speech Services when present). -->
+         text-to-speech engines (to prefer Google Speech Services when present)
+         and UPI payment apps. -->
     <queries>
         <intent>
             <action android:name="android.intent.action.TTS_SERVICE" />
+        </intent>
+        <!-- Expense Tracker → Scan QR & Pay: lists the installed UPI apps so
+             the user can pick one. The app only hands them a upi://pay link;
+             no payment gateway, no credentials. -->
+        <!-- The host must be declared too: UPI apps register for upi://pay,
+             and a scheme-only query doesn't match their filters, so Android
+             would keep them hidden. -->
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="upi" android:host="pay" />
         </intent>
     </queries>
 
