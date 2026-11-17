@@ -2,6 +2,7 @@
 module.exports = {
   rootDir: '.',
   testEnvironment: 'node',
+  setupFiles: ['<rootDir>/test/support/jest-setup.ts'],
   testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/test/e2e/**/*.spec.ts', '<rootDir>/test/modules/**/*.spec.ts'],
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.json' }],

@@ -27,6 +27,9 @@ export const startPair = async (mounts: Parameters<typeof buildLegacyApp>[0], ne
   await nest.listen(0, '127.0.0.1');
   const newPort = (nest.getHttpServer().address() as any).port as number;
   const close = async () => {
+    // tests may leave hung requests open on purpose (legacy routes that never respond)
+    (nest.getHttpServer() as http.Server).closeAllConnections?.();
+    legacy.closeAllConnections?.();
     await nest.close();
     await new Promise((r) => legacy.close(r));
   };
