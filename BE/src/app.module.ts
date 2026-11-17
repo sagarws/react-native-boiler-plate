@@ -24,9 +24,11 @@ import { ECommercePlatformModule } from './modules/ecommerce-platform/ecommerce-
 import { ProductSkucodeMapModule } from './modules/product-skucode-map/product-skucode-map.module';
 import { MasterImportSettingModule } from './modules/master-import-setting/master-import-setting.module';
 import { MarketingSiteModule } from './modules/marketing-site/marketing-site.module';
+import { ManualPaymentModule } from './modules/manual-payment/manual-payment.module';
+import { RazorpayModule } from './modules/razorpay/razorpay.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule],
   controllers: [RootController],
 })
 export class AppModule {}

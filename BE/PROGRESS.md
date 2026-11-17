@@ -40,6 +40,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | main.ts runs legacy `runUploadsCleanupOnBoot` + `startUploadsCleanupInterval` | Per-process scratch cleanup of this server's own uploads/ dir (legacy's filled a disk to 169 GB once); no shared state, nothing duplicated |
 | 2026-11-17 | Importing legacy BullMQ **producers** (`new Queue(...)`) is allowed; **workers** are not | A producer only enqueues into the shared Redis queue; legacy's worker still consumes each job once. Workers would double-process |
 | 2026-11-17 | Jest safety net: loopback-only network guard (`net.Socket.connect`), `puppeteer.launch` refused, nodemailer faked; S3 `uploadObject` and `Queue.add` stubbed per spec | Delegated legacy code calls marketplaces, GitHub, Meta, S3, SMTP; no test may reach them |
+| 2026-11-17 | razorpay: no `rawBody` capture | Plan §5 assumed raw-body signatures, but legacy HMACs `JSON.stringify(req.body)` after body-parser. Same body-parser here ⇒ identical digest; tested with a pretty-printed signed body |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -84,8 +85,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 3 | ProductSkucodeMap | /api/product-skucode-map | 3 | delegated; BullMQ producer (worker stays in legacy); upload before auth (legacy quirk) | 🧪 | 3 (parity) | |
 | 3 | MasterImportSetting | /api/master-setting | 6 | delegated (1,718 lines, puppeteer/axios logins) | 🧪 | 7 (parity) | |
 | 3 | MarketingSite | /api/marketing-site | 4 | public; per-route 6/min limiters; Meta/GitHub calls | 🧪 | 3 + 429 check | |
-| 3 | manualPayment | /api/manual-payment | 8 | | ⬜ | | |
-| 3 | razorpay | /api/razorpay | 9 | raw body / signature | ⬜ | | |
+| 3 | manualPayment | /api/manual-payment | 8 | delegated (1,772 lines); xlsx/invoice downloads | 🧪 | 10 (parity) | |
+| 3 | razorpay | /api/razorpay | 8 | delegated; signatures = HMAC(JSON.stringify(parsed body)) → no raw body needed; signed webhooks parity-tested | 🧪 | 14 (parity) | |
 | 3 | Files | /api/files | 5 | upload / stream | ⬜ | | |
 | 3 | Imports | /api/external-imports | 5 | upload + SSE | ⬜ | | |
 | 3 | Webhook | /api/webhooks | 3 | raw body? | ⬜ | | |
@@ -145,6 +146,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Notification (6, delegated, SSE incl. live push). APIs migrated: 74 / 497 | Template (8), TDS (5) |
 | 2026-11-17 | Claude | Template (8) + TDS (5), delegated. Found + fixed 3 runtime gaps: uploads path (cwd), missing process-level error handlers, async-rejection behaviour. APIs migrated: 87 / 497 | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4) |
 | 2026-11-17 | Claude | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4), delegated; network guard for tests. APIs migrated: 105 / 497 | Phase 3 rest: manualPayment (8), razorpay (8, raw body), Files (5), Imports (5), Webhook (3)… |
+| 2026-11-17 | Claude | manualPayment (8) + razorpay (8), delegated; signed-webhook parity. APIs migrated: 121 / 497 | Files (5), Imports (5, upload+SSE), Webhook (3) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
@@ -157,6 +159,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 9. AppSetting: `POST /api/app-settings/increff-qc-mapping` chains `authMiddleware` + `systemAdminAuth`; no single token passes both (users fail systemAdminAuth, system admins fail authMiddleware) → endpoint is unreachable.
 10. Template: handlers have no try/catch → any async error (e.g. validation on upsert, bad id on delete) leaves the request hanging until the client times out. Wrap in try/catch → 4xx/500.
 11. MasterImportSetting: `GET /api/master-setting/add-keys-settings` (any logged-in user) rewrites settings of every company; `POST /sync-spf-tat-to-companies` chains systemAdminAuth + authMiddleware → unreachable. ProductSkucodeMap `POST /` runs the file upload before auth (unauthenticated requests still write to disk).
+12. razorpay: `POST /verify-signature` never responds when the signature is VALID (empty else); `POST /payment-event` destructures `req.body.payload` outside try → malformed body hangs; `POST /place-order` uses the adminAuth factory → every request hangs. Signature check over `JSON.stringify(parsed body)` instead of the raw bytes can reject genuine webhooks whose JSON is not byte-identical after re-serialisation (e.g. unicode escapes, number formats) — Razorpay recommends verifying the raw body.
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)

@@ -26,6 +26,8 @@ export interface ParityOpts {
   volatile?: string[];
   /** true when the case creates docs (ids/timestamps differ): masks VOLATILE keys + skips etag/content-length */
   creates?: boolean;
+  /** header value patterns to mask (e.g. a timestamp in a download filename) */
+  headerMasks?: Record<string, RegExp>;
 }
 
 /**
@@ -42,6 +44,9 @@ export const runParity = async (ports: { legacyPort: number; newPort: number }, 
   const keys = opts.creates ? [...VOLATILE, ...(opts.volatile || [])] : opts.volatile || [];
   const norm = (x: ReturnType<typeof pick>) => {
     const out = { ...x, headers: { ...x.headers } };
+    for (const [h, re] of Object.entries(opts.headerMasks || {})) {
+      if (typeof out.headers[h] === 'string') out.headers[h] = (out.headers[h] as string).replace(re, '<v>');
+    }
     if (keys.length) {
       try { out.body = JSON.stringify(maskDeep(JSON.parse(x.body), keys)); } catch { /* text body */ }
       delete out.headers.etag;
