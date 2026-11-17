@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+// Same console → winston override as legacy server.ts (IST timestamps + caller file:line in logs).
+import '@legacy/utils/logger';
 import { loadEnv } from './config/env';
 loadEnv();
 import { connectMongo } from './core/db/mongo';

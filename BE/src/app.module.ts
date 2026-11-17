@@ -12,9 +12,10 @@ import { AccountModule } from './modules/account/account.module';
 import { VideoLinkModule } from './modules/video-link/video-link.module';
 import { ReferralModule } from './modules/referral/referral.module';
 import { CreditsModule } from './modules/credits/credits.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule],
   controllers: [RootController],
 })
 export class AppModule {}
