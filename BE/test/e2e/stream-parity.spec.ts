@@ -101,3 +101,46 @@ describe('Streams / SSE / download / redirect parity vs Express', () => {
     expect(await get(np)).toEqual(await get(lp));
   });
 });
+
+describe('async rejection in a legacy handler/middleware → request left open (Express 4)', () => {
+  it('both servers leave the request hanging and log [UNHANDLED REJECTION]', async () => {
+    const { Legacy } = require('../../src/core/auth');
+    const asyncFail = async () => { throw new Error('async boom'); };
+    const app = express();
+    // Express 4 ignores the returned promise; legacy server.ts's process handler logs the rejection.
+    // (jest would fail on a real unhandled rejection, so that process handler is reproduced inline.)
+    const asExpress4 = (fn: () => Promise<unknown>) => () => { fn().catch((e) => console.error('[UNHANDLED REJECTION]', e)); };
+    app.get('/h', asExpress4(asyncFail));
+    app.get('/m', asExpress4(asyncFail), (req: any, res: any) => res.send('never'));
+    @Controller('')
+    class P {
+      @Get('h') h(@Req() q: FastifyRequest, @Res() r: FastifyReply) { return runLegacyHandler(q, r, asyncFail); }
+      @Get('m') @Legacy(asyncFail) m() { return 'never'; }
+    }
+    @Module({ controllers: [P] })
+    class PM {}
+    const legacySrv = http.createServer(app);
+    await new Promise<void>((r) => legacySrv.listen(0, '127.0.0.1', () => r()));
+    const onUnhandled = () => undefined; // legacy server.ts logs these; keep jest from failing on them
+    process.on('unhandledRejection', onUnhandled);
+    const nestApp = await createApp(PM);
+    await nestApp.listen(0, '127.0.0.1');
+    const errs: string[] = [];
+    const spy = jest.spyOn(console, 'error').mockImplementation((...a: any[]) => { errs.push(String(a[0])); });
+    const t = (port: number, path: string) => Promise.race([
+      new Promise((res) => http.get({ host: '127.0.0.1', port, path }, (r) => res(r.statusCode)).on('error', () => res('ERR'))),
+      new Promise((res) => setTimeout(() => res('TIMEOUT'), 300)),
+    ]);
+    for (const path of ['/h', '/m']) {
+      expect(await t((legacySrv.address() as any).port, path)).toBe('TIMEOUT');
+      expect(await t((nestApp.getHttpServer().address() as any).port, path)).toBe('TIMEOUT');
+    }
+    expect(errs.filter((e) => e === '[UNHANDLED REJECTION]').length).toBe(2);
+    spy.mockRestore();
+    process.off('unhandledRejection', onUnhandled);
+    (nestApp.getHttpServer() as any).closeAllConnections?.();
+    legacySrv.closeAllConnections();
+    await nestApp.close();
+    await new Promise((r) => legacySrv.close(r));
+  });
+});

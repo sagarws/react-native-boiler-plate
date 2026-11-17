@@ -1,0 +1,127 @@
+/* TrackVid profile screens. Template tokens only (var(--tv-*) / template classes). */
+.tv-profile-card-intro {
+  margin: -6px 0 16px;
+  font-size: 14px;
+}
+.tv-profile-footer {
+  border-top: 0;
+  padding-top: 0;
+}
+.tv-profile-footer .primary-button {
+  margin-left: 0;
+}
+.tv-profile-footer > span {
+  margin-inline-end: auto;
+}
+.tv-profile-logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--tv-border);
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface-2);
+}
+.tv-profile-logo > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.tv-profile-logo strong {
+  color: var(--tv-text);
+  font-size: 14px;
+  font-weight: 600;
+}
+.tv-profile-logo small {
+  font-size: 12px;
+}
+.tv-profile-eyebrow {
+  color: var(--tv-muted);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tv-profile-logo-pick {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--tv-border);
+  border-radius: 50%;
+  background: var(--tv-accent-soft);
+  color: var(--tv-accent-strong);
+}
+.tv-profile-logo-pick:disabled {
+  cursor: not-allowed;
+}
+.tv-profile-logo-pick > img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.tv-profile-logo-pick > .icon {
+  width: 28px;
+  height: 28px;
+}
+.tv-profile-logo-pick:focus-visible {
+  box-shadow: var(--tv-focus);
+  outline: none;
+}
+.tv-profile-logo-badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--tv-border);
+  border-radius: 50%;
+  background: var(--tv-surface);
+  color: var(--tv-accent-strong);
+}
+.tv-profile-logo-badge .icon {
+  width: 14px;
+  height: 14px;
+}
+.tv-profile-billing {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.tv-profile-billing li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--tv-border);
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface-2);
+}
+.tv-profile-password {
+  max-width: 760px;
+}
+@media (max-width: 900px) {
+  .profile-layout {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .tv-profile-footer {
+    flex-wrap: wrap;
+  }
+  .tv-profile-footer > span {
+    flex-basis: 100%;
+  }
+}

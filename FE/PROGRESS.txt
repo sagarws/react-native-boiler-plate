@@ -1,0 +1,152 @@
+TRACKVID UI MIGRATION (Next.js 16 + Veylix template) — PROGRESS
+Mode: UI only, mock data, not connected to any backend, separate from ../BE
+Plan: MIGRATION_PLAN.md (§12 = autonomous rules)   Rules: CLAUDE.md
+
+MIGRATED: 22/34 routes   (22 migrated, 12 remaining)
+STATUS: RUNNING
+CURRENT: Wave 2 (dashboard group, settings, RMS/VMS/favorite, support/what's new, CMS create/update)
+
+==========================================================================
+FOUNDATION (needed before routes count)
+==========================================================================
+[DONE]    F1  Next.js project setup (package.json, tsconfig strict, eslint, next.config, vitest) — npm install done
+[DONE]    F2  Template base: styles + TrackVid CSS (styles/trackvid/tokens.css, components.css), logos, marketplace
+              logos, status/what's-new images, sample sheets in public/assets; typed icons (template paths +
+              TrackVid stroke set, no innerHTML); typed ui primitives; charts (chart-setup, tooltip, ChartCanvas)
+[DONE]    F3  Mock layer: mocks/{delay,user,notifications}.ts; services/{auth,user,notification,email-summary}-service.ts
+              + session.ts; Redux store (profile, notification, scriptProgress, otpPrompt); config/constant.ts and
+              config/app-constant.ts ported from TrackVid-FE; lib/{permissions,access,format,storage,events,use-async}
+[DONE]    F4  App shell: sidebar (TrackVid menu + roles/permissions + CMS submenu + email badge), topbar (title,
+              credit/storage wallet, theme, notifications, settings, profile menu), toasts, banners (unverified
+              credentials, CMS app), CMS script progress widget, OTP prompt, mailbox disconnected alert
+[DONE]    F5  Auth guard (token → login, AccessRestriction → dashboard, video-link-only redirect); ComingSoon
+              placeholder page for every route; in-shell 404 ([...unknownPath]) + standalone not-found
+[DONE]    F6  Shared primitives in components/ui: DataTable (sort, select, client/server paging, column resize),
+              Tabs, DateRangePicker, Switch/ToggleRow, Combobox/MultiCombobox, Skeleton, Banner, PhoneField,
+              OtpInput, Stepper, ConfirmDialog, Empty/Error/Loading states, AppDialog, form fields, RowActionsMenu,
+              PageHeading, StatusPill, PlatformLogo, VideoPlayer, Carousel, FileDrop, SummaryList, MetricCard
+[DONE]    F7  RichTextEditor (Tiptap, components/editor) + HTML round-trip test (4/4 pass, npm test)
+
+==========================================================================
+ROUTES (34) — status: PENDING | IN PROGRESS | MIGRATED | BLOCKED: <reason>
+==========================================================================
+-- Auth (6)
+[MIGRATED]  1  /auth/login
+[MIGRATED]  2  /auth/register (/:company_id?)
+[MIGRATED]  3  /auth/subuser-register
+[MIGRATED]  4  /auth/forgot-password
+[MIGRATED]  5  /auth/reset-password
+[MIGRATED]  6  /auth/invitation
+
+-- Dashboard shell (25)
+[IN PROGRESS]  7  /                          Dashboard
+[MIGRATED]  8  /profile
+[MIGRATED]  9  /manage-users
+[MIGRATED] 10  /manage-roles
+[IN PROGRESS] 11  /settings
+[MIGRATED] 12  /integrations
+[IN PROGRESS] 13  /refer-and-earn
+[IN PROGRESS] 14  /video-link
+[MIGRATED] 15  /feed
+[IN PROGRESS] 16  /pending-failed-orders
+[MIGRATED] 17  /system-admin
+[MIGRATED] 18  /account-summary
+[MIGRATED] 19  /master-data
+[MIGRATED] 20  /sku
+[MIGRATED] 21  /imports
+[MIGRATED] 22  /emails
+[MIGRATED] 23  /mailboxes/:mailboxId/logs
+[MIGRATED] 24  /cms
+[IN PROGRESS] 25  /rms
+[IN PROGRESS] 26  /vms
+[IN PROGRESS] 27  /favorite
+[IN PROGRESS] 28  /support
+[IN PROGRESS] 29  /whats-new
+[PENDING] 30  /cms/create
+[PENDING] 31  /cms/update
+
+-- Outside shell (3)
+[MIGRATED] 32  /impersonate/:userId
+[MIGRATED] 33  /oauth/zoho/callback
+[MIGRATED] 34  404 (any unknown path)  — in-shell card via (dashboard)/[...unknownPath] + standalone app/not-found.tsx
+
+Not counted (commented out in TrackVid-FE App.tsx / menu): /trash, /rtsp-url, /ticket
+
+==========================================================================
+FINISH
+==========================================================================
+[DONE]    Z1  Dark mode: styles/trackvid/dark.css (tokens + template class overrides under [data-theme="dark"]);
+              light / dark / system switch in topbar (persisted, follows OS in system mode, no flash via
+              beforeInteractive script). Visual tuning continues in Z2.
+[PENDING] Z2  Responsive pass 1440 / 1024 / 390, keyboard + focus pass
+[PENDING] Z3  Final report (bottom of this file)
+
+==========================================================================
+DECISIONS
+==========================================================================
+2026-11-17  Next.js 16 App Router (user).
+2026-11-17  UI only, mock data, no backend, separate from ../BE (user).
+2026-11-17  Tiptap replaces react-quill (React 19 support, template-styled toolbar).
+2026-11-17  Auth pages = Veylix-style centred card (no reference given).
+2026-11-17  Dark mode = derived from light tokens, done in Z1.
+2026-11-17  Hosting = next build && next start.
+2026-11-17  No git commits: a BE agent works in the same parent checkout and switches branches.
+2026-11-17  Video player and webcam use native <video> / getUserMedia / Fullscreen API instead of react-player,
+            screenfull and react-webcam (fewer React 19 risks; mock data uses plain MP4 URLs).
+2026-11-17  Route count = 34 live routes in TrackVid-FE App.tsx (commented-out /trash, /rtsp-url, /ticket excluded).
+
+2026-11-17  Icons: template Phosphor paths converted to typed path data (no dangerouslySetInnerHTML); extra TrackVid
+            icons drawn as 24px stroke SVGs (npm install of @phosphor-icons/core was refused by the sandbox).
+2026-11-17  Mock services return the response body (Promise<T>) instead of an axios response; function names match
+            TrackVid-FE src/api/*. Swapping in axios later = return res.data in the same function.
+2026-11-17  Redux holds only cross-screen state (profile, notifications, CMS script progress, OTP prompt). Screens load
+            their own data through useAsync + mock services (same calls TrackVid makes in its middleware).
+2026-11-17  Sample user is admin with every permission. A "Sample role" switch in the profile menu flips the role name to
+            system_admin so the System Admin route (roles: ["system_admin"]) can be reviewed.
+2026-11-17  Sidebar groups (Workspace / Data / Account / Help) wrap TrackVid's menu in its original order.
+2026-11-17  Settings is reached from the topbar gear (as in TrackVid); Manage Roles is a route without a menu item (as in TrackVid).
+2026-11-17  Theme switch (light/dark/system) ships with the shell; the dark palette itself is Z1.
+2026-11-17  Editor HTML samples: TrackVid-BE is outside this session's allowed folders, so the round-trip test uses
+            representative claim emails (BE template shape + Quill-edited ql-* classes + hostile HTML).
+2026-11-17  Route work runs in parallel agents (one domain each, own features/<domain>, services, mocks, CSS file);
+            I run the full build + lint after each wave and update this file.
+==========================================================================
+LOG (newest last)
+==========================================================================
+2026-11-17  Plan, CLAUDE.md and this tracker created. Starting F1.
+2026-11-17  F1 done. F2 started (styles, font, images copied). Handed over to a new session started in FE/.
+2026-11-17  F2–F7 done (build, lint 0 warnings, 4/4 editor tests). Starting route wave 1.
+2026-11-17  Wave 1 started in parallel: auth (1-6,32,33), emails+mailbox logs (22,23), integrations (12),
+            profile/users/roles/feed (8,9,10,15), accounts+system admin (18,17), master data/SKU/imports (19-21), CMS (24).
+            Shared services written by coordinator first: feed-service, file-service (consumed by several routes).
+2026-11-17  Route 34 (404) MIGRATED: built in F5 (template "Page not found" card in shell + standalone). MIGRATED 1/34.
+2026-11-17  Z1 done while wave 1 runs (dark.css imported last in styles/index.css).
+2026-11-17  Auth agent done (routes 1-6, 32, 33; own files tsc/eslint clean). Fixed its shared-file finding: one Redux
+            store + one ToastHost now live in the root layout (components/layout/app-providers.tsx), so the profile
+            and toasts survive login/impersonate → dashboard. Routes stay IN PROGRESS until the wave-1 full build.
+2026-11-17  Profile/users/roles/feed agent done (routes 8, 9, 10, 15; own files clean). Decisions: Users tab gated by
+            manage_users::edit (TrackVid used manage_roles::edit), built-in roles read-only incl. section chips,
+            members from ManageUserService.getCompanyUsers, extra search/bulk actions. Awaiting wave-1 build.
+2026-11-17  Integrations agent done (route 12; own files clean). Applied its shared fix: sample user integrationAccess now
+            has TrackVid's keys (email + 9 marketplaces). WhatsAppSettings exported for the Settings route.
+            CmsCredentialsService lives in services/cms-credentials-service.ts. Awaiting wave-1 build.
+2026-11-17  Accounts + system admin agent done (routes 17, 18; own files clean). Decisions: Razorpay → simulated checkout
+            (AccountService.purchasePlan); exports CSV, invoices HTML; Total Credit card = plan credits + bonus (TrackVid
+            showed price, likely a bug); storage plans paid in credits; TDS New Request hidden without ::edit.
+            OrderService has all 13 functions for VMS/Favorite. Awaiting wave-1 build.
+2026-11-17  Emails + mailbox logs agent done (routes 22, 23; own files clean). Decisions: /emails?tab=mailboxes shows
+            MailboxManager (TrackVid keeps it in Settings → IntegrationsSettings; exported for Settings to reuse);
+            OAuth simulated; export CSV; socket → 45 s timer; email HTML always sanitized (DOMPurify).
+            EmailAutomationService.getTodayStats / getPendingEmailCount ready for Dashboard. Awaiting wave-1 build.
+2026-11-17  Master data/SKU/imports agent done (routes 19-21; own files clean). Decisions: claim-status reject/approve
+            columns shown when Claim Status filter = Rejected/In Review (TrackVid tabs were commented out); ticket
+            modal reachable from row menu; CSV instead of xlsx; Flipkart import type not required (TrackVid hid it
+            but required it); added Linked AWB records table on /imports.
+2026-11-17  Wave 2 started early (no CMS dependency): dashboard/refer/video link/pending (7,13,14,16), settings (11),
+            RMS/VMS/favorite (25-27), support/what's new (28,29). CMS create/update (30,31) waits for cms-service.
+2026-11-17  CMS agent done (route 24; own files clean). Decisions: PDF export via window.print of a print-only image view
+            (jspdf not installed); CSV export; dependency-free ZIP for "Download all resources"; ?status= replaces
+            route.state; edit links → /cms/update?awb=&platform= (TrackVid URL). Added DataTable
+            selectionDisabledReason (tooltip on locked rows) and wired it into CMS.
+2026-11-17  WAVE 1 GATE: tsc 0 errors, eslint 0 warnings, npm run build OK (all routes). Routes 1-6, 8-10, 12, 15,
+            17-24, 32, 33 → MIGRATED. MIGRATED 22/34. CMS create/update agent started.

@@ -1,0 +1,376 @@
+/* TrackVid whats-new screens. Template tokens only (var(--tv-*) / template classes). */
+
+/* ---------- list: intro + toolbar ---------- */
+.tv-whats-new-intro {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.tv-whats-new-intro-copy {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 380px;
+  min-width: 0;
+}
+.tv-whats-new-intro-copy p {
+  color: var(--tv-text-2);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.tv-whats-new-intro .c-toolbar {
+  flex: 0 1 auto;
+  margin: 0;
+}
+.tv-whats-new-intro .c-search {
+  min-width: 220px;
+}
+
+/* ---------- list: date groups + release cards ---------- */
+.tv-whats-new-group {
+  display: grid;
+  gap: 12px;
+}
+.tv-whats-new-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--tv-heading);
+}
+.tv-whats-new-date > .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--tv-accent-strong);
+}
+.tv-whats-new-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: var(--grid-gap, 16px);
+}
+.tv-whats-new-card {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+.tv-whats-new-cover {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 170px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface-2);
+  color: var(--tv-accent-strong);
+  overflow: hidden;
+  cursor: pointer;
+}
+.tv-whats-new-cover.is-icon {
+  cursor: default;
+  background: var(--tv-accent-soft);
+}
+.tv-whats-new-cover > .icon {
+  width: 46px;
+  height: 46px;
+}
+.tv-whats-new-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  transition: transform 0.25s ease;
+}
+.tv-whats-new-cover:hover img {
+  transform: scale(1.03);
+}
+.tv-whats-new-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  padding: 16px 18px 14px;
+}
+.tv-whats-new-card-body h3 {
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--tv-heading);
+  line-height: 1.35;
+}
+.tv-whats-new-title-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.tv-whats-new-title-link:hover {
+  color: var(--tv-accent-strong);
+  text-decoration: underline;
+}
+.tv-whats-new-card-body p {
+  color: var(--tv-text-2);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.tv-whats-new-card-foot {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 8px;
+}
+
+/* links: "View walkthrough" / CMS app guide + installer */
+.tv-whats-new-links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 14px;
+}
+.tv-whats-new-links .text-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--tv-blue);
+  font-size: 13px;
+  font-weight: 650;
+  cursor: pointer;
+  text-decoration: none;
+}
+.tv-whats-new-links .text-link:hover {
+  text-decoration: underline;
+}
+.tv-whats-new-links .icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- detail ---------- */
+.tv-whats-new-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: var(--grid-gap, 16px);
+  align-items: start;
+}
+.tv-whats-new-article {
+  min-width: 0;
+}
+.tv-whats-new-article-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--tv-border-soft);
+}
+.tv-whats-new-article-head h2 {
+  font-size: 18px;
+  font-weight: 750;
+  color: var(--tv-heading);
+}
+.tv-whats-new-cms-links {
+  margin-bottom: 18px;
+  padding: 12px 14px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-accent-soft);
+}
+.tv-whats-new-steps {
+  display: grid;
+  gap: 28px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.tv-whats-new-step h3 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--tv-heading);
+}
+.tv-whats-new-step-no {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--tv-accent);
+  color: var(--tv-accent-ink);
+  font-size: 12px;
+  font-weight: 800;
+}
+.tv-whats-new-html {
+  color: var(--tv-text-2);
+  font-size: 14px;
+  padding-left: 36px;
+}
+.tv-whats-new-html strong {
+  color: var(--tv-heading);
+  font-weight: 650;
+}
+.tv-whats-new-html h3 {
+  font-size: 14px;
+  color: var(--tv-heading);
+}
+.tv-whats-new-html li {
+  margin-bottom: 4px;
+}
+.tv-whats-new-video {
+  display: block;
+  width: calc(100% - 36px);
+  max-height: 420px;
+  margin: 12px 0 0 36px;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface-3);
+}
+.tv-whats-new-shots {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: 12px 0 0 36px;
+}
+.tv-whats-new-shots.is-multi {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.tv-whats-new-shot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface-2);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+.tv-whats-new-shot img {
+  width: 100%;
+  max-height: 360px;
+  object-fit: contain;
+  transition: opacity 0.2s ease;
+}
+.tv-whats-new-shot:hover img {
+  opacity: 0.92;
+}
+.tv-whats-new-shot-zoom {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--tv-surface);
+  color: var(--tv-text);
+  box-shadow: var(--tv-shadow-pop);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.tv-whats-new-shot:hover .tv-whats-new-shot-zoom,
+.tv-whats-new-shot:focus-visible .tv-whats-new-shot-zoom {
+  opacity: 1;
+}
+
+/* related news sidebar */
+.tv-whats-new-related {
+  position: sticky;
+  top: 16px;
+}
+.tv-whats-new-related h2 {
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 750;
+  color: var(--tv-heading);
+}
+.tv-whats-new-related ul {
+  display: grid;
+  gap: 4px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.tv-whats-new-related button {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tv-text);
+  text-align: left;
+  cursor: pointer;
+}
+.tv-whats-new-related button:hover {
+  background: var(--tv-hover);
+}
+.tv-whats-new-related strong {
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--tv-blue);
+  line-height: 1.4;
+}
+.tv-whats-new-related small {
+  font-size: 11px;
+  color: var(--tv-muted);
+}
+
+/* full-screen slider */
+.tv-whats-new-slider {
+  min-height: 300px;
+  display: grid;
+  place-items: center;
+}
+.tv-whats-new-slider img {
+  max-height: 75vh;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) {
+  .tv-whats-new-detail {
+    grid-template-columns: 1fr;
+  }
+  .tv-whats-new-related {
+    position: static;
+  }
+}
+@media (max-width: 600px) {
+  .tv-whats-new-grid {
+    grid-template-columns: 1fr;
+  }
+  .tv-whats-new-shots.is-multi {
+    grid-template-columns: 1fr;
+  }
+  .tv-whats-new-html,
+  .tv-whats-new-shots,
+  .tv-whats-new-video {
+    padding-left: 0;
+    margin-left: 0;
+    width: 100%;
+  }
+  .tv-whats-new-intro .c-toolbar,
+  .tv-whats-new-intro .c-search {
+    width: 100%;
+    min-width: 0;
+  }
+}

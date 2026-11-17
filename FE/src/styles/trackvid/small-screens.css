@@ -1,0 +1,231 @@
+/* TrackVid small-screens screens (Refer & Earn, Video Link, Pending & Failed Orders). Template tokens only (var(--tv-*) / template classes). */
+
+/* ---------- Refer & Earn ---------- */
+.tv-refer-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background:
+    radial-gradient(120% 140% at 100% 0%, var(--tv-accent-soft) 0%, transparent 60%),
+    linear-gradient(135deg, var(--tv-surface), var(--tv-surface-2));
+}
+.tv-refer-hero > .tv-row > .icon {
+  width: 22px;
+  height: 22px;
+  color: var(--tv-accent-strong);
+}
+.tv-refer-hero p {
+  margin: 0;
+  max-width: 720px;
+}
+.tv-refer-copyrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: stretch;
+}
+.tv-refer-link,
+.tv-refer-code {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 6px 6px 6px 12px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-input-bg);
+}
+.tv-refer-link {
+  flex: 1 1 360px;
+  max-width: 560px;
+  border: 1px dashed var(--tv-input-border);
+  font-size: 14px;
+  font-weight: 500;
+}
+.tv-refer-link > .icon {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--tv-muted);
+}
+.tv-refer-link > span {
+  flex: 1;
+  min-width: 0;
+}
+.tv-refer-code {
+  border: 1px solid var(--tv-input-border);
+}
+.tv-refer-code small {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--tv-muted);
+}
+.tv-refer-code strong {
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  color: var(--tv-accent-strong);
+}
+.tv-refer-grid {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(0, 2fr);
+  gap: var(--grid-gap);
+  align-items: start;
+}
+.tv-refer-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.tv-refer-step {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+.tv-refer-step .tv-step-num {
+  background: linear-gradient(120deg, var(--tv-accent-2), var(--tv-accent));
+  color: var(--tv-accent-ink);
+  font-weight: 700;
+  font-size: 13px;
+}
+.tv-refer-step p {
+  margin: 2px 0 0;
+}
+.tv-refer-table-head {
+  padding: 16px 18px 0;
+}
+.tv-refer-bonus {
+  color: var(--tv-accent-strong);
+}
+.tv-refer-fineprint {
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px dashed var(--tv-border);
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface-2);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--tv-text-2);
+}
+
+/* ---------- Video Link ---------- */
+.tv-vlink-card {
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tv-vlink-card > p {
+  margin: 0;
+}
+.tv-vlink-form {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.tv-vlink-input {
+  flex: 1;
+  min-width: 0;
+}
+.tv-vlink-form .primary-button {
+  min-width: 140px;
+  justify-content: center;
+}
+.tv-vlink-results {
+  list-style: none;
+  margin: 16px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.tv-vlink-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--tv-border);
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface);
+}
+.tv-vlink-date {
+  margin-left: auto;
+}
+.tv-vlink-linkrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.tv-vlink-linkrow a {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+}
+
+/* ---------- Pending & Failed Orders ---------- */
+.tv-pfo-table {
+  min-width: 620px;
+  table-layout: fixed;
+}
+.tv-pfo-feed {
+  cursor: pointer;
+}
+.tv-pfo-feed:hover td,
+.tv-pfo-feed.is-open td {
+  background: var(--tv-hover);
+}
+.tv-pfo-count {
+  text-align: right;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+.tv-pfo-count.is-set {
+  font-weight: 650;
+  color: var(--tv-heading);
+}
+.tv-pfo-count.is-danger {
+  font-weight: 650;
+  color: var(--tv-red);
+}
+.tv-pfo-count.is-zero {
+  color: var(--tv-muted);
+}
+.tv-pfo-detail > td {
+  padding: 0 !important;
+}
+.tv-pfo-detail-inner {
+  padding: 12px 16px 14px 52px;
+  background: var(--tv-surface-2);
+  max-height: 420px;
+  overflow: auto;
+}
+.tv-pfo-subtable {
+  min-width: 520px;
+  table-layout: fixed;
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface);
+}
+.tv-pfo-subtable th,
+.tv-pfo-subtable td {
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+@media (max-width: 1100px) {
+  .tv-refer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 767px) {
+  .tv-vlink-form {
+    flex-direction: column;
+  }
+  .tv-vlink-date {
+    margin-left: 0;
+  }
+  .tv-pfo-detail-inner {
+    padding-left: 12px;
+  }
+}

@@ -82,8 +82,9 @@ export const runLegacyMiddleware = async (
       req.next = next;
       try {
         const ret: any = mw(req, res, next);
-        // Express 4 doesn't catch async rejections (the request would hang); surface them instead.
-        if (ret && typeof ret.catch === 'function') ret.catch((e: unknown) => settle({ kind: 'error', error: e }));
+        // Express 4 doesn't catch async rejections: the request stays open and legacy's process
+        // handler logs it. Same here (the guard never settles).
+        if (ret && typeof ret.catch === 'function') ret.catch((e: unknown) => console.error('[UNHANDLED REJECTION]', e));
       } catch (e) {
         settle({ kind: 'error', error: e });
       }

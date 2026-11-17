@@ -1,0 +1,470 @@
+/* TrackVid support screens. Template tokens only (var(--tv-*) / template classes). */
+
+/* ---------- layout: template customer inbox, two columns (no customer-context rail) ---------- */
+.c-inbox.tv-support-inbox {
+  grid-template-columns: 300px minmax(0, 1fr);
+  align-items: stretch;
+  height: clamp(600px, calc(100dvh - 230px), 820px);
+  min-height: 0;
+}
+.tv-support-inbox .c-conversations,
+.tv-support-inbox .c-chat-panel {
+  height: 100%;
+  min-height: 0;
+}
+.tv-support-inbox .c-conversations {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.tv-support-inbox .c-conversations h2 {
+  margin-bottom: 12px;
+}
+.tv-support-inbox .c-conversations h2 > span {
+  background: var(--tv-accent-soft);
+  color: var(--tv-accent-ink);
+}
+.tv-support-inbox .c-conversations > div:last-child {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  padding-right: 4px;
+}
+.tv-support-inbox .c-conversations > .tv-support-filter {
+  flex: 0 0 auto;
+  display: block;
+  overflow: visible;
+  padding-right: 0;
+  margin-bottom: 12px;
+}
+.tv-support-filter .c-filter,
+.tv-support-filter select {
+  width: 100%;
+}
+
+/* ---------- conversation rows ---------- */
+.tv-support-conversation {
+  color: var(--tv-text);
+  background: transparent;
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+}
+.tv-support-conversation:hover {
+  background: var(--tv-hover);
+}
+.tv-support-inbox .tv-support-conversation.selected {
+  background: var(--tv-accent-soft);
+  border-color: var(--tv-border-soft);
+}
+.tv-support-conversation .c-avatar {
+  color: var(--tv-blue);
+  background: var(--tv-blue-bg);
+}
+.tv-support-conversation .c-avatar .icon {
+  width: 18px;
+  height: 18px;
+}
+.tv-support-conversation-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.tv-support-conversation-top strong {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.tv-support-conversation.is-unread .tv-support-conversation-top strong {
+  font-weight: 800;
+}
+.tv-support-conversation-time {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: var(--tv-muted);
+}
+.tv-support-conversation small {
+  font-size: 13px;
+  color: var(--tv-text-2);
+}
+.tv-support-conversation em {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--tv-muted);
+}
+.tv-support-conversation em .c-status {
+  font-size: 11px;
+}
+.tv-support-unread {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--tv-accent);
+  color: var(--tv-accent-ink);
+  font-size: 11px;
+  font-weight: 800;
+}
+.tv-support-unread-text {
+  color: var(--tv-accent-strong);
+}
+
+/* ---------- chat panel ---------- */
+.tv-support-panel {
+  display: flex;
+  flex-direction: column;
+}
+.tv-support-panel > header {
+  border-bottom-color: var(--tv-border-soft);
+}
+.tv-support-panel > header h2 {
+  font-size: 17px;
+  color: var(--tv-heading);
+  overflow-wrap: anywhere;
+}
+.tv-support-panel > header small {
+  color: var(--tv-text-2);
+}
+.tv-support-panel > header small strong {
+  color: var(--tv-heading);
+}
+.tv-support-panel > header .secondary-button {
+  flex-shrink: 0;
+}
+.tv-support-panel .c-messages {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+.tv-support-panel > .tv-state {
+  margin: auto;
+}
+.tv-support-no-messages {
+  text-align: center;
+  padding: 24px 0;
+}
+.tv-support-message {
+  background: var(--tv-surface-2);
+  border: 1px solid var(--tv-border-soft);
+  color: var(--tv-text);
+  max-width: 78%;
+}
+.tv-support-message.agent {
+  background: var(--tv-accent-soft);
+}
+.tv-support-message small,
+.tv-support-message time {
+  color: var(--tv-muted);
+  font-size: 12px;
+}
+.tv-support-message p {
+  overflow-wrap: anywhere;
+}
+.tv-support-day {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 6px 0 18px;
+  color: var(--tv-muted);
+  font-size: 12px;
+  font-weight: 650;
+}
+.tv-support-day::before,
+.tv-support-day::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--tv-border-soft);
+}
+.tv-support-day span {
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface);
+}
+.tv-support-system {
+  width: fit-content;
+  margin: 0 auto 18px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--tv-surface-3);
+  color: var(--tv-text-2);
+  font-size: 12px;
+  text-align: center;
+}
+
+/* ---------- welcome (no ticket selected) ---------- */
+.tv-support-welcome {
+  margin: auto;
+  max-width: 420px;
+  padding: 40px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.tv-support-welcome-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 8px;
+  background: var(--tv-accent-soft);
+  color: var(--tv-accent-strong);
+}
+.tv-support-welcome-icon .icon {
+  width: 30px;
+  height: 30px;
+}
+.tv-support-welcome small {
+  color: var(--tv-accent-strong);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.tv-support-welcome h2 {
+  font-size: 22px;
+  color: var(--tv-heading);
+}
+.tv-support-welcome p {
+  color: var(--tv-text-2);
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+/* ---------- composer ---------- */
+.tv-support-composer {
+  border-top-color: var(--tv-border-soft);
+  padding: 14px 20px 12px;
+}
+.tv-support-composer-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+.tv-support-composer-row textarea {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  min-height: 44px;
+  max-height: 160px;
+  resize: vertical;
+  line-height: 1.6;
+}
+.tv-support-composer-row .primary-button {
+  flex-shrink: 0;
+}
+.tv-support-composer > small {
+  display: block;
+  margin-top: 8px;
+  color: var(--tv-muted);
+  font-size: 12px;
+}
+
+/* ---------- files and attachments ---------- */
+.tv-support-file-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.tv-support-file-chip,
+.tv-support-attachment-file {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 260px;
+  padding: 6px 8px;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface);
+  color: var(--tv-text);
+  text-align: left;
+}
+.tv-support-attachment-file {
+  cursor: pointer;
+}
+.tv-support-attachment-file:hover {
+  border-color: var(--tv-border);
+  background: var(--tv-surface-2);
+}
+.tv-support-attachment-file > .icon {
+  color: var(--tv-muted);
+  width: 16px;
+  height: 16px;
+}
+.tv-support-file-thumb {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+.tv-support-file-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  background: var(--tv-blue-bg);
+  color: var(--tv-blue);
+}
+.tv-support-file-icon.is-pdf {
+  background: var(--tv-red-bg);
+  color: var(--tv-red);
+}
+.tv-support-file-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.tv-support-file-meta strong {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tv-support-file-meta small {
+  font-size: 11px;
+  color: var(--tv-muted);
+}
+.tv-support-attachments {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.tv-support-attachment-image {
+  position: relative;
+  display: block;
+  max-width: 280px;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface);
+  cursor: zoom-in;
+}
+.tv-support-attachment-image img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+}
+.tv-support-attachment-open {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: var(--tv-surface);
+  color: var(--tv-text);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.tv-support-attachment-image:hover .tv-support-attachment-open,
+.tv-support-attachment-image:focus-visible .tv-support-attachment-open {
+  opacity: 1;
+}
+.tv-support-preview {
+  display: grid;
+  place-items: center;
+  min-height: 200px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface-2);
+  overflow: hidden;
+}
+.tv-support-preview img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+.tv-support-preview-frame {
+  width: 100%;
+  height: 70vh;
+  border: 0;
+}
+
+/* ---------- resolve dialog rating ---------- */
+.tv-support-rating {
+  display: flex;
+  gap: 4px;
+}
+.tv-support-rating button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  color: var(--tv-border);
+  cursor: pointer;
+}
+.tv-support-rating button:hover {
+  background: var(--tv-hover);
+}
+.tv-support-rating button.is-on {
+  color: var(--tv-accent);
+}
+.tv-support-rating .icon {
+  width: 28px;
+  height: 28px;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1000px) {
+  .c-inbox.tv-support-inbox {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .tv-support-inbox .c-conversations {
+    max-height: 340px;
+  }
+  .tv-support-inbox .c-chat-panel {
+    height: auto;
+  }
+  .tv-support-panel .c-messages {
+    max-height: 60dvh;
+    min-height: 260px;
+  }
+  .tv-support-inbox .c-conversations > div:last-child {
+    display: block;
+    overflow: hidden auto;
+  }
+  .tv-support-inbox .c-conversation {
+    min-width: 0;
+  }
+}
+@media (max-width: 600px) {
+  .tv-support-panel > header {
+    flex-wrap: wrap;
+  }
+  .tv-support-message {
+    max-width: 92%;
+  }
+  .tv-support-composer-row .primary-button {
+    padding-inline: 12px;
+  }
+}

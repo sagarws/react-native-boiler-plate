@@ -1,0 +1,516 @@
+/* TrackVid dashboard screens. Template tokens only (var(--tv-*) / template classes). */
+
+/* ---------- section headers ---------- */
+.tv-dash > section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.tv-dash-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.tv-dash-section-head > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 760px;
+}
+.tv-dash-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--tv-muted);
+}
+.tv-dash-kicker.is-accent {
+  color: var(--tv-accent-strong);
+}
+.tv-dash-window {
+  color: var(--tv-heading);
+}
+.tv-dash-window-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--tv-text-2);
+}
+.tv-dash-window-chip .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* ---------- date range filter (preset pills + custom picker) ---------- */
+.tv-dash-range {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.tv-dash-pill {
+  padding: 7px 13px;
+  border-radius: 999px;
+  border: 1px solid var(--tv-input-border);
+  background: var(--tv-surface);
+  color: var(--tv-text);
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.tv-dash-pill:hover {
+  border-color: var(--tv-accent);
+  color: var(--tv-accent-strong);
+}
+.tv-dash-pill[aria-pressed="true"] {
+  background: linear-gradient(120deg, var(--tv-accent-2), var(--tv-accent));
+  border-color: transparent;
+  color: var(--tv-accent-ink);
+}
+.tv-dash-pill:focus-visible {
+  outline: none;
+  box-shadow: var(--tv-focus);
+}
+.tv-dash-custom .tv-date-trigger {
+  border-radius: 999px;
+}
+.tv-dash-custom.is-active .tv-date-trigger {
+  background: linear-gradient(120deg, var(--tv-accent-2), var(--tv-accent));
+  border-color: transparent;
+  color: var(--tv-accent-ink);
+}
+
+/* ---------- key metric cards (TrackVid StatsCard) ---------- */
+.tv-dash-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 150px;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.tv-dash-stat:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--tv-shadow-pop);
+}
+.tv-dash-stat .tv-metric-head span:last-child {
+  font-weight: 650;
+  color: var(--tv-text-2);
+}
+.tv-dash-stat-value {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--tv-heading);
+  line-height: 1.1;
+}
+.tv-dash-pillrow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px dashed var(--tv-border);
+}
+.tv-dash-pillstat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.tv-dash-pillstat span {
+  opacity: 0.85;
+}
+.tv-dash-pillstat.is-success {
+  background: var(--tv-green-bg);
+  color: var(--tv-green);
+}
+.tv-dash-pillstat.is-danger {
+  background: var(--tv-red-bg);
+  color: var(--tv-red);
+}
+.tv-dash-pillstat.is-info {
+  background: var(--tv-lilac-bg);
+  color: var(--tv-lilac);
+}
+
+/* ---------- insight cards (TrackVid MetricCard) ---------- */
+.tv-dash-insight {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 160px;
+}
+.tv-dash-insight .tv-metric-head {
+  min-width: 0;
+  gap: 8px;
+}
+.tv-dash-insight-label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tv-dash-info {
+  display: inline-flex;
+  color: var(--tv-muted);
+  cursor: help;
+}
+.tv-dash-info .icon {
+  width: 14px;
+  height: 14px;
+}
+.tv-dash-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 7px;
+  font-size: 12px;
+  font-weight: 650;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.tv-dash-delta .icon {
+  width: 12px;
+  height: 12px;
+}
+.tv-dash-delta.is-good {
+  background: var(--tv-green-bg);
+  color: var(--tv-green);
+}
+.tv-dash-delta.is-bad {
+  background: var(--tv-red-bg);
+  color: var(--tv-red);
+}
+.tv-dash-delta.is-neutral {
+  background: var(--tv-surface-3);
+  color: var(--tv-text-2);
+}
+.tv-dash-insight-value {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  min-height: 34px;
+}
+.tv-dash-insight-value strong {
+  font-size: 28px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--tv-heading);
+}
+.tv-dash-insight-value span {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--tv-text-2);
+}
+.tv-dash-insight-sub {
+  font-size: 13px;
+  color: var(--tv-text-2);
+  margin: 0;
+}
+.tv-dash-insight .tv-dash-kicker {
+  margin-top: auto;
+}
+
+/* ---------- per-platform table ---------- */
+.tv-dash-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 32px;
+  padding: 16px 18px;
+  background: linear-gradient(135deg, var(--tv-accent-soft), transparent 75%);
+  border-bottom: 1px solid var(--tv-border-soft);
+}
+.tv-dash-sumstat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tv-dash-sumstat > span {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tv-muted);
+}
+.tv-dash-sumstat strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 18px;
+  font-weight: 750;
+  color: var(--tv-heading);
+  font-variant-numeric: tabular-nums;
+}
+.tv-dash-sumstat strong .icon {
+  width: 16px;
+  height: 16px;
+  color: var(--tv-text-2);
+}
+.tv-dash-sumstat .is-good,
+.tv-dash-num.is-good,
+.tv-dash-rate b.is-good {
+  color: var(--tv-green);
+}
+.tv-dash-sumstat .is-warn,
+.tv-dash-num.is-warn,
+.tv-dash-rate b.is-warn {
+  color: var(--tv-amber);
+}
+.tv-dash-sumstat .is-bad,
+.tv-dash-rate b.is-bad {
+  color: var(--tv-red);
+}
+.tv-dash-sumstat .is-muted,
+.tv-dash-num.is-zero,
+.tv-dash-recs.is-zero {
+  color: var(--tv-muted);
+}
+.tv-dash-num {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tv-dash-countpill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--tv-muted);
+}
+.tv-dash-countpill i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.tv-dash-countpill.is-auto {
+  background: var(--tv-green-bg);
+  color: var(--tv-green);
+}
+.tv-dash-countpill.is-manual {
+  background: var(--tv-amber-bg);
+  color: var(--tv-amber);
+}
+.tv-dash-rate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.tv-dash-rate .progress-track {
+  flex: 1;
+  min-width: 70px;
+  max-width: 150px;
+}
+.tv-dash-rate b {
+  min-width: 52px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--tv-surface-2);
+  font-size: 12px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.tv-dash-rate b.is-muted {
+  color: var(--tv-muted);
+}
+.tv-dash-recs {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.tv-dash-recs .icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.75;
+}
+.tv-data-table tr.tv-dash-inactive td {
+  opacity: 0.5;
+}
+
+/* ---------- CMS status ---------- */
+.tv-dash-status-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.tv-dash-status-tile .tv-metric-head span:last-child {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tv-dash-status-tile strong {
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--tv-heading);
+  font-variant-numeric: tabular-nums;
+}
+.tv-dash-status-tile small {
+  font-size: 12px;
+  font-weight: 700;
+}
+.tv-dash-status-tile.is-pending small {
+  color: var(--tv-amber);
+}
+.tv-dash-status-tile.is-inReview small {
+  color: var(--tv-blue);
+}
+.tv-dash-status-tile.is-approved small {
+  color: var(--tv-green);
+}
+.tv-dash-status-tile.is-rejected small {
+  color: var(--tv-red);
+}
+.tv-dash-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.tv-dash-panel:not(.is-inactive):hover {
+  transform: translateY(-1px);
+  box-shadow: var(--tv-shadow-pop);
+}
+.tv-dash-panel.is-inactive {
+  opacity: 0.55;
+}
+.tv-dash-panel .tv-row > div {
+  display: flex;
+  flex-direction: column;
+}
+.tv-dash-panel-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--tv-heading);
+}
+.tv-dash-panel-total {
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--tv-heading);
+  font-variant-numeric: tabular-nums;
+}
+.tv-dash-segbar {
+  display: flex;
+  height: 12px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--tv-surface-3);
+}
+.tv-dash-segbar.is-empty {
+  background: transparent;
+  border: 1px dashed var(--tv-border);
+}
+.tv-dash-segbar span.is-pending,
+.tv-dash-statuspill.is-pending i {
+  background: var(--tv-chart-1);
+}
+.tv-dash-segbar span.is-inReview,
+.tv-dash-statuspill.is-inReview i {
+  background: var(--tv-chart-3);
+}
+.tv-dash-segbar span.is-approved,
+.tv-dash-statuspill.is-approved i {
+  background: var(--tv-chart-2);
+}
+.tv-dash-segbar span.is-rejected,
+.tv-dash-statuspill.is-rejected i {
+  background: var(--tv-chart-4);
+}
+.tv-dash-statuspills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.tv-dash-statuspill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.tv-dash-statuspill i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.tv-dash-statuspill span {
+  opacity: 0.85;
+}
+.tv-dash-statuspill em {
+  font-style: normal;
+  opacity: 0.85;
+  border-left: 1px solid currentColor;
+  padding-left: 4px;
+  margin-left: 1px;
+}
+.tv-dash-statuspill.is-pending {
+  background: var(--tv-amber-bg);
+  color: var(--tv-amber);
+}
+.tv-dash-statuspill.is-inReview {
+  background: var(--tv-blue-bg);
+  color: var(--tv-blue);
+}
+.tv-dash-statuspill.is-approved {
+  background: var(--tv-green-bg);
+  color: var(--tv-green);
+}
+.tv-dash-statuspill.is-rejected {
+  background: var(--tv-red-bg);
+  color: var(--tv-red);
+}
+
+/* ---------- courier charts ---------- */
+.tv-dash-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.tv-dash-chart .tv-section-title {
+  margin-bottom: 10px;
+}
+
+@media (max-width: 767px) {
+  .tv-dash .commerce-heading-actions {
+    width: 100%;
+  }
+  .tv-dash-range {
+    width: 100%;
+  }
+  .tv-dash-summary {
+    gap: 12px 20px;
+  }
+  .tv-dash-stat,
+  .tv-dash-insight {
+    min-height: 0;
+  }
+}

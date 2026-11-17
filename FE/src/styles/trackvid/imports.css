@@ -1,0 +1,305 @@
+/* TrackVid imports screens. Template tokens only (var(--tv-*) / template classes). */
+
+/* ---------- imports page ---------- */
+.tv-imports-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.tv-imports-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+}
+.tv-imports-section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.tv-imports-section-label h2 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--tv-heading);
+}
+.tv-imports-section-label p {
+  margin: 2px 0 0;
+}
+.tv-imports-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+.tv-imports-row .c-field {
+  flex: 1;
+  min-width: 0;
+}
+.tv-scan-good {
+  background: var(--tv-green);
+  border-color: var(--tv-green);
+  color: #fff;
+}
+
+/* ---------- import dialog shell ---------- */
+.tv-import-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.tv-import-title > span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.tv-import-title small {
+  color: var(--tv-text-2);
+  font-size: 12px;
+  font-weight: 500;
+}
+.tv-import-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--tv-accent-soft);
+  color: var(--tv-accent-strong);
+}
+.tv-import-title-icon .icon {
+  width: 18px;
+  height: 18px;
+}
+.tv-import-file,
+.tv-import-tile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border);
+  background: var(--tv-surface-2);
+}
+.tv-import-tile {
+  border-style: dashed;
+  border-width: 1.5px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.tv-import-tile:hover,
+.tv-import-tile:focus-within {
+  border-color: var(--tv-accent);
+  background: var(--tv-accent-soft);
+}
+.tv-import-tile.is-filled {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: default;
+}
+.tv-import-tile.is-filled .tv-import-file {
+  flex: 1;
+}
+.tv-import-file-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--tv-accent-soft);
+  color: var(--tv-accent-strong);
+}
+.tv-import-file-icon .icon {
+  width: 18px;
+  height: 18px;
+}
+.tv-import-file-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.tv-import-file-meta strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+.tv-import-file-meta small {
+  color: var(--tv-text-2);
+  font-size: 12px;
+}
+.tv-import-sample {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 13px;
+}
+.tv-import-sample .icon {
+  width: 15px;
+  height: 15px;
+}
+.tv-import-sample .tv-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tv-import-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+.tv-import-progress p {
+  margin: 0;
+}
+.tv-import-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+.tv-import-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface-2);
+}
+.tv-import-summary span {
+  color: var(--tv-text-2);
+  font-size: 12px;
+  font-weight: 600;
+}
+.tv-import-summary strong {
+  font-size: 20px;
+  color: var(--tv-heading);
+}
+.tv-import-summary strong.is-green {
+  color: var(--tv-green);
+}
+.tv-import-summary strong.is-blue {
+  color: var(--tv-blue);
+}
+.tv-import-summary strong.is-red {
+  color: var(--tv-red);
+}
+.tv-import-errors {
+  padding: 12px 14px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-red-bg);
+  color: var(--tv-red);
+  font-size: 13px;
+}
+.tv-import-errors ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+
+/* Platform picker in "Upload Master Data". */
+.tv-platform-pick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 8px;
+}
+.tv-platform-pick button {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: 40px;
+  padding: 6px 10px;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border);
+  background: var(--tv-surface);
+  color: var(--tv-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+.tv-platform-pick button:hover {
+  background: var(--tv-hover);
+}
+.tv-platform-pick button.is-active {
+  border-color: var(--tv-accent);
+  background: var(--tv-accent-soft);
+  box-shadow: var(--tv-focus);
+}
+
+/* ---------- scan return parcel ---------- */
+.tv-scan-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 650;
+}
+.tv-scan-chip.is-good,
+.tv-scan-current.is-good {
+  color: var(--tv-green);
+  background: var(--tv-green-bg);
+}
+.tv-scan-chip.is-bad,
+.tv-scan-current.is-bad {
+  color: var(--tv-red);
+  background: var(--tv-red-bg);
+}
+.tv-scan-current {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: var(--tv-radius);
+}
+.tv-scan-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tv-scan-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border-soft);
+}
+.tv-scan-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  border-radius: 8px;
+}
+.tv-scan-list li:hover {
+  background: var(--tv-hover);
+}
+.tv-scan-list .icon.is-good {
+  color: var(--tv-green);
+}
+.tv-scan-list .icon.is-bad {
+  color: var(--tv-red);
+}
+.tv-scan-list .icon-button {
+  margin-left: auto;
+}
+
+@media (max-width: 860px) {
+  .tv-imports-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .tv-imports-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .tv-import-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
