@@ -12,6 +12,15 @@ const maskDeep = (v: any, keys: string[]): any => {
   return v;
 };
 
+/** A request that gets no response within this time counts as "hung" (legacy Express 4 leaves
+ * async-rejected handlers open). Both sides hanging is parity. */
+export const HANG_MS = 1500;
+const sendOrHang = (port: number, r: Req) =>
+  Promise.race([
+    send(port, r),
+    new Promise<any>((res) => setTimeout(() => res({ status: -1, headers: {}, body: 'NO RESPONSE (hung)' }), HANG_MS)),
+  ]);
+
 export interface ParityOpts {
   /** extra JSON keys whose values legitimately differ between runs (ids of newly created docs, timestamps) */
   volatile?: string[];
@@ -25,10 +34,10 @@ export interface ParityOpts {
  */
 export const runParity = async (ports: { legacyPort: number; newPort: number }, r: Req, opts: ParityOpts = {}) => {
   const before = memoryDb.snapshot();
-  const a = pick(await send(ports.legacyPort, r));
+  const a = pick(await sendOrHang(ports.legacyPort, r));
   const dbA = memoryDb.snapshot();
   memoryDb.restore(before);
-  const b = pick(await send(ports.newPort, r));
+  const b = pick(await sendOrHang(ports.newPort, r));
   const dbB = memoryDb.snapshot();
   const keys = opts.creates ? [...VOLATILE, ...(opts.volatile || [])] : opts.volatile || [];
   const norm = (x: ReturnType<typeof pick>) => {

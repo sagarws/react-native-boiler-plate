@@ -34,6 +34,10 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | `main.ts` imports `@legacy/utils/logger` | Same console→winston override as legacy server.ts, so log lines look the same to ops |
 | 2026-11-17 | Fastify `clientErrorHandler` = Node's built-in raw responses (400/408/413/431, `Connection: close`, empty body) | Express adds no clientError listener; Fastify's default sends JSON. Raw-socket parity test added |
 | 2026-11-17 | Nest `main.ts` starts legacy `startNotificationStream()` (read-only Mongo change stream → SSE clients of this process) | Without it SSE clients on the new server get the initial list but no live inserts. It writes nothing and runs no jobs, so it is not a worker/cron; legacy keeps its own for its own clients. Read/archive pushes (`notifyCompany`) are per-process — fine because the whole /api/notifications prefix cuts over together |
+| 2026-11-17 | **Nest process cwd = legacy root equivalent** (`BE/dist/legacy` compiled, `BE/legacy` in dev), set in main.ts | Legacy mixes cwd-relative paths (multer `uploads/`, uploadsCleanup) with `__dirname`-relative ones (`utils/files.ts` → `__dirname/../../uploads`). With cwd = BE they diverge and every upload flow would 500 (ENOENT) in prod; tests hid it because both sides failed identically. Unit test checks both layouts; TDS upload success path now covered |
+| 2026-11-17 | main.ts installs legacy's `uncaughtException`/`unhandledRejection` loggers | Without them Node crashes the process on any unhandled rejection inside delegated legacy code |
+| 2026-11-17 | Async rejection in a delegated handler/middleware leaves the request open + logs `[UNHANDLED REJECTION]` (was: 500 page) | Exactly Express 4 behaviour (contract). Parity runner treats "both sides hung" as a match |
+| 2026-11-17 | main.ts runs legacy `runUploadsCleanupOnBoot` + `startUploadsCleanupInterval` | Per-process scratch cleanup of this server's own uploads/ dir (legacy's filled a disk to 169 GB once); no shared state, nothing duplicated |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -72,8 +76,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 3 | Company | /api/companies | 4 | delegated; ⚠ public PUT /update-claims rewrites all companies | 🧪 | 7 + risk check | |
 | 3 | AppSetting | /api/app-settings | 5 | delegated; increff-qc-mapping chain authMiddleware+systemAdminAuth (no token passes both) | 🧪 | 8 (parity) | |
 | 3 | Notification | /api/notifications | 6 | SSE (?token=); delegated; change stream started in main.ts | 🧪 | 11 + SSE initial/push | |
-| 3 | Template | /api/templates | 8 | | ⬜ | | |
-| 3 | TDS | /api/tds | 5 | | ⬜ | | |
+| 3 | Template | /api/templates | 8 | delegated; handlers lack try/catch → async errors hang (reproduced) | 🧪 | 13 (parity) | |
+| 3 | TDS | /api/tds | 5 | delegated; upload + Joi chains; S3 stubbed in tests | 🧪 | 8 (parity, incl. upload success path) | |
 | 3 | eCommercePlatform | /api/ecommerce-platform | 5 | | ⬜ | | |
 | 3 | ProductSkucodeMap | /api/product-skucode-map | 3 | upload? | ⬜ | | |
 | 3 | MasterImportSetting | /api/master-setting | 6 | | ⬜ | | |
@@ -137,6 +141,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | User (17 routes, delegated). memory-db `seed()` now stores docs shaped by mongoose (subdoc _ids/defaults) like real data. APIs migrated: 59 / 497 | Company (4), AppSetting (5) |
 | 2026-11-17 | Claude | Company (4) + AppSetting (5), delegated. APIs migrated: 68 / 497 | Notification (6, SSE), Template (8), TDS (5) |
 | 2026-11-17 | Claude | Notification (6, delegated, SSE incl. live push). APIs migrated: 74 / 497 | Template (8), TDS (5) |
+| 2026-11-17 | Claude | Template (8) + TDS (5), delegated. Found + fixed 3 runtime gaps: uploads path (cwd), missing process-level error handlers, async-rejection behaviour. APIs migrated: 87 / 497 | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
@@ -147,6 +152,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 7. User: `GET /api/user/members` and `DELETE /api/user/delete` use the adminAuth factory as middleware → hang (same bug as Credits). `POST /api/user/upload-logo` has no auth middleware.
 8. ⚠⚠ Company (LAYER 2 Blocker, overnight-damage class): `PUT /api/companies/update-claims` has NO auth and overwrites `settings.eCommercePlatform[].typeOfClaims` for EVERY company (operator-customised claim types are lost). Also a platform `switch` outside automationRouting.ts (LAYER 11). `GET /api/companies/update-settings` lets any logged-in user reset tatPeriod=60 for every company. Fix: `systemAdminAuth, adminOnly` on both (or delete if they were one-off scripts).
 9. AppSetting: `POST /api/app-settings/increff-qc-mapping` chains `authMiddleware` + `systemAdminAuth`; no single token passes both (users fail systemAdminAuth, system admins fail authMiddleware) → endpoint is unreachable.
+10. Template: handlers have no try/catch → any async error (e.g. validation on upsert, bad id on delete) leaves the request hanging until the client times out. Wrap in try/catch → 4xx/500.
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)

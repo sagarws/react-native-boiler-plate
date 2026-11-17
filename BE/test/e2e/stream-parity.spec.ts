@@ -135,7 +135,7 @@ describe('async rejection in a legacy handler/middleware → request left open (
       expect(await t((legacySrv.address() as any).port, path)).toBe('TIMEOUT');
       expect(await t((nestApp.getHttpServer().address() as any).port, path)).toBe('TIMEOUT');
     }
-    expect(errs.filter((e) => e === '[UNHANDLED REJECTION]').length).toBe(2);
+    expect(errs.filter((e) => e === '[UNHANDLED REJECTION]').length).toBe(4); // 2 per server
     spy.mockRestore();
     process.off('unhandledRejection', onUnhandled);
     (nestApp.getHttpServer() as any).closeAllConnections?.();
