@@ -18,9 +18,34 @@ import { UserModule } from './modules/user/user.module';
 import { CompanyModule } from './modules/company/company.module';
 import { AppSettingModule } from './modules/app-setting/app-setting.module';
 import { NotificationModule } from './modules/notification/notification.module';
+import { TemplateModule } from './modules/template/template.module';
+import { TdsModule } from './modules/tds/tds.module';
+import { ECommercePlatformModule } from './modules/ecommerce-platform/ecommerce-platform.module';
+import { ProductSkucodeMapModule } from './modules/product-skucode-map/product-skucode-map.module';
+import { MasterImportSettingModule } from './modules/master-import-setting/master-import-setting.module';
+import { MarketingSiteModule } from './modules/marketing-site/marketing-site.module';
+import { ManualPaymentModule } from './modules/manual-payment/manual-payment.module';
+import { RazorpayModule } from './modules/razorpay/razorpay.module';
+import { FilesModule } from './modules/files/files.module';
+import { ImportsModule } from './modules/imports/imports.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
+import { EmailModule } from './modules/email/email.module';
+import { MailboxModule } from './modules/mailbox/mailbox.module';
+import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
+import { SupportChatModule } from './modules/support-chat/support-chat.module';
+import { GoogleDriveModule } from './modules/google-drive/google-drive.module';
+import { EasyEcomModule } from './modules/easy-ecom/easy-ecom.module';
+import { PlatformsModule } from './modules/platforms/platforms.module';
+import { OrderModule } from './modules/order/order.module';
+import { AuthModule } from './modules/auth/auth.module';
+import { CmsModule } from './modules/cms/cms.module';
+import { SystemAdminModule } from './modules/system-admin/system-admin.module';
+import { ViewModule } from './modules/view/view.module';
+import { DesktopAppModule } from './modules/desktop-app/desktop-app.module';
+import { MasterImportModule } from './modules/master-import/master-import.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule, PlatformsModule, OrderModule, AuthModule, CmsModule, SystemAdminModule, ViewModule, DesktopAppModule, MasterImportModule],
   controllers: [RootController],
 })
 export class AppModule {}

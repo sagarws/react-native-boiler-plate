@@ -1,0 +1,745 @@
+/* TrackVid accounts screens (Account Summary + System Admin). Template tokens only (var(--tv-*) / template classes). */
+
+.tv-acc-tab-body {
+  margin-top: 14px;
+}
+
+/* ---------- shared bits ---------- */
+.tv-acc-section-heading h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 750;
+  color: var(--tv-heading);
+}
+.tv-acc-section-heading p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--tv-text-2);
+}
+.tv-acc-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0 0;
+  font-size: 12px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tv-text-2);
+}
+.tv-acc-section-label::before {
+  content: "";
+  width: 3px;
+  height: 14px;
+  border-radius: 4px;
+  background: linear-gradient(180deg, var(--tv-accent), var(--tv-accent-2));
+}
+.tv-acc-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tv-muted);
+}
+.tv-acc-eyebrow .icon {
+  width: 15px;
+  height: 15px;
+  color: var(--tv-accent-strong);
+}
+.tv-acc-dashed {
+  border: 0;
+  border-top: 1px dashed var(--tv-border);
+  margin: 4px 0;
+  width: 100%;
+}
+.tv-acc-negative {
+  color: var(--tv-red);
+}
+.tv-acc-positive {
+  color: var(--tv-green);
+}
+.tv-acc-bonus {
+  color: var(--tv-lilac);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tv-acc-two-line {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
+}
+.tv-acc-two-line small {
+  color: var(--tv-muted);
+}
+.tv-acc-kv {
+  grid-template-columns: minmax(96px, 130px) minmax(0, 1fr);
+  font-size: 13px;
+}
+.tv-acc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface-2);
+  font-size: 12px;
+  color: var(--tv-text-2);
+  line-height: 1.5;
+}
+.tv-acc-note .icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--tv-accent-strong);
+}
+.tv-acc-note.is-plain {
+  background: transparent;
+  padding: 0;
+}
+.tv-acc-note.is-plain .icon {
+  color: var(--tv-muted);
+}
+.tv-acc-note.is-warn {
+  background: var(--tv-amber-bg);
+  color: var(--tv-amber);
+}
+.tv-acc-note.is-warn .icon {
+  color: var(--tv-amber);
+}
+
+/* ---------- toolbars ---------- */
+.tv-acc-toolbar {
+  justify-content: space-between;
+}
+.tv-acc-toolbar-end {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+.tv-acc-action-filter {
+  min-width: 220px;
+  max-width: 340px;
+}
+.tv-acc-action-filter .c-field > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+/* ---------- my usage KPI cards ---------- */
+.tv-acc-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+.tv-acc-kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.tv-acc-kpi:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--tv-shadow-pop);
+}
+.tv-acc-kpi-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tv-text-2);
+}
+.tv-acc-kpi-value {
+  font-size: 26px;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+  color: var(--tv-heading);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tv-acc-kpi-sub {
+  color: var(--tv-muted);
+  font-size: 12px;
+}
+.tv-acc-kpi-sub b {
+  color: var(--tv-text);
+}
+.tv-acc-kpi-progress {
+  margin-top: auto;
+  padding-top: 8px;
+}
+.tv-acc-kpi-progress .progress-track {
+  display: block;
+}
+.tv-acc-kpi-foot {
+  margin-top: auto;
+  padding-top: 4px;
+}
+.tv-acc-storage {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tv-acc-storage-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.tv-acc-storage-body .progress-track {
+  display: block;
+}
+
+/* ---------- usage history tree ---------- */
+.tv-acc-stacked-head {
+  display: inline-flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+.tv-acc-stacked-head small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--tv-muted);
+}
+.tv-acc-tree-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tv-acc-tree-label.is-year {
+  font-weight: 750;
+  color: var(--tv-heading);
+}
+.tv-acc-tree-label.is-month {
+  padding-left: 16px;
+  font-weight: 650;
+}
+.tv-acc-tree-label.is-day {
+  padding-left: 32px;
+  color: var(--tv-text-2);
+}
+.tv-acc-level-year td {
+  background: var(--tv-surface-2);
+}
+.tv-acc-tree-toggle .icon {
+  width: 14px;
+  height: 14px;
+}
+
+/* ---------- credit history ---------- */
+.tv-acc-credit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.tv-acc-credit .icon {
+  width: 12px;
+  height: 12px;
+}
+.tv-acc-credit.is-up {
+  color: var(--tv-green);
+  background: var(--tv-green-bg);
+}
+.tv-acc-credit.is-down {
+  color: var(--tv-red);
+  background: var(--tv-red-bg);
+}
+.tv-acc-credit.is-zero {
+  color: var(--tv-text-2);
+  background: var(--tv-surface-3);
+}
+
+/* ---------- plans ---------- */
+.tv-acc-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--grid-gap);
+  align-items: stretch;
+}
+.tv-acc-plan {
+  position: relative;
+  overflow: hidden;
+  background: var(--tv-surface);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.tv-acc-plan:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--tv-shadow-pop);
+  border-color: var(--tv-accent);
+}
+.tv-acc-plan.is-popular {
+  padding-top: 44px;
+  border-color: var(--tv-accent);
+}
+.tv-acc-plan-ribbon {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 0;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--tv-accent-ink);
+  background: linear-gradient(135deg, var(--tv-accent), var(--tv-accent-2));
+}
+.tv-acc-plan-ribbon .icon {
+  width: 13px;
+  height: 13px;
+}
+.tv-acc-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--tv-text-2);
+}
+.tv-acc-plan-name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 750;
+  color: var(--tv-heading);
+}
+.tv-acc-plan .tv-plan-price {
+  font-size: 34px;
+  line-height: 1.1;
+  letter-spacing: -0.025em;
+}
+.tv-acc-currency {
+  margin-right: 3px;
+  font-size: 17px;
+  color: var(--tv-text-2);
+  vertical-align: 0.6em;
+}
+.tv-acc-plan .tv-plan-features {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.tv-acc-plan .tv-plan-features .icon {
+  color: var(--tv-accent-strong);
+}
+.tv-acc-plan-cta {
+  margin-top: auto;
+  justify-content: center;
+  width: 100%;
+}
+.tv-acc-trust {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--tv-muted);
+}
+.tv-acc-trust span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tv-acc-trust .icon {
+  width: 13px;
+  height: 13px;
+}
+
+/* line: label left, value right */
+.tv-acc-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--tv-text-2);
+}
+.tv-acc-line > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tv-acc-line .icon {
+  width: 15px;
+  height: 15px;
+}
+.tv-acc-line strong {
+  color: var(--tv-heading);
+}
+.tv-acc-line.is-total {
+  font-weight: 700;
+  color: var(--tv-heading);
+}
+.tv-acc-line.is-total strong {
+  font-size: 22px;
+  color: var(--tv-accent-strong);
+}
+.tv-acc-callout {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-green-bg);
+}
+.tv-acc-callout small {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--tv-text-2);
+}
+.tv-acc-callout > span {
+  display: flex;
+  flex-direction: column;
+}
+.tv-acc-callout strong {
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--tv-green);
+}
+
+/* ---------- payment steps dialog ---------- */
+.tv-acc-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.tv-acc-split.is-billing {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr);
+}
+.tv-acc-split.is-pay {
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+}
+.tv-acc-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  border-radius: var(--tv-radius-lg);
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface);
+}
+.tv-acc-panel.is-highlight {
+  background: linear-gradient(135deg, var(--tv-surface), var(--tv-accent-soft));
+}
+.tv-acc-panel-title {
+  display: block;
+  font-size: 16px;
+  color: var(--tv-heading);
+}
+.tv-acc-amount {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--tv-accent-strong);
+}
+.tv-acc-methods {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.tv-acc-method {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--tv-radius-lg);
+  border: 1.5px solid var(--tv-border);
+  background: var(--tv-surface);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+.tv-acc-method:hover {
+  border-color: var(--tv-accent);
+}
+.tv-acc-method:focus-visible {
+  outline: none;
+  box-shadow: var(--tv-focus);
+}
+.tv-acc-method.is-selected {
+  border-color: var(--tv-accent);
+  background: var(--tv-accent-soft);
+}
+.tv-acc-method-icon {
+  display: grid;
+  place-items: center;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--tv-radius);
+  color: var(--tv-accent-strong);
+  background: var(--tv-accent-soft);
+}
+.tv-acc-method-icon .icon {
+  width: 19px;
+  height: 19px;
+}
+.tv-acc-method-copy {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.tv-acc-method-copy strong {
+  color: var(--tv-heading);
+  font-size: 14px;
+}
+.tv-acc-method-copy small {
+  color: var(--tv-text-2);
+  font-size: 12px;
+}
+.tv-acc-radio {
+  position: relative;
+  flex: 0 0 18px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--tv-border);
+}
+.tv-acc-method.is-selected .tv-acc-radio {
+  border-color: var(--tv-accent-strong);
+}
+.tv-acc-method.is-selected .tv-acc-radio::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--tv-accent-strong);
+}
+.tv-acc-upi {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.tv-acc-qr {
+  flex: 0 0 auto;
+  padding: 12px;
+  border-radius: var(--tv-radius-lg);
+  border: 1px solid var(--tv-border-soft);
+  background: #ffffff;
+  line-height: 0;
+}
+.tv-acc-copied {
+  color: var(--tv-green);
+  font-weight: 700;
+}
+.tv-acc-warn-text {
+  color: var(--tv-amber);
+}
+.tv-acc-field-label {
+  font-weight: 650;
+  color: var(--tv-text);
+}
+.tv-acc-field-label small {
+  color: var(--tv-red);
+}
+.tv-acc-proof {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--tv-radius);
+  border: 1px dashed var(--tv-border);
+  background: var(--tv-surface-2);
+}
+.tv-acc-proof-meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.tv-acc-proof-meta strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tv-acc-proof-meta small {
+  color: var(--tv-muted);
+}
+.tv-acc-preview-img {
+  display: block;
+  max-width: 100%;
+  max-height: 60vh;
+  margin: 0 auto;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border-soft);
+  object-fit: contain;
+  background: var(--tv-surface-2);
+}
+.tv-acc-preview-img.is-compact {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  margin: 0;
+}
+.tv-acc-preview-frame {
+  width: 100%;
+  height: 60vh;
+  border: 1px solid var(--tv-border-soft);
+  border-radius: var(--tv-radius);
+}
+.tv-acc-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+.tv-acc-file-chip span {
+  display: flex;
+  flex-direction: column;
+}
+.tv-acc-file-chip small {
+  color: var(--tv-muted);
+}
+.tv-acc-help {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: var(--tv-radius-lg);
+  border: 1px solid var(--tv-border-soft);
+  background: var(--tv-blue-bg);
+  color: var(--tv-blue);
+}
+.tv-acc-help.is-green {
+  background: var(--tv-green-bg);
+  color: var(--tv-green);
+}
+.tv-acc-help .icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+}
+.tv-acc-help span {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tv-acc-help strong {
+  color: var(--tv-heading);
+  font-size: 13px;
+}
+.tv-acc-help small {
+  color: var(--tv-text-2);
+}
+.tv-acc-steps-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+.tv-acc-checkout-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 16px;
+  border-radius: var(--tv-radius-lg);
+  background: var(--tv-surface-2);
+  text-align: center;
+}
+.tv-acc-outcome {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--tv-radius);
+  border: 1px solid var(--tv-border-soft);
+}
+.tv-acc-outcome legend {
+  padding: 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tv-text-2);
+}
+
+/* ---------- TDS ---------- */
+.tv-acc-form-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px 14px;
+}
+.tv-acc-proof.is-wide {
+  padding: 14px 16px;
+}
+.tv-acc-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 6px;
+}
+
+/* ---------- system admin ---------- */
+.tv-acc-admin-summary {
+  margin-bottom: 18px;
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1200px) {
+  .tv-acc-kpi-grid,
+  .tv-acc-plan-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 900px) {
+  .tv-acc-split,
+  .tv-acc-split.is-billing,
+  .tv-acc-split.is-pay,
+  .tv-acc-methods,
+  .tv-acc-form-3 {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tv-acc-admin-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 640px) {
+  .tv-acc-kpi-grid,
+  .tv-acc-plan-grid,
+  .tv-acc-admin-summary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tv-acc-upi {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .tv-acc-toolbar-end {
+    margin-left: 0;
+    width: 100%;
+  }
+  .tv-acc-action-filter {
+    max-width: none;
+    width: 100%;
+  }
+}

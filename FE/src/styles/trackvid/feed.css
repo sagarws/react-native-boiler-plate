@@ -1,0 +1,117 @@
+/* TrackVid feed screens. Template tokens only (var(--tv-*) / template classes). */
+.tv-feed-toolbar-end {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-inline-start: auto;
+}
+.tv-feed-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 210px;
+}
+.tv-feed-columns .text-link {
+  align-self: flex-start;
+  margin-top: 4px;
+  font-size: 13px;
+}
+.tv-feed-secret {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+}
+.tv-feed-secret .icon-button {
+  flex-shrink: 0;
+}
+.tv-feed-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.tv-feed-row-disabled td {
+  color: var(--tv-muted);
+}
+.tv-feed-dialog-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tv-feed-dialog-title small {
+  color: var(--tv-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.tv-feed-section-label {
+  margin-bottom: 10px;
+  color: var(--tv-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.tv-feed-types {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.tv-feed-type {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--tv-border);
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface);
+  color: var(--tv-text);
+  text-align: start;
+}
+.tv-feed-type:hover {
+  background: var(--tv-hover);
+}
+.tv-feed-type.is-active {
+  border-color: var(--tv-accent);
+  background: var(--tv-accent-soft);
+}
+.tv-feed-type:focus-visible {
+  box-shadow: var(--tv-focus);
+  outline: none;
+}
+.tv-feed-type > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tv-feed-type strong {
+  font-size: 14px;
+}
+.tv-feed-type small {
+  color: var(--tv-muted);
+  font-size: 12px;
+}
+.tv-feed-type-icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: var(--tv-surface-3);
+  color: var(--tv-accent-strong);
+}
+.tv-feed-type.is-active .tv-feed-type-icon {
+  background: var(--tv-accent);
+  color: var(--tv-accent-ink);
+}
+.tv-feed-type-icon .icon {
+  width: 18px;
+  height: 18px;
+}
+@media (max-width: 560px) {
+  .tv-feed-types {
+    grid-template-columns: 1fr;
+  }
+}

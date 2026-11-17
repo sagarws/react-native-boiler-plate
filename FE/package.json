@@ -1,0 +1,46 @@
+{
+  "name": "trackvid-ui",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3002",
+    "lint": "eslint --max-warnings 0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.2.6",
+    "@tiptap/extension-color": "^2.11.5",
+    "@tiptap/extension-font-family": "^2.11.5",
+    "@tiptap/extension-highlight": "^2.11.5",
+    "@tiptap/extension-link": "^2.11.5",
+    "@tiptap/extension-text-align": "^2.11.5",
+    "@tiptap/extension-text-style": "^2.11.5",
+    "@tiptap/extension-underline": "^2.11.5",
+    "@tiptap/pm": "^2.11.5",
+    "@tiptap/react": "^2.11.5",
+    "@tiptap/starter-kit": "^2.11.5",
+    "chart.js": "^4.5.1",
+    "date-fns": "^3.6.0",
+    "dompurify": "^3.2.4",
+    "formik": "^2.4.6",
+    "next": "16.2.4",
+    "qrcode.react": "^4.2.0",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "react-redux": "^9.1.2",
+    "yup": "^1.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "jsdom": "^25.0.1",
+    "typescript": "^5",
+    "vitest": "^3.2.4"
+  }
+}

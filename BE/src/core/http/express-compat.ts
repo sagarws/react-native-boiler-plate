@@ -2,11 +2,14 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import express from 'express';
+import path from 'path';
 import etag from 'etag';
 import finalhandler from 'finalhandler';
 import fresh from 'fresh';
 import { securityHeaders } from '@legacy/middleware/securityHeaders.middleware';
 import { BODY_LIMIT } from './fastify-options';
+import { EXPRESS_APP } from '../legacy/express-adapter';
 
 /**
  * Express-compatible request/response pipeline on Fastify (MIGRATION_PLAN §3 items 2–5, 11, 12).
@@ -19,16 +22,20 @@ import { BODY_LIMIT } from './fastify-options';
 
 type ExpressMiddleware = (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => void;
 
-/** Same order as legacy server.ts: securityHeaders → cors() → urlencoded → json. */
+/** Same order as legacy server.ts: securityHeaders → cors() → urlencoded → json → express.static('public'). */
 export const legacyMiddlewareChain = (): ExpressMiddleware[] => [
   securityHeaders as unknown as ExpressMiddleware,
   cors() as unknown as ExpressMiddleware,
   bodyParser.urlencoded({ extended: true, limit: '5mb' }) as unknown as ExpressMiddleware,
   // express.json({ limit: "5mb" }) === bodyParser.json({ limit: "5mb" }) in Express 4
   bodyParser.json({ limit: '5mb' }) as unknown as ExpressMiddleware,
+  // legacy: app.use(express.static(path.join("public"))) — cwd-relative (cwd = legacy root, see main.ts)
+  express.static(path.join('public')) as unknown as ExpressMiddleware,
 ];
 
 const expressEnv = () => process.env.NODE_ENV || 'development';
+/** per-instance chain for requests Fastify rejects before routing (see expressFrameworkErrors) */
+const FRAMEWORK_CHAIN = Symbol.for('legacyFrameworkChain');
 
 /** Express app `logerror`: prints the stack unless env is "test". */
 const logError = (err: any) => {
@@ -97,8 +104,18 @@ const etagOnSend = async (request: FastifyRequest, reply: FastifyReply, payload:
   return payload;
 };
 
-export const registerExpressCompat = (fastify: FastifyInstance): void => {
-  const chain = legacyMiddlewareChain();
+export interface ExpressCompatOptions {
+  /** app-level middleware in legacy order (default: legacy server.ts chain) */
+  chain?: () => ExpressMiddleware[];
+  /** Express app whose settings back req/res (trust proxy, etag, …); default legacyExpressApp */
+  expressApp?: unknown;
+}
+
+export const registerExpressCompat = (fastify: FastifyInstance, opts: ExpressCompatOptions = {}): void => {
+  const makeChain = opts.chain || legacyMiddlewareChain;
+  const chain = makeChain();
+  (fastify as any)[FRAMEWORK_CHAIN] = makeChain();
+  if (opts.expressApp) (fastify as any)[EXPRESS_APP] = opts.expressApp;
 
   fastify.addHook('onRequest', async (request, reply) => {
     const { err, ended } = await runChain(chain, request.raw, reply.raw);
@@ -117,3 +134,38 @@ export const registerExpressCompat = (fastify: FastifyInstance): void => {
 };
 
 export { BODY_LIMIT };
+
+/**
+ * Fastify `frameworkErrors`: malformed percent-escapes make Fastify reject the URL before routing
+ * (FST_ERR_BAD_URL, JSON body). Express matches routes on the raw path and only decodes PARAMS:
+ * a bad escape inside a param → 400 URIError final-handler page; anywhere else → no match → the
+ * 404 "Cannot METHOD /path" page. Reproduced by looking the route up with the bad escapes made
+ * valid ("%" → "%25").
+ */
+export const expressFrameworkErrors = async (error: any, request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  // Fastify calls this before onRequest hooks; Express would already have run the app-level
+  // middleware (security headers, cors, body parsers) before routing.
+  const { err: mwErr, ended } = await runChain((request.server as any)[FRAMEWORK_CHAIN] || [], request.raw, reply.raw);
+  if (ended) return void reply.hijack();
+  if (mwErr) return sendExpressFinal(request, reply, mwErr);
+  if (error?.code !== 'FST_ERR_BAD_URL') {
+    sendExpressFinal(request, reply, error);
+    return;
+  }
+  const rawPath = (request.raw.url || '').split('?')[0];
+  const fixed = rawPath.replace(/%(?![0-9A-Fa-f]{2})/g, '%25');
+  let found: any = null;
+  try {
+    found = (request.server as any).findRoute({ method: request.raw.method, url: fixed });
+  } catch {
+    found = null;
+  }
+  const badParam = found && Object.values(found.params || {}).find((v: any) => typeof v === 'string' && /%(?![0-9A-Fa-f]{2})/.test(v));
+  if (!badParam) {
+    sendExpressFinal(request, reply); // 404 Cannot METHOD /path
+    return;
+  }
+  const err: any = new URIError(`Failed to decode param '${badParam}'`);
+  err.status = err.statusCode = 400;
+  sendExpressFinal(request, reply, err);
+};

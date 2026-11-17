@@ -19,6 +19,10 @@ export interface ContractCase {
   mask?: string[];
   /** headers to skip for this case (e.g. etag when a masked field is volatile) */
   ignoreHeaders?: string[];
+  /** keys masked wherever they appear (ids/timestamps of docs created by the call) */
+  maskKeys?: string[];
+  /** ms before the call counts as "no response" (streams, legacy hangs) */
+  timeoutMs?: number;
 }
 
 export interface Captured { status: number; headers: Record<string, string>; body: unknown; raw: string }
@@ -40,8 +44,19 @@ export const call = async (base: string, c: ContractCase): Promise<Captured> => 
     body = typeof c.body === 'string' ? c.body : JSON.stringify(c.body);
     if (typeof c.body !== 'string' && !Object.keys(headers).some((h) => h.toLowerCase() === 'content-type')) headers['content-type'] = 'application/json';
   }
-  const res = await fetch(base.replace(/\/$/, '') + c.path, { method: c.method, headers, body, redirect: 'manual' });
-  const raw = await res.text();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), c.timeoutMs ?? 5000);
+  let res: Response;
+  let raw: string;
+  try {
+    res = await fetch(base.replace(/\/$/, '') + c.path, { method: c.method, headers, body, redirect: 'manual', signal: ctrl.signal });
+    raw = await res.text();
+  } catch (e: any) {
+    if (e?.name === 'AbortError') return { status: -1, headers: {}, body: 'NO RESPONSE (timeout)', raw: '' };
+    throw e;
+  } finally {
+    clearTimeout(timer);
+  }
   let parsed: unknown = raw;
   try { parsed = raw ? JSON.parse(raw) : raw; } catch { /* non-JSON body is compared as text */ }
   const h: Record<string, string> = {};
@@ -66,8 +81,17 @@ export const mask = (value: unknown, paths: string[] = []): unknown => {
   return clone;
 };
 
+const maskKeysDeep = (v: any, keys: string[]): any => {
+  if (Array.isArray(v)) return v.map((x) => maskKeysDeep(x, keys));
+  if (v && typeof v === 'object') return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, keys.includes(k) ? '<masked>' : maskKeysDeep(x, keys)]));
+  return v;
+};
+
 export const normalize = (c: Captured, cc: ContractCase) => {
   const headers = { ...c.headers };
-  if (cc.mask?.length) { delete headers.etag; delete headers['content-length']; }
-  return { status: c.status, headers, body: mask(c.body, cc.mask) };
+  // generated download names carry a millisecond timestamp (e.g. payments_1794931456055.xlsx)
+  if (headers['content-disposition']) headers['content-disposition'] = headers['content-disposition'].replace(/\d{13}/g, '<ts>');
+  if (cc.mask?.length || cc.maskKeys?.length) { delete headers.etag; delete headers['content-length']; }
+  const body = cc.maskKeys?.length ? maskKeysDeep(mask(c.body, cc.mask), cc.maskKeys) : mask(c.body, cc.mask);
+  return { status: c.status, headers, body };
 };

@@ -1,0 +1,120 @@
+/* TrackVid users-roles screens. Template tokens only (var(--tv-*) / template classes). */
+.tv-ur-dialog-title {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tv-ur-dialog-title small {
+  color: var(--tv-muted);
+  font-size: 13px;
+  font-weight: 500;
+}
+.tv-ur-section-label {
+  margin-bottom: 10px;
+  color: var(--tv-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+.tv-ur-user {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.tv-ur-user small {
+  font-size: 12px;
+}
+
+/* Permission matrix (template access matrix look). */
+.tv-ur-perm {
+  border: 1px solid var(--tv-border);
+  border-radius: var(--tv-radius-lg);
+  background: var(--tv-surface);
+  overflow: hidden;
+}
+.tv-ur-perm-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--tv-border-soft);
+  background: var(--tv-surface-2);
+  color: var(--tv-heading);
+}
+.tv-ur-perm-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tv-ur-perm-chip {
+  min-height: 30px;
+  padding: 4px 12px;
+  border: 1px solid var(--tv-border);
+  border-radius: 999px;
+  background: var(--tv-surface);
+  color: var(--tv-text-2);
+  font-size: 13px;
+  font-weight: 650;
+}
+.tv-ur-perm-chip:hover:not(:disabled) {
+  background: var(--tv-hover);
+}
+.tv-ur-perm-chip.is-active {
+  border-color: var(--tv-accent);
+  background: var(--tv-accent-soft);
+  color: var(--tv-accent-ink);
+}
+.tv-ur-perm-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+.tv-ur-perm-table {
+  width: 100%;
+  min-width: 520px;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.tv-ur-perm-table th,
+.tv-ur-perm-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid var(--tv-border-soft);
+  text-align: start;
+}
+.tv-ur-perm-table thead th {
+  color: var(--tv-muted);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.tv-ur-perm-table tbody tr:last-child > * {
+  border-bottom: 0;
+}
+.tv-ur-perm-table .tv-ur-perm-cell {
+  width: 110px;
+  text-align: center;
+}
+.tv-ur-perm-section th {
+  color: var(--tv-heading);
+  font-weight: 700;
+}
+.tv-ur-perm-section.has-subs > * {
+  background: var(--tv-surface-2);
+}
+.tv-ur-perm-sub-count {
+  margin-inline-start: 8px;
+  color: var(--tv-muted);
+  font-size: 12px;
+  font-weight: 500;
+}
+.tv-ur-perm-subrow th {
+  padding-inline-start: 34px;
+  color: var(--tv-text-2);
+  font-weight: 550;
+}
+.tv-ur-perm-table input[type="radio"]:disabled {
+  cursor: not-allowed;
+}

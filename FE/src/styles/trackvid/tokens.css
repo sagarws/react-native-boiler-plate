@@ -1,0 +1,43 @@
+/* TrackVid tokens. Values are taken from the Veylix palette so new components match the template.
+   Dark mode (Z1) overrides these under [data-theme="dark"]. */
+:root {
+  --tv-text: #25251f;
+  --tv-text-2: #696b61;
+  --tv-muted: #8a7d67;
+  --tv-heading: #302d24;
+  --tv-border: #e4dece;
+  --tv-border-soft: #ece2d2;
+  --tv-input-border: #e1d7c5;
+  --tv-surface: #fffdf6;
+  --tv-surface-2: #f8f3e9;
+  --tv-surface-3: #f1eadc;
+  --tv-input-bg: #fffdf6bf;
+  --tv-hover: #c7bca426;
+  --tv-accent: #f5bc34;
+  --tv-accent-2: #ffda75;
+  --tv-accent-ink: #49340b;
+  --tv-accent-strong: #805b12;
+  --tv-accent-soft: #fff0c6;
+  --tv-green: #23744d;
+  --tv-green-bg: #d7f4e1;
+  --tv-amber: #866319;
+  --tv-amber-bg: #fff0c6;
+  --tv-red: #ab4932;
+  --tv-red-bg: #ffe5db;
+  --tv-blue: #386986;
+  --tv-blue-bg: #e1eef6;
+  --tv-lilac: #6c4f8a;
+  --tv-lilac-bg: #f1e9f5;
+  --tv-radius: 11px;
+  --tv-radius-lg: 16px;
+  --tv-focus: 0 0 0 3px #f5bc3459;
+  --tv-shadow-pop: 0 18px 40px -18px #4b39184d, 0 2px 6px #4b391814;
+  --tv-skeleton: #ece4d4;
+  --tv-skeleton-shine: #f8f3e9;
+  --tv-chart-1: #edb744;
+  --tv-chart-2: #6aa88a;
+  --tv-chart-3: #6c94b8;
+  --tv-chart-4: #c9785a;
+  --tv-chart-5: #9b7fb8;
+  --tv-chart-6: #b8a77d;
+}

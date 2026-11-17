@@ -2,3 +2,4 @@ dist/
 coverage/
 uploads/
 *.log
+test/contract/.tokens.json

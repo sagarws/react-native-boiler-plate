@@ -28,6 +28,9 @@ legacyExpressApp.set('trust proxy', 'loopback');
 legacyExpressApp.disable('x-powered-by');
 
 const INIT = Symbol('legacyExpressInit');
+/** Per-Fastify-instance Express settings app (main server: legacyExpressApp; OrderServer: its own). */
+export const EXPRESS_APP = Symbol.for('legacyExpressSettingsApp');
+const expressAppFor = (request: FastifyRequest): express.Express => (request.server as any)?.[EXPRESS_APP] ?? legacyExpressApp;
 
 /** Express-shaped view of the request (one per request, shared by all middleware + handler). */
 export const legacyRequest = (request: FastifyRequest, reply?: FastifyReply): any => {
@@ -38,10 +41,10 @@ export const legacyRequest = (request: FastifyRequest, reply?: FastifyReply): an
     req.res = res;
     if (res) {
       res.req = req;
-      Object.setPrototypeOf(res, legacyExpressApp.response);
+      Object.setPrototypeOf(res, expressAppFor(request).response);
       res.locals = res.locals || Object.create(null);
     }
-    Object.setPrototypeOf(req, legacyExpressApp.request);
+    Object.setPrototypeOf(req, expressAppFor(request).request);
     req.originalUrl = req.url;
     req.baseUrl = '';
     req.query = request.query ?? {};
@@ -82,8 +85,9 @@ export const runLegacyMiddleware = async (
       req.next = next;
       try {
         const ret: any = mw(req, res, next);
-        // Express 4 doesn't catch async rejections (the request would hang); surface them instead.
-        if (ret && typeof ret.catch === 'function') ret.catch((e: unknown) => settle({ kind: 'error', error: e }));
+        // Express 4 doesn't catch async rejections: the request stays open and legacy's process
+        // handler logs it. Same here (the guard never settles).
+        if (ret && typeof ret.catch === 'function') ret.catch((e: unknown) => console.error('[UNHANDLED REJECTION]', e));
       } catch (e) {
         settle({ kind: 'error', error: e });
       }

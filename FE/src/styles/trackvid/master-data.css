@@ -1,0 +1,249 @@
+/* TrackVid master-data screens. Template tokens only (var(--tv-*) / template classes). */
+
+/* ---------- page + platform switch ---------- */
+.tv-master-platforms {
+  padding: 14px 14px 0;
+}
+.tv-master-platforms .tv-platform img {
+  width: 18px;
+  height: 18px;
+}
+.tv-master-d2c-dot {
+  background: var(--tv-lilac);
+}
+
+/* ---------- toolbar ---------- */
+.tv-master-toolbar {
+  justify-content: space-between;
+}
+.tv-master-toolbar > .c-search {
+  flex: 0 1 280px;
+  min-width: 200px;
+}
+.tv-master-toolbar-actions {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+.tv-master-inline-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px;
+}
+.tv-master-inline-filter .c-field {
+  flex: 1;
+  gap: 0;
+}
+/* Label stays for screen readers; the placeholder names the filter visually. */
+.tv-master-inline-filter .c-field > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.tv-master-popover-wide {
+  width: min(640px, calc(100vw - 32px));
+}
+.tv-master-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px;
+}
+.tv-master-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px 12px;
+}
+.tv-master-columns {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 360px;
+  overflow-y: auto;
+  padding: 4px;
+  min-width: 240px;
+}
+.tv-master-active-filters {
+  padding: 10px 14px 0;
+}
+
+/* ---------- cells ---------- */
+.tv-master-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 6px;
+  border: 1px solid currentColor;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tv-master-chip.is-green {
+  color: var(--tv-green);
+  background: var(--tv-green-bg);
+}
+.tv-master-chip.is-red {
+  color: var(--tv-red);
+  background: var(--tv-red-bg);
+}
+.tv-master-chip.is-amber {
+  color: var(--tv-amber);
+  background: var(--tv-amber-bg);
+}
+.tv-master-chip.is-blue {
+  color: var(--tv-blue);
+  background: var(--tv-blue-bg);
+}
+.tv-master-sent .icon {
+  width: 22px;
+  height: 22px;
+}
+.tv-master-sent.is-ok {
+  color: var(--tv-green);
+}
+.tv-master-sent.is-fail {
+  color: var(--tv-red);
+}
+
+/* ---------- dialogs ---------- */
+.tv-master-reason {
+  margin: 0;
+  padding: 14px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface-2);
+  border: 1px solid var(--tv-border-soft);
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+.tv-history-awb {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border-radius: var(--tv-radius);
+  background: var(--tv-surface-2);
+  border: 1px solid var(--tv-border-soft);
+  color: var(--tv-text-2);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.tv-history-awb strong {
+  color: var(--tv-accent-strong);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.tv-history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.tv-history-list li {
+  display: grid;
+  grid-template-columns: 104px 36px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  position: relative;
+  padding-bottom: 18px;
+}
+.tv-history-list li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc(104px + 12px + 17px);
+  top: 34px;
+  bottom: 0;
+  width: 2px;
+  background: var(--tv-border);
+}
+.tv-history-list time {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  font-size: 12px;
+}
+.tv-history-list time small,
+.tv-history-list li > div small {
+  color: var(--tv-text-2);
+  font-size: 11px;
+}
+.tv-history-list li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 13px;
+}
+.tv-history-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--tv-accent-soft);
+  color: var(--tv-accent-strong);
+}
+.tv-history-dot .icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- SKU preview (SKU Data screen) ---------- */
+.tv-sku-preview {
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  border-radius: var(--tv-radius-lg);
+  background: var(--tv-surface-2);
+  border: 1px solid var(--tv-border-soft);
+}
+.tv-sku-preview img {
+  max-width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  border-radius: var(--tv-radius);
+}
+.tv-sku-preview-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 16px;
+  border-radius: var(--tv-radius-lg);
+  background: var(--tv-surface-2);
+  color: var(--tv-text-2);
+}
+.tv-sku-preview-empty .icon {
+  width: 32px;
+  height: 32px;
+}
+
+@media (max-width: 720px) {
+  .tv-master-toolbar > .c-search {
+    flex: 1 1 100%;
+  }
+  .tv-master-toolbar-actions {
+    margin-left: 0;
+    width: 100%;
+  }
+  .tv-master-filter-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tv-history-list li {
+    grid-template-columns: 76px 32px minmax(0, 1fr);
+  }
+  .tv-history-list li:not(:last-child)::after {
+    left: calc(76px + 12px + 15px);
+  }
+}
