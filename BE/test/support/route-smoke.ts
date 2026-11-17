@@ -24,7 +24,7 @@ export const smokeCases = (routes: SmokeRoute[], identities: Record<string, Reco
       cases.push([`${r.method} ${r.path} as ${who}`, () => {
         url = url || fill(r.path); // same URL for both sides of the pair
         return { method: r.method, path: url, headers: { ...headers, 'content-type': 'application/json' }, body: r.method === 'GET' || r.method === 'DELETE' ? undefined : '{}' };
-      }, { creates: true, volatile: ['token', 'expiresAt', 'state', 'url', 'authUrl', 'redirectUrl', 'code', 'otp', 'inviteToken', 'requestedAt', 'date', 'now', 'generatedAt', 'timestamp'], bodyMasks: [/<pre>[\s\S]*?<\/pre>/] }]);
+      }, { creates: true, volatile: ['token', 'expiresAt', 'state', 'url', 'authUrl', 'redirectUrl', 'code', 'otp', 'inviteToken', 'requestedAt', 'date', 'now', 'generatedAt', 'timestamp', 'ranAt', 'company_id'], bodyMasks: [/<pre>[\s\S]*?<\/pre>/] }]);
     }
   }
   return cases;

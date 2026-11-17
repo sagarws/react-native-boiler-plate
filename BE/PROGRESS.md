@@ -4,7 +4,7 @@ See [`MIGRATION_PLAN.md`](./MIGRATION_PLAN.md) for the plan.
 Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 staging cutover · ✅ prod cutover
 
 **API counter:** see [`PROGRESS.txt`](./PROGRESS.txt) (`APIs migrated: X / 497`, per module + full endpoint checklist; regenerate with `node scripts/api-progress.js`)
-**Current phase:** 4 done in-process except MasterImport (blocked); next Phase 5 (CMS, SystemAdmin, Realtime, View, DesktopApp). Cutovers wait for staging (Blocked #1/#2) (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
+**Current phase:** 5 done in-process (except Realtime/sockets, which move at the coordinated socket cutover); MasterImport blocked; next Phase 6 secondary servers. Cutovers wait for staging (Blocked #1/#2) (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
 **Last updated:** 2026-11-17
 
 ## Decisions log
@@ -48,6 +48,10 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Route controllers generated from legacy route files (`scripts/gen-nest-controller.js`), cross-checked against PROGRESS.txt (`scripts/check-generated-routes.js`) | Same paths/methods/middleware chains by construction; the generator refuses wildcard/regex paths, Express order shadowing, duplicates and router.use (reported for hand-porting). Run over all remaining route files: no warnings |
 | 2026-11-17 | Route-smoke parity (`test/support/route-smoke.ts`): every route × {anon, admin, sysadmin, other token} vs legacy, response + DB | Broad coverage for generated modules; targeted success-path specs on top where data matters |
 | 2026-11-17 | Automated guard `test/e2e/no-legacy-workers.spec.ts` + `scripts/scan-import-side-effects.js` | Fails the suite if anything the Nest app imports starts a worker/cron/socket at import (hard rule). Found masterImportWorker.ts |
+| 2026-11-17 | `express.static('public')` runs in the legacy app-middleware chain (after body parsers, before routes) | Exact legacy order and serve-static headers/ETag/304 (compat item 18). Parity-tested |
+| 2026-11-17 | Build copies `legacy/views` + `legacy/public` into `dist/legacy` (`scripts/copy-legacy-assets.js`) | Legacy renders `ejs.renderFile("views/…")` and serves `public/` relative to cwd (= dist/legacy). Without it, register/forgot-password/payment/book-demo mails and invoices would fail in prod |
+| 2026-11-17 | `test/e2e/generated-controllers-fresh.spec.ts` + `scripts/regen-controllers.js` | Regenerating from the current legacy route files must reproduce every generated controller; a pin bump that changes routes/middleware/helpers fails the suite until regenerated |
+| 2026-11-17 | XLSX downloads compared by parsed workbook content in parity tests | ZIP entries carry 2-second timestamps; byte comparison was flaky |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -115,11 +119,11 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 4 | MasterImport | /api/master | 25 | ⛔ BLOCKED: importing its controllers starts a BullMQ worker (masterImportWorker.ts → `startWorker()` at import) | ⛔ | | |
 | 4 | Order | /api/order | 19 | generated + delegated | 🧪 | route-smoke 19×3 | |
 | 4 | Auth | /api/auth | 24 | generated; login/rate-limit/revocation targeted tests; ⚠⚠ DO NOT CUT OVER until legacy fixes user-profile token leak | 🧪 | route-smoke 24×3 + 8 targeted | |
-| 5 | CMS | /api/cms | 80 | Trackvid-CMS contract | ⬜ | | |
-| 5 | SystemAdmin | /api/system-admin | 74 | Monitor contract | ⬜ | | |
-| 5 | Realtime | /internal, /api/internal | 1 | sockets | ⬜ | | |
-| 5 | View | /view | 1 | | ⬜ | | |
-| 5 | DesktopApp | / (catch-all) | 2 | static downloads, mount last | ⬜ | | |
+| 5 | CMS | /api/cms | 81 | generated + delegated; route-file helpers copied verbatim (freshness test guards drift); Trackvid-CMS desktop must be coordinated at cutover | 🧪 | route-smoke 81×3 | |
+| 5 | SystemAdmin | /api/system-admin | 71 | generated + delegated; Monitor contract | 🧪 | route-smoke 71×3 | |
+| 5 | Realtime | /internal, /api/internal | 2 | NOT ported: the broadcast receiver must live with Socket.IO (new server forwards emits here; moving it alone would loop). Moves with the socket cutover | ⏸ | | |
+| 5 | View | /view | 1 | generated + delegated | 🧪 | route-smoke | |
+| 5 | DesktopApp | / (catch-all) | 2 | generated; `/:filename` reads `<cwd>/cmsapp` → on the new server `BE/dist/legacy/cmsapp` must hold (or symlink) the installers | 🧪 | route-smoke + catch-all cases | |
 | 5 | bull-board | /admin/queues | — | | ⬜ | | |
 | 5 | Socket.IO (realtime + cms-realtime) | — | — | event contract | ⬜ | | |
 | 6 | OrderServer | (separate process) /order | — | uploads | ⬜ | | |
@@ -157,6 +161,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Files (5), Imports (5), Webhook (3), delegated. Found + fixed: malformed-URL handling, Express wildcard params. APIs migrated: 134 / 497 | Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) |
 | 2026-11-17 | Claude | Email group: Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) — generated controllers + route-smoke parity (374 cases). Phase 3 complete in-process. 812 tests green. APIs migrated: 227 / 497 | Phase 4: platforms (Ajio…Nykaa), MasterImport (25), Order (19), Auth (24) |
 | 2026-11-17 | Claude | Phase 4: 9 platforms (`modules/platforms/<p>/`), Order (19), Auth (24) generated; MasterImport BLOCKED (worker at import). Found CRITICAL legacy auth bypass (user-profile). Worker-import guard test added. 1007 tests green. APIs migrated: 288 / 497 | Phase 5: CMS (81), SystemAdmin (71), Realtime, View, DesktopApp; check each for import-time starters |
+| 2026-11-17 | Claude | Phase 5: CMS (81), SystemAdmin (71), View, DesktopApp generated; static/public + views assets fixed for prod layout; generated-controller freshness test. 1513 tests green. APIs migrated: 443 / 497 | Phase 6: OrderServer (7) as a second Nest app — check its workers first; MasterImport + MasterImportServer wait for the worker decision; Realtime waits for socket cutover plan |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 0. ⚠⚠⚠ CRITICAL: `GET /api/auth/user-profile?email=` issues an access token for any email without auth (see Blocked).
@@ -181,4 +186,5 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 
 0. **Merge into `nestjs` paused (2026-11-17).** Commit `1db4381` (by the user, 19:45) on `migrate/template-tds` adds the `FE/` project together with in-progress BE files, and `FE/` has uncommitted user changes. Switching to `nestjs` would overwrite them, and merging would carry `FE/` into `nestjs`. I did neither. BE work continues on stacked branches from that HEAD (`migrate/template-tds` → `migrate/phase3-batch2` → …). Question: OK to merge this chain (incl. 1db4381's FE/) into `nestjs`, or should FE be split out first?
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).
-2. **Staging env + nginx** (both servers side by side) — deployment step, user does it.
+2. **Deployment notes for the new server** (your steps): run `npm run build` (copies views/public), start `node dist/src/main.js` (cwd is switched to `dist/legacy` automatically), put/symlink the desktop installers into `BE/dist/legacy/cmsapp`, set `REALTIME_INTERNAL_URL`/`TOKEN`, `REDIS_PORT`, and never place a `.env` inside `BE/legacy` or `BE/dist/legacy`.
+3. **Staging env + nginx** (both servers side by side) — deployment step, user does it.
