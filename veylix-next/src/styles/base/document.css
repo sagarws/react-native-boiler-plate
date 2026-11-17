@@ -1,0 +1,184 @@
+/* Font face, body, icons, skip link and solid-glass mode. */
+@font-face {
+  font-family: Manrope Variable;
+  font-style: normal;
+  font-weight: 200 800;
+  font-display: swap;
+  src: url(/assets/manrope-latin-wght-normal-DHIcAJRg.woff2) format("woff2");
+}
+body {
+  background-color: #e9dfce;
+  background-image:
+    radial-gradient(at 2% 12%, #b7a48766, #0000 42%),
+    radial-gradient(at 58% 58%, #ffe4a352, #0000 48%),
+    radial-gradient(at 100% 22%, #f9f7f1cf, #0000 46%),
+    linear-gradient(115deg, #dfd2bd, #f4ecdd 40%, #e8dec9 75%, #f4eee3);
+  background-attachment: fixed;
+}
+body:before,
+body:after {
+  content: none;
+}
+.icon {
+  vertical-align: middle;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+}
+.icon svg {
+  fill: currentColor;
+  width: 100%;
+  height: 100%;
+}
+.icon-button {
+  border-radius: 10px;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  width: 38px;
+  height: 38px;
+  transition:
+    background 0.15s,
+    transform 0.15s;
+  display: inline-flex;
+}
+.icon-button:hover {
+  background: #c7bca426;
+}
+.icon-button:active {
+  transform: scale(0.95);
+}
+.skip-link {
+  z-index: 100;
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  position: fixed;
+  top: -80px;
+  left: 20px;
+}
+.skip-link:focus {
+  top: 10px;
+}
+kbd {
+  white-space: nowrap;
+  background: #dedad438;
+  border: 1px solid #e0dcd666;
+  border-radius: 6px;
+  padding: 3px 6px;
+  font-size: 14px;
+}
+.avatar {
+  color: #302817;
+  background: linear-gradient(120deg, #ffe08a, #fabc27);
+  border: 3px solid #fff;
+  border-radius: 50%;
+  flex-shrink: 0;
+  justify-content: center;
+  align-items: center;
+  width: 42px;
+  height: 42px;
+  font-size: 21px;
+  font-weight: 750;
+  display: flex;
+  box-shadow: 0 3px 8px #d6a64236;
+}
+.dialog-body,
+.dialog-body table,
+.dialog-body > p,
+.chat-message,
+.field input,
+.field select,
+.field textarea,
+.search-input,
+.dialog-body th,
+.field,
+.primary-button,
+.secondary-button,
+.search-result strong,
+.dialog-body table .badge,
+.form-note,
+.ai-intro p,
+.ai-suggestions button,
+.chat-message small,
+.ai-disclosure,
+.search-result small {
+  font-size: 14px;
+}
+.dialog-body .card-heading {
+  display: flex;
+}
+.dialog-body .card-heading > .text-link {
+  display: none;
+}
+.solid-glass {
+  --glass-fill: #fcfaf5;
+  --chrome-fill: #eee5d6;
+}
+.solid-glass .app-shell {
+  background: #eeeee5;
+}
+.solid-glass .sidebar,
+.solid-glass .header-primary,
+.solid-glass .header-tools {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.solid-glass .topbar:before {
+  -webkit-backdrop-filter: none;
+  background: #eeeee5;
+  bottom: 0;
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+.solid-glass .glass-card {
+  background: #fcfaf5;
+}
+@media (max-width: 767px) {
+  .dialog-heading {
+    padding: 16px;
+  }
+  .dialog-body {
+    padding: 20px;
+  }
+  .dialog-heading h2 {
+    font-size: 17px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  :before,
+  :after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root {
+    --chrome-fill: #eee5d6;
+  }
+  .sidebar,
+  .header-primary,
+  .header-tools,
+  .glass-card {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+  .glass-card {
+    background: #fcfaf5;
+  }
+}
+@supports not (
+  (-webkit-backdrop-filter: blur(10px)) or (backdrop-filter: blur(10px))
+) {
+  :root {
+    --chrome-fill: #eee5d6;
+  }
+  .glass-card {
+    background: #fcfaf5;
+  }
+}

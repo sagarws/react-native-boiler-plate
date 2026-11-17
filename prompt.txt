@@ -1,0 +1,49 @@
+Rebuild the Veylix ecommerce admin dashboard as a Next.js project (latest stable, App Router, TypeScript). The result must look and behave exactly like the original; the only thing that changes is the code structure.
+
+## Source of truth
+- Built original: /Users/apple/Documents/Sagar/Other/react-native-boiler-plate/resource/veylix-react.vercel.app/
+  - index.html: the shell (#app, #overlay-root, #toast-region, meta tags)
+  - assets/index-QfllJEmV.js: the whole React app in one bundle, about 81,000 lines. It is formatted and readable, but the variable names are shortened. All components, mock data, icons and copy are in it.
+  - assets/index-pOWtHxrr.css: all styles, hand-written CSS with custom properties. No Tailwind.
+  - assets/manrope-latin-wght-normal-DHIcAJRg.woff2 and assets/images/ (products.webp, warehouse.webp, veylix-mark.svg; favicon.svg is referenced but missing from the download, so recreate it from veylix-mark.svg)
+- Ignore the sibling folders in resource/ (cookiebot, themeforest, envato, _DataURI). They are not part of the app.
+- The original is running at http://localhost:5002. If it is not, start it with: npx serve -s -l 5002 . from the folder above. Use it for side-by-side comparison.
+
+Read the bundle and the CSS before writing code. Do not design from memory or guess: every class name, text string, mock data value, icon path and interaction comes from these files.
+
+## What the app contains (verify in the bundle)
+- Routing is a hand-written history-API router. Pages live at /overview and /commerce/<page-id>, plus /commerce/products/new, /commerce/products/edit and a profile page. "/" shows the overview.
+- The sidebar navigation is defined in one array (search for label: `Operate`). It has four groups (Operate, Commerce, Grow & connect, Workspace) and about 100 pages: products, orders, inventory, customers, checkout and pricing, marketplace, online store, payments, reports, communication, Veylix AI, media and files, team and access, integrations, settings.
+- Old short URLs redirect to the new pages (search for "/store-channels"): /products, /orders, /inventory, /shipping, /fulfillment, /customers, /store-channels, /marketplace, /pricing, /promotions, /analytics, /marketing, /ai-assistant, /finances.
+- Header: search, notifications popover, language switcher (en, de, fr, sv, ar; Arabic switches to RTL, and the CSS has [dir=rtl] rules), profile menu.
+- State is saved in localStorage under the "veylix:" key prefix. Toasts and dialogs use window events (veylix:toast, veylix:dialog-close, veylix:navigate, veylix:locale).
+- Charts are custom SVG. No chart library, no UI library, no state library.
+- All data is local sample data. There is no backend.
+
+## Requirements
+1. Visual and behavioural parity. Same layout, spacing, colours, font, icons, text, animations, hover and focus states, responsive breakpoints, RTL, popovers, dialogs, drawers, tables, filters, forms, toasts and empty states. Keep the original class names and DOM structure so the original CSS applies unchanged. Do not restyle, rename, "improve" or add anything.
+2. Same URLs. Every original path works, including direct load and refresh. Implement the old short URLs as redirects.
+3. No new UI dependencies. No Tailwind, no component library, no chart library. Use only next, react, react-dom and TypeScript tooling.
+4. Structure it properly for the App Router:
+   - app/layout.tsx: html shell, metadata, Manrope through next/font/local, global CSS
+   - app/(dashboard)/layout.tsx: sidebar, header and overlay/toast regions, shared by all pages
+   - app/(dashboard)/overview/page.tsx and app/(dashboard)/commerce/[...]: one route folder per page. Where many pages share one generic template in the original (list or table pages driven by config), use one dynamic route with generateStaticParams and a typed config instead of 100 copied files.
+   - components/layout, components/ui (buttons, tables, dialogs, popovers, icons, charts), features/<domain> for page-specific parts
+   - data/ for the mock data, split by domain and typed
+   - lib/ for storage (the veylix: prefix helpers), i18n, formatting and navigation config
+   - styles/: split the single CSS file into globals (tokens, reset, base) and per-area files. Keep selectors and rule order so the cascade gives identical results.
+   - public/images for the image assets
+5. Server components by default. Add "use client" only where a component needs state, effects, localStorage or browser events. Replace the custom router with next/link, next/navigation and per-page metadata titles (the original format is "<Page> | Veylix"). Guard localStorage access so there are no hydration mismatches.
+6. Give every component and variable a meaningful name. Do not carry over the shortened names from the bundle. Strict TypeScript, no `any`.
+
+## How to work
+1. First, read the bundle and write docs/inventory.md: the full route list, the shared page templates, the component list, the data collections and the i18n strings. Build from that inventory.
+2. Build in this order: tokens and global CSS, shell (sidebar and header), shared UI components, overview page, then the page groups one at a time.
+3. After each group, compare against http://localhost:5002 at 1440px, 1024px and 390px wide, and in Arabic (RTL). Fix every difference before moving on.
+
+## Done when
+- next build passes with no type or lint errors.
+- Every route in the inventory renders and matches the original in side-by-side screenshots at the three widths.
+- Interactions match: navigation, sidebar collapse, popovers, dialogs, filters, sorting, forms, toasts, language switch, and state surviving a reload.
+- No console errors or hydration warnings.
+- The final report lists any page or behaviour that could not be matched, with the reason. Do not hide gaps.

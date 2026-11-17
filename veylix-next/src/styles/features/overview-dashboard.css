@@ -1,0 +1,710 @@
+/* Overview dashboard grid and cards. */
+.dashboard-view {
+  --overview-glass: linear-gradient(
+    130deg,
+    #fffdf5ad,
+    #f6efde6b 60%,
+    #fffbf185
+  );
+  --overview-edge: #ffffffd4;
+  --overview-shadow:
+    0 8px 22px -16px #80603055, inset 0 1px 1px #ffffffd9,
+    inset 0 -1px 1px #baa17c16;
+  padding-bottom: 4px;
+}
+.dashboard-view :is(.glass-card, .metric-card, .store-pulse) {
+  background: var(--overview-glass);
+  border: 1px solid var(--overview-edge);
+  box-shadow: var(--overview-shadow);
+  -webkit-backdrop-filter: blur(20px) saturate(125%);
+}
+.dashboard-view .glass-card {
+  border-radius: 18px;
+}
+.dashboard-view .card-heading {
+  margin-bottom: 14px;
+}
+.dashboard-view .dashboard-heading {
+  gap: 20px;
+  min-height: 56px;
+  margin-bottom: 16px;
+  padding: 0;
+}
+.dashboard-view .store-pulse {
+  border-radius: 16px;
+  gap: 18px;
+  padding: 10px 16px;
+}
+.dashboard-view .pulse-label {
+  margin-bottom: 4px;
+  font-size: 14px;
+}
+.dashboard-view .store-pulse b {
+  font-size: 20px;
+}
+.dashboard-view .pulse-chart {
+  width: 100px;
+  height: 34px;
+}
+.dashboard-view .pulse-sync {
+  border-color: #b6a58340;
+  padding-left: 16px;
+  font-size: 14px;
+}
+.dashboard-view .pulse-sync small {
+  margin-top: 4px;
+  font-size: 14px;
+}
+.dashboard-view .welcome {
+  padding-right: 8px;
+  display: flex;
+}
+.dashboard-view .welcome > .icon {
+  width: 34px;
+  height: 34px;
+}
+.dashboard-view .welcome strong {
+  font-size: 14px;
+}
+.dashboard-view .welcome small {
+  margin-top: 4px;
+  font-size: 14px;
+}
+.dashboard-view .overview-grid {
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.6fr) minmax(
+      470px,
+      1.5fr
+    );
+  align-items: stretch;
+}
+.dashboard-view .revenue-column {
+  flex-direction: column;
+  display: flex;
+}
+.dashboard-view .sales-total {
+  margin-top: 16px;
+}
+.dashboard-view .sales-substats {
+  gap: 10px;
+  margin-top: 18px;
+  padding-top: 14px;
+}
+.dashboard-view .sales-substats span {
+  font-size: 14px;
+}
+.dashboard-view .revenue-card {
+  flex: 1;
+}
+.dashboard-view .revenue-card .revenue-plot {
+  min-height: 190px;
+}
+.dashboard-view .warehouse-section {
+  gap: 10px;
+}
+.dashboard-view .warehouse-scene {
+  height: auto;
+  min-height: 285px;
+}
+.dashboard-view .warehouse-scene img {
+  object-fit: contain;
+  filter: drop-shadow(0 18px 22px #937b4229);
+  width: 104%;
+  max-width: none;
+  max-height: 450px;
+}
+.dashboard-view .warehouse-scene:before {
+  background: radial-gradient(#e1bf7052, #0000 68%);
+  inset: 15% 3% 4%;
+}
+.dashboard-view .overview-metrics {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+.dashboard-view .metric-card {
+  border-radius: 14px;
+  align-items: center;
+  gap: 8px;
+  min-height: 80px;
+  padding: 12px 10px;
+  display: flex;
+}
+.dashboard-view .metric-card > .icon-tile {
+  border-radius: 10px;
+  width: 30px;
+  height: 34px;
+  margin: 0;
+}
+.dashboard-view .metric-card .icon-tile .icon {
+  width: 19px;
+  height: 19px;
+}
+.dashboard-view .metric-copy {
+  min-width: 0;
+}
+.dashboard-view .metric-copy > span {
+  min-height: 0;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.dashboard-view .metric-copy > div {
+  gap: 3px 5px;
+  margin-top: 5px;
+}
+.dashboard-view .metric-copy strong {
+  letter-spacing: -0.6px;
+  font-size: 19px;
+  line-height: 1.2;
+}
+.dashboard-view .metric-copy small {
+  font-size: 14px;
+  line-height: 1.3;
+}
+.dashboard-view .metric-copy small .icon {
+  width: 9px;
+  height: 9px;
+}
+.dashboard-view .operations-column {
+  flex-direction: column;
+  grid-column: auto;
+  display: flex;
+}
+.dashboard-view .operations-pair {
+  flex: none;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  display: grid;
+}
+.dashboard-view .operations-pair .card-heading {
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+}
+.dashboard-view .operations-pair .card-heading h2 {
+  font-size: 15px;
+}
+.dashboard-view .operations-pair .text-link {
+  font-size: 14px;
+}
+.dashboard-view :is(.fulfillment-list, .shipment-list) {
+  gap: 7px;
+}
+.dashboard-view :is(.fulfillment-card, .shipments-card) {
+  flex-direction: column;
+  padding: 18px;
+  display: flex;
+}
+.dashboard-view :is(.fulfillment-list, .shipment-list) {
+  flex: 1;
+}
+.dashboard-view .fulfillment-row {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 5px 7px;
+  padding: 8px;
+}
+.dashboard-view .fulfillment-row > .icon-tile {
+  grid-row: span 2;
+  width: 26px;
+  height: 26px;
+}
+.dashboard-view .fulfillment-row > span:not(.icon-tile):not(.progress-track) {
+  font-size: 14px;
+}
+.dashboard-view .fulfillment-row > .progress-track {
+  grid-area: 2/2 / auto/4;
+  height: 5px;
+}
+.dashboard-view .fulfillment-row > strong {
+  font-size: 14px;
+}
+.dashboard-view .shipment-row {
+  grid-template-columns: 16px 1fr auto;
+  align-content: center;
+  gap: 5px 6px;
+  padding: 9px;
+}
+.dashboard-view .shipment-row > span:not(.icon):not(.badge) {
+  font-size: 14px;
+}
+.dashboard-view .shipment-row > .badge {
+  grid-area: 2/2;
+  padding: 3px 6px;
+  font-size: 14px;
+}
+.dashboard-view .shipment-row > small {
+  grid-area: 1/3;
+  font-size: 14px;
+}
+.dashboard-view .channels-card {
+  grid-column: auto;
+}
+.dashboard-view .channels-list {
+  grid-template-columns: 1fr;
+  gap: 7px;
+}
+.dashboard-view .channel-row {
+  grid-template-columns: 28px minmax(95px, 1fr) 32px minmax(45px, 0.65fr) 66px;
+  gap: 9px;
+  padding: 8px 10px;
+}
+.dashboard-view .channel-row > .icon-tile {
+  grid-row: auto;
+}
+.dashboard-view .channel-row > .progress-track {
+  grid-area: auto;
+  height: 5px;
+}
+.dashboard-view .channel-row > small {
+  grid-area: auto;
+  font-size: 14px;
+}
+.dashboard-view .channel-row > span:not(.icon-tile):not(.progress-track) {
+  font-size: 14px;
+}
+.dashboard-view .activity-grid {
+  grid-template-columns: 1.17fr 1.26fr 1fr;
+  align-items: start;
+}
+.dashboard-view .activity-grid td {
+  padding: 12px 10px;
+}
+.dashboard-view .activity-grid th {
+  padding-inline: 10px;
+}
+.dashboard-view .regions-card {
+  grid-column: auto;
+}
+.dashboard-view .regions-content {
+  grid-template-columns: 1fr;
+  gap: 10px;
+  min-height: 0;
+  display: grid;
+}
+.dashboard-view .map-frame {
+  padding: 0 10px;
+}
+.dashboard-view .world-map {
+  height: 126px;
+  min-height: 0;
+}
+.dashboard-view .world-map svg {
+  filter: drop-shadow(0 5px 8px #cb9e391c);
+  width: 100%;
+  height: 126px;
+  max-height: none;
+}
+.dashboard-view .region-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+}
+.dashboard-view .region-list button {
+  background: #fffaf353;
+  border: 1px solid #ffffff70;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 53px;
+  padding: 9px 8px;
+  display: grid;
+}
+.dashboard-view .region-list button:hover,
+.dashboard-view .region-list button[aria-pressed="true"] {
+  background: #ffe9af8c;
+  border-color: #ffdf8680;
+}
+.dashboard-view .region-list .country-code {
+  width: 22px;
+  height: 22px;
+  font-size: 14px;
+}
+.dashboard-view .flag-other {
+  color: #658269;
+  background: #e7ede3;
+}
+.dashboard-view .flag-other .icon {
+  width: 14px;
+  height: 14px;
+}
+.dashboard-view .region-copy > span {
+  font-size: 14px;
+  line-height: 1.4;
+  display: block;
+}
+.dashboard-view .region-copy > small {
+  color: #8a7755;
+  margin-top: 3px;
+  font-size: 14px;
+  display: block;
+}
+.dashboard-view .region-list strong {
+  font-size: 14px;
+}
+.dashboard-view .region-insight {
+  background: 0 0;
+  border: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+.dashboard-view .insights-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+}
+.dashboard-view .insights-grid > .glass-card {
+  flex-direction: column;
+  display: flex;
+}
+.dashboard-view :is(.product-list, .low-stock-list) {
+  flex: 1;
+  gap: 7px;
+}
+.dashboard-view .product-row {
+  grid-template-columns: 22px 36px minmax(0, 1fr) auto;
+  gap: 8px;
+  min-height: 58px;
+  padding: 9px;
+}
+.dashboard-view .product-copy strong,
+.dashboard-view .product-copy small,
+.dashboard-view .product-row > b {
+  font-size: 14px;
+}
+.dashboard-view .low-stock-row {
+  gap: 10px;
+  min-height: 43px;
+  padding: 6px 10px;
+}
+.dashboard-view .low-stock-row > span:not(.product-thumb) {
+  font-size: 14px;
+}
+.dashboard-view .donut-layout {
+  flex-direction: row;
+  flex: 1;
+  align-items: center;
+  gap: 16px;
+  min-height: 0;
+  display: flex;
+}
+.dashboard-view .donut-frame {
+  align-self: center;
+  width: 138px;
+  height: 138px;
+}
+.dashboard-view .donut-center strong {
+  font-size: 26px;
+}
+.dashboard-view .donut-center span {
+  font-size: 14px;
+}
+.dashboard-view .donut-legend {
+  gap: 5px;
+}
+.dashboard-view .donut-legend > button {
+  gap: 6px;
+  padding: 8px 0;
+  font-size: 14px;
+}
+.dashboard-view .donut-legend strong {
+  font-size: 14px;
+}
+.dashboard-view .donut-legend > p {
+  padding-top: 10px;
+  font-size: 14px;
+}
+.dashboard-view .quick-actions-card {
+  grid-column: 1/-1;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 20px;
+  flex-direction: row !important;
+  display: flex !important;
+}
+.dashboard-view .quick-actions-card .card-heading {
+  flex-shrink: 0;
+  margin: 0;
+}
+.dashboard-view .quick-actions-card h2 {
+  font-size: 14px;
+}
+.dashboard-view .quick-actions-list {
+  flex: 1;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+.dashboard-view .quick-action {
+  gap: 8px;
+  padding: 8px;
+  font-size: 14px;
+}
+.dashboard-view .quick-action > .icon:last-child {
+  width: 10px;
+}
+@media (min-width: 1700px) and (max-width: 1849px) {
+  .dashboard-view .metric-card {
+    gap: 6px;
+    padding: 11px 8px;
+  }
+  .dashboard-view .metric-card > .icon-tile {
+    width: 26px;
+    height: 30px;
+  }
+  .dashboard-view .metric-copy strong {
+    font-size: 17px;
+  }
+  .dashboard-view .donut-frame {
+    width: 112px;
+    height: 112px;
+  }
+  .dashboard-view .donut-center strong {
+    font-size: 22px;
+  }
+  .dashboard-view .operations-pair .card-heading {
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 1699px) {
+  .dashboard-view .overview-grid {
+    grid-template-columns: minmax(290px, 0.85fr) minmax(0, 1.65fr);
+  }
+  .dashboard-view .operations-column {
+    grid-column: 1/-1;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: grid;
+  }
+  .dashboard-view .operations-pair {
+    display: contents;
+  }
+  .dashboard-view .operations-column .glass-card {
+    padding: 20px;
+  }
+  .dashboard-view .channel-row {
+    grid-template-columns: 26px minmax(0, 1fr) auto;
+  }
+  .dashboard-view .channel-row > .icon-tile {
+    grid-row: span 2;
+  }
+  .dashboard-view .channel-row > .progress-track {
+    grid-area: 2/2;
+  }
+  .dashboard-view .channel-row > small {
+    grid-area: 2/3;
+  }
+  .dashboard-view .activity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-view .regions-card {
+    grid-column: 1/-1;
+  }
+  .dashboard-view .regions-content {
+    grid-template-columns: 1fr 1.1fr;
+    column-gap: 24px;
+  }
+  .dashboard-view .map-frame {
+    grid-row: span 2;
+  }
+  .dashboard-view .world-map,
+  .dashboard-view .world-map svg {
+    height: 204px;
+  }
+  .dashboard-view .region-insight {
+    grid-column: 2;
+  }
+  .dashboard-view .region-copy > span,
+  .dashboard-view .region-copy > small,
+  .dashboard-view .region-list strong {
+    font-size: 14px;
+  }
+  .dashboard-view .insights-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-view .donut-frame {
+    width: 158px;
+    height: 158px;
+  }
+  .dashboard-view .donut-layout {
+    gap: 22px;
+  }
+  .dashboard-view .quick-actions-card {
+    align-items: stretch;
+    gap: 12px;
+    flex-direction: column !important;
+  }
+  .dashboard-view .quick-actions-list {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+@media (max-width: 1199px) {
+  .dashboard-view .overview-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-view .revenue-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    display: grid;
+  }
+  .dashboard-view .warehouse-scene {
+    flex: none;
+    height: 330px;
+    min-height: 330px;
+  }
+  .dashboard-view .warehouse-scene img {
+    max-width: 600px;
+  }
+  .dashboard-view .operations-column {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-view .channels-card {
+    grid-column: 1/-1;
+  }
+  .dashboard-view .channels-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-view .activity-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-view .regions-card {
+    grid-column: auto;
+  }
+  .dashboard-view .quick-actions-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .dashboard-view .donut-frame {
+    width: 120px;
+    height: 120px;
+  }
+  .dashboard-view .donut-layout {
+    gap: 12px;
+  }
+}
+@media (max-width: 767px) {
+  .dashboard-view .dashboard-heading {
+    min-height: 0;
+    margin-top: 8px;
+  }
+  .dashboard-view .store-pulse {
+    justify-content: space-between;
+    gap: 10px;
+    width: 100%;
+    padding: 12px;
+  }
+  .dashboard-view .pulse-chart {
+    width: 82px;
+    height: 32px;
+  }
+  .dashboard-view .pulse-sync {
+    padding-left: 10px;
+    display: block;
+  }
+  .dashboard-view .welcome {
+    display: none;
+  }
+  .dashboard-view .revenue-column {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-view .warehouse-scene {
+    height: 255px;
+    min-height: 255px;
+  }
+  .dashboard-view .warehouse-scene img {
+    width: 100%;
+  }
+  .dashboard-view .overview-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+  .dashboard-view .metric-card {
+    gap: 10px;
+    min-height: 78px;
+    padding: 12px;
+  }
+  .dashboard-view .metric-copy strong {
+    font-size: 20px;
+  }
+  .dashboard-view .operations-column,
+  .dashboard-view .channels-list {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-view .shipment-row {
+    grid-template-columns: 16px 1fr auto;
+    padding: 11px;
+  }
+  .dashboard-view .shipment-row > .badge {
+    grid-area: 1/3/3;
+    font-size: 14px;
+  }
+  .dashboard-view .shipment-row > small {
+    grid-area: 2/2;
+    font-size: 14px;
+  }
+  .dashboard-view .fulfillment-row {
+    padding: 10px;
+  }
+  .dashboard-view .regions-content {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .dashboard-view .map-frame {
+    grid-row: auto;
+  }
+  .dashboard-view .world-map,
+  .dashboard-view .world-map svg {
+    height: 160px;
+  }
+  .dashboard-view .region-insight {
+    grid-column: auto;
+  }
+  .dashboard-view .region-copy > span {
+    font-size: 14px;
+  }
+  .dashboard-view .insights-grid {
+    grid-template-columns: 1fr;
+  }
+  .dashboard-view .donut-layout {
+    gap: 20px;
+  }
+  .dashboard-view .donut-frame {
+    width: 140px;
+    height: 140px;
+  }
+  .dashboard-view .quick-actions-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .dashboard-view .quick-actions-card {
+    padding: 18px;
+  }
+  .dashboard-view .quick-action {
+    font-size: 14px;
+  }
+}
+@media (max-width: 359px) {
+  .dashboard-view .pulse-sync {
+    display: none;
+  }
+  .dashboard-view .metric-card {
+    gap: 7px;
+    padding: 10px 8px;
+  }
+  .dashboard-view .donut-frame {
+    width: 120px;
+    height: 120px;
+  }
+}
+.solid-glass .dashboard-view :is(.glass-card, .metric-card, .store-pulse) {
+  -webkit-backdrop-filter: none;
+  background: #f7f1e5;
+}
+@media (prefers-reduced-transparency: reduce) {
+  .dashboard-view :is(.glass-card, .metric-card, .store-pulse) {
+    -webkit-backdrop-filter: none;
+    background: #f7f1e5;
+  }
+}
+@supports not (
+  (-webkit-backdrop-filter: blur(10px)) or (backdrop-filter: blur(10px))
+) {
+  .dashboard-view :is(.glass-card, .metric-card, .store-pulse) {
+    background: #f7f1e5;
+  }
+}
+.dashboard-view .overview-grid {
+  padding-top: 8px;
+}

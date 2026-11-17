@@ -1,0 +1,34 @@
+/* Generic config-driven resource page. */
+.c-resource {
+  --commerce-table-inset: 14px;
+  padding: 0;
+}
+.c-resource > .c-toolbar {
+  box-sizing: border-box;
+  padding: var(--commerce-table-inset);
+  border-bottom: 1px solid #eadfcf;
+  margin: 0;
+}
+.c-resource > #resource-results {
+  padding: 0 !important;
+}
+.c-resource #resource-results .c-selection {
+  box-sizing: border-box;
+  margin: var(--commerce-table-inset) var(--commerce-table-inset) 0 !important;
+}
+.c-resource #resource-results :is(.table-scroll, .c-table-scroll) {
+  box-sizing: border-box;
+  padding-left: var(--commerce-table-inset) !important;
+  padding-right: var(--commerce-table-inset) !important;
+  padding-bottom: 0 !important;
+}
+.c-resource #resource-results .c-pagination {
+  box-sizing: border-box;
+  margin: 0;
+  padding: var(--commerce-table-inset) !important;
+}
+@media (max-width: 767px) {
+  .c-resource {
+    --commerce-table-inset: 10px;
+  }
+}
