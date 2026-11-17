@@ -4,7 +4,7 @@ See [`MIGRATION_PLAN.md`](./MIGRATION_PLAN.md) for the plan.
 Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 staging cutover · ✅ prod cutover
 
 **API counter:** see [`PROGRESS.txt`](./PROGRESS.txt) (`APIs migrated: X / 497`, per module + full endpoint checklist; regenerate with `node scripts/api-progress.js`)
-**Current phase:** 2 done in-process (all 12 pilot modules 🧪); next Phase 3. Pilot cutover waits for staging (Blocked #1/#2) (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
+**Current phase:** 3 done in-process; next Phase 4 (platforms, MasterImport, Order, Auth). Cutovers wait for staging (Blocked #1/#2) (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
 **Last updated:** 2026-11-17
 
 ## Decisions log
@@ -45,6 +45,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Fastify `frameworkErrors` → Express behaviour for malformed URLs (after running the legacy app middleware) | Express only decodes params: bad escape in a param → 400 URIError page, elsewhere → 404 page |
 | 2026-11-17 | Realtime: new server owns no sockets; legacy `realtime.service` forwards emits to `REALTIME_INTERNAL_URL` (legacy /internal/realtime/broadcast) | Plan §2 mechanism; env keys added to `.env.example` |
 | 2026-11-17 | Tests connect to the local Redis (REDIS_PORT default 6379); ioredis clients tracked and closed per test file | Legacy modules open Redis connections at import. Suite now ~70 s |
+| 2026-11-17 | Route controllers generated from legacy route files (`scripts/gen-nest-controller.js`), cross-checked against PROGRESS.txt (`scripts/check-generated-routes.js`) | Same paths/methods/middleware chains by construction; the generator refuses wildcard/regex paths, Express order shadowing, duplicates and router.use (reported for hand-porting). Run over all remaining route files: no warnings |
+| 2026-11-17 | Route-smoke parity (`test/support/route-smoke.ts`): every route × {anon, admin, sysadmin, other token} vs legacy, response + DB | Broad coverage for generated modules; targeted success-path specs on top where data matters |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -94,12 +96,12 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 3 | Files | /api/files | 5 | delegated; Express `:key(*)` params rebuilt from raw URL; public get/delete (legacy) | 🧪 | 17 (parity) | |
 | 3 | Imports | /api/external-imports | 5 | delegated; BullMQ producers; public SSE polls shared Redis | 🧪 | 5 + SSE | |
 | 3 | Webhook | /api/webhooks | 3 | public; realtime emits forwarded to legacy via REALTIME_INTERNAL_URL | 🧪 | 4 (parity) | |
-| 3 | Email | /api/emails | 19 | | ⬜ | | |
-| 3 | Mailbox | /api/mailboxes, /api/mailbox/password | 27 | stream | ⬜ | | |
-| 3 | WhatsApp | /api/whatsapp | 16 | | ⬜ | | |
-| 3 | SupportChat | /api/support-chat | 15 | SSE + upload | ⬜ | | |
-| 3 | GoogleDrive | /api/drive | 4 | stream | ⬜ | | |
-| 3 | EasyEcom | /api/easy-ecom | 1 | easy-ecom auth | ⬜ | | |
+| 3 | Email | /api/emails | 19 | generated + delegated | 🧪 | route-smoke 19×4 | |
+| 3 | Mailbox | /api/mailboxes, /api/mailbox/password | 27 | generated + delegated; imports mailboxWorker module (workers only start via startMailboxWorkers — not called) | 🧪 | route-smoke 27×4 | |
+| 3 | WhatsApp | /api/whatsapp | 16 | generated + delegated | 🧪 | route-smoke 16×4 | |
+| 3 | SupportChat | /api/support-chat | 26 | generated + delegated; SSE registry is per-process — whole prefix must cut over together | 🧪 | route-smoke 26×4 | |
+| 3 | GoogleDrive | /api/drive | 4 | generated + delegated (OAuth) | 🧪 | route-smoke 4×4 | |
+| 3 | EasyEcom | /api/easy-ecom | 1 | generated + delegated | 🧪 | route-smoke 1×4 | |
 | 4 | Ajio | /api/ajio | 2 | platform | ⬜ | | |
 | 4 | Myntra | /api/myntra | 2 | platform | ⬜ | | |
 | 4 | Flipkart | /api/flipkart | 2 | platform | ⬜ | | |
@@ -152,6 +154,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4), delegated; network guard for tests. APIs migrated: 105 / 497 | Phase 3 rest: manualPayment (8), razorpay (8, raw body), Files (5), Imports (5), Webhook (3)… |
 | 2026-11-17 | Claude | manualPayment (8) + razorpay (8), delegated; signed-webhook parity. APIs migrated: 121 / 497 | Files (5), Imports (5, upload+SSE), Webhook (3) |
 | 2026-11-17 | Claude | Files (5), Imports (5), Webhook (3), delegated. Found + fixed: malformed-URL handling, Express wildcard params. APIs migrated: 134 / 497 | Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) |
+| 2026-11-17 | Claude | Email group: Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) — generated controllers + route-smoke parity (374 cases). Phase 3 complete in-process. 812 tests green. APIs migrated: 227 / 497 | Phase 4: platforms (Ajio…Nykaa), MasterImport (25), Order (19), Auth (24) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.

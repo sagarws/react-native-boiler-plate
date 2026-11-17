@@ -29,9 +29,15 @@ import { RazorpayModule } from './modules/razorpay/razorpay.module';
 import { FilesModule } from './modules/files/files.module';
 import { ImportsModule } from './modules/imports/imports.module';
 import { WebhookModule } from './modules/webhook/webhook.module';
+import { EmailModule } from './modules/email/email.module';
+import { MailboxModule } from './modules/mailbox/mailbox.module';
+import { WhatsAppModule } from './modules/whatsapp/whatsapp.module';
+import { SupportChatModule } from './modules/support-chat/support-chat.module';
+import { GoogleDriveModule } from './modules/google-drive/google-drive.module';
+import { EasyEcomModule } from './modules/easy-ecom/easy-ecom.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule],
   controllers: [RootController],
 })
 export class AppModule {}
