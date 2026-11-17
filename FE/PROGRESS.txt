@@ -208,3 +208,5 @@ CSV exports and bulk actions on some tables.
 Next steps for the real integration (separate project): replace each services/*-service.ts body with the
 axios call (same names, return res.data), re-enable SSE/sockets in place of the timer simulations, add an
 xlsx/PDF library if exact file formats are needed, and run the visual QA pass above against staging.
+2026-11-17  Added .env.local (mock flags) and .env.example (VITE_APP_* → NEXT_PUBLIC_* names for later wiring, no values copied; Razorpay secret deliberately excluded).
+2026-11-17  .env.local now holds TrackVid-FE/.env values (user request), VITE_APP_* → NEXT_PUBLIC_*, Razorpay secret as server-only RAZORPAY_KEY_SECRET. Not read by the mock UI yet.
