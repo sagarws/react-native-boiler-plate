@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+// MUST stay first: redirects legacy files whose import would start a worker (see core/runtime/shims)
+import './core/runtime/shims';
 // Same console → winston override as legacy server.ts (IST timestamps + caller file:line in logs).
 import '@legacy/utils/logger';
 import { loadEnv } from './config/env';

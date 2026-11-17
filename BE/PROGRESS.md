@@ -55,6 +55,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Express compat is per-app (`registerExpressCompat(fastify, { chain, expressApp })`) | OrderServer has different app middleware and Express settings than the main server; both apps can run in one process (tests) |
 | 2026-11-17 | OrderServer HTTP ported as a separate Nest entry point, workers excluded | Plan §6; nginx can move /order to it while legacy OrderServer keeps running only for its workers |
 | 2026-11-17 | **User decision: no changes to the legacy project.** The "Legacy PRs wanted" list stays informational only | User, 2026-11-17. Consequence: MasterImport goes with option (b) — a constants shim on the Nest side, guarded by a test; legacy security issues remain in legacy and are reproduced by the port unless the user asks to change them on the new side |
+| 2026-11-17 | Worker shims: `src/core/runtime/shims` redirects `require` of legacy files that start a worker at import (today: masterImportWorker.ts) to a constants-only shim; loaded first in main.ts, same mapping in jest | User chose no legacy changes. Verified on the built app: the real worker file is never loaded. `test/e2e/worker-shims.spec.ts` compares the shim with the real module (BullMQ stubbed) |
+| 2026-11-17 | Parity runner: when only ONE side looks hung, rerun the case once with an 8× longer wait | Slow handlers under full-suite load were reported as hangs (flaky); real hangs never answer |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -119,7 +121,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 4 | Xbees | /api/xbees | 2 | generated; `modules/platforms/xbees/` | 🧪 | route-smoke | |
 | 4 | Meesho | /api/meesho | 2 | generated; `modules/platforms/meesho/` | 🧪 | route-smoke | |
 | 4 | Nykaa | /api/nykaa | 2 | generated; `modules/platforms/nykaa/` | 🧪 | route-smoke | |
-| 4 | MasterImport | /api/master | 25 | ⛔ BLOCKED: importing its controllers starts a BullMQ worker (masterImportWorker.ts → `startWorker()` at import) | ⛔ | | |
+| 4 | MasterImport | /api/master | 25 | generated; legacy masterImportWorker.ts replaced by a constants shim in the Nest process (`src/core/runtime/shims`, drift-tested) so no worker starts | 🧪 | route-smoke 25×3 | |
 | 4 | Order | /api/order | 19 | generated + delegated | 🧪 | route-smoke 19×3 | |
 | 4 | Auth | /api/auth | 24 | generated; login/rate-limit/revocation targeted tests; ⚠⚠ DO NOT CUT OVER until legacy fixes user-profile token leak | 🧪 | route-smoke 24×3 + 8 targeted | |
 | 5 | CMS | /api/cms | 81 | generated + delegated; route-file helpers copied verbatim (freshness test guards drift); Trackvid-CMS desktop must be coordinated at cutover | 🧪 | route-smoke 81×3 | |
@@ -166,6 +168,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Phase 4: 9 platforms (`modules/platforms/<p>/`), Order (19), Auth (24) generated; MasterImport BLOCKED (worker at import). Found CRITICAL legacy auth bypass (user-profile). Worker-import guard test added. 1007 tests green. APIs migrated: 288 / 497 | Phase 5: CMS (81), SystemAdmin (71), Realtime, View, DesktopApp; check each for import-time starters |
 | 2026-11-17 | Claude | Phase 5: CMS (81), SystemAdmin (71), View, DesktopApp generated; static/public + views assets fixed for prod layout; generated-controller freshness test. 1513 tests green. APIs migrated: 443 / 497 | Phase 6: OrderServer (7) as a second Nest app — check its workers first; MasterImport + MasterImportServer wait for the worker decision; Realtime waits for socket cutover plan |
 | 2026-11-17 | Claude | Phase 6: OrderServer HTTP (7 routes) as a second Nest app; compat made per-app. 1535 tests green. APIs migrated: 450 / 497 | MasterImportServer (20) — check its worker imports; then wait on decisions (MasterImport, sockets, workers cutover) |
+| 2026-11-17 | Claude | MasterImport (25) ported with the worker shim; 1615 tests green. APIs migrated: 475 / 497 | Run legacy + new on the local MongoDB and `npm run test:contract` |
 | 2026-11-17 | Claude | Loop stopped: every remaining endpoint is waiting on a user decision. Done in-process: 450 / 497. Remaining 47 = MasterImport (25) + MasterImportServer (20) [worker-import decision], Realtime (2) [socket cutover]. | See "What needs the user" below |
 
 ### What needs the user (to continue)

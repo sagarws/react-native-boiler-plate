@@ -9,6 +9,9 @@ import { execFileSync } from 'child_process';
  * (e.g. masterImportWorker.ts ends with `startWorker();`).
  */
 const BE = path.resolve(__dirname, '..', '..');
+// legacy files the Nest app never loads (redirected to shims, see src/core/runtime/shims)
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const SHIMMED = Object.keys(require('../../src/core/runtime/shims').WORKER_SHIMS).map((s) => `legacy/src/${s}.ts`);
 const ALLOWED_TOP_LEVEL = /Schema\.(index|pre|post|virtual|set|plugin)\(|^\s*router\.|process\.on\(|console\.(log|warn|error)\(|dotenv\.config\(|Ffmpeg\.setFfmpegPath\(|\.createIndexes\(\)|^\s*setInterval\(/;
 const STARTERS = /new\s+Worker\s*\(|cron\.schedule\s*\(|new\s+IOServer\s*\(|\.process\s*\(/;
 
@@ -26,6 +29,7 @@ describe('no legacy worker/cron/socket starts on import', () => {
     }
     const violations: string[] = [];
     for (const [file, lines] of byFile) {
+      if (SHIMMED.includes(file)) continue; // never loaded by the Nest app
       const src = fs.readFileSync(path.join(BE, file), 'utf8');
       if (!STARTERS.test(src)) continue;
       for (const l of lines) if (/TOP-LEVEL/.test(l) && !ALLOWED_TOP_LEVEL.test(l.split(/TOP-LEVEL(?: CALL)?\)?\s+/).pop() || '')) violations.push(l);

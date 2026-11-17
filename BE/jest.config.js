@@ -20,6 +20,8 @@ module.exports = {
     '^@core/(.*)$': '<rootDir>/src/core/$1',
     // legacy file.controller.ts has one baseUrl-style type import (`src/types/...`)
     '^src/types/(.*)$': '<rootDir>/legacy/src/types/$1',
+    // same table as src/core/runtime/shims (main.ts): never load a legacy file that starts a worker
+    '^\\./masterImportWorker$': '<rootDir>/src/core/runtime/shims/masterImportWorker.shim.ts',
   },
   modulePathIgnorePatterns: ['<rootDir>/dist', '<rootDir>/legacy/dist'],
 };

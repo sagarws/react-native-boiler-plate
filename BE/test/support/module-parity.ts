@@ -15,10 +15,10 @@ const maskDeep = (v: any, keys: string[]): any => {
 /** A request that gets no response within this time counts as "hung" (legacy Express 4 leaves
  * async-rejected handlers open). Both sides hanging is parity. */
 export const HANG_MS = 1500;
-const sendOrHang = (port: number, r: Req) =>
+const sendOrHang = (port: number, r: Req, wait = HANG_MS) =>
   Promise.race([
     send(port, r),
-    new Promise<any>((res) => setTimeout(() => res({ status: -1, headers: {}, body: 'NO RESPONSE (hung)' }), HANG_MS)),
+    new Promise<any>((res) => setTimeout(() => res({ status: -1, headers: {}, body: 'NO RESPONSE (hung)' }), wait)),
   ]);
 
 export interface ParityOpts {
@@ -38,11 +38,21 @@ export interface ParityOpts {
  */
 export const runParity = async (ports: { legacyPort: number; newPort: number }, r: Req, opts: ParityOpts = {}) => {
   const before = memoryDb.snapshot();
-  const a = pick(await sendOrHang(ports.legacyPort, r));
-  const dbA = memoryDb.snapshot();
+  let a = pick(await sendOrHang(ports.legacyPort, r));
+  let dbA = memoryDb.snapshot();
   memoryDb.restore(before);
-  const b = pick(await sendOrHang(ports.newPort, r));
-  const dbB = memoryDb.snapshot();
+  let b = pick(await sendOrHang(ports.newPort, r));
+  let dbB = memoryDb.snapshot();
+  if ((a.status === -1) !== (b.status === -1)) {
+    // Only one side "hung": usually a slow handler under test load, not a real hang (a real hang
+    // never answers). Reset and run the case once more with a long wait before judging.
+    memoryDb.restore(before);
+    a = pick(await sendOrHang(ports.legacyPort, r, HANG_MS * 8));
+    dbA = memoryDb.snapshot();
+    memoryDb.restore(before);
+    b = pick(await sendOrHang(ports.newPort, r, HANG_MS * 8));
+    dbB = memoryDb.snapshot();
+  }
   const keys = opts.creates ? [...VOLATILE, ...(opts.volatile || [])] : opts.volatile || [];
   const norm = (x: ReturnType<typeof pick>) => {
     const out = { ...x, headers: { ...x.headers } };

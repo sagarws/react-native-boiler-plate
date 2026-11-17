@@ -42,9 +42,10 @@ import { CmsModule } from './modules/cms/cms.module';
 import { SystemAdminModule } from './modules/system-admin/system-admin.module';
 import { ViewModule } from './modules/view/view.module';
 import { DesktopAppModule } from './modules/desktop-app/desktop-app.module';
+import { MasterImportModule } from './modules/master-import/master-import.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule, PlatformsModule, OrderModule, AuthModule, CmsModule, SystemAdminModule, ViewModule, DesktopAppModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule, PlatformsModule, OrderModule, AuthModule, CmsModule, SystemAdminModule, ViewModule, DesktopAppModule, MasterImportModule],
   controllers: [RootController],
 })
 export class AppModule {}
