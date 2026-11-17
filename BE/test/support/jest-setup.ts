@@ -21,3 +21,29 @@ jest.mock('nodemailer', () => {
     }),
   };
 });
+
+/**
+ * - Network: only loopback connections are allowed in tests. Legacy handlers call marketplaces,
+ *   GitHub, Meta, S3, … — any such attempt fails fast with ECONNREFUSED-like error instead.
+ * - puppeteer: launching a browser is refused (legacy verifies marketplace logins with it).
+ */
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const net = require('net');
+const LOOPBACK = /^(127\.\d+\.\d+\.\d+|::1|localhost|::ffff:127\.0\.0\.1)$/;
+const origConnect = net.Socket.prototype.connect;
+net.Socket.prototype.connect = function guardedConnect(this: any, ...args: any[]) {
+  const opts = typeof args[0] === 'object' && args[0] !== null ? args[0] : { port: args[0], host: typeof args[1] === 'string' ? args[1] : undefined };
+  const host = opts.host ?? (opts.path ? 'localhost' : 'localhost');
+  if (!opts.path && !LOOPBACK.test(String(host))) {
+    const err: any = new Error(`test network guard: blocked connection to ${host}:${opts.port}`);
+    err.code = 'ECONNREFUSED';
+    process.nextTick(() => this.destroy(err));
+    return this;
+  }
+  return origConnect.apply(this, args);
+};
+jest.mock('puppeteer', () => {
+  const actual = jest.requireActual('puppeteer');
+  const launch = () => Promise.reject(new Error('test guard: puppeteer.launch is disabled in tests'));
+  return { ...actual, launch, default: { ...(actual.default || actual), launch } };
+});

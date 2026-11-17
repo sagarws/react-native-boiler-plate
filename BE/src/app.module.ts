@@ -20,9 +20,13 @@ import { AppSettingModule } from './modules/app-setting/app-setting.module';
 import { NotificationModule } from './modules/notification/notification.module';
 import { TemplateModule } from './modules/template/template.module';
 import { TdsModule } from './modules/tds/tds.module';
+import { ECommercePlatformModule } from './modules/ecommerce-platform/ecommerce-platform.module';
+import { ProductSkucodeMapModule } from './modules/product-skucode-map/product-skucode-map.module';
+import { MasterImportSettingModule } from './modules/master-import-setting/master-import-setting.module';
+import { MarketingSiteModule } from './modules/marketing-site/marketing-site.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule],
   controllers: [RootController],
 })
 export class AppModule {}

@@ -38,6 +38,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | main.ts installs legacy's `uncaughtException`/`unhandledRejection` loggers | Without them Node crashes the process on any unhandled rejection inside delegated legacy code |
 | 2026-11-17 | Async rejection in a delegated handler/middleware leaves the request open + logs `[UNHANDLED REJECTION]` (was: 500 page) | Exactly Express 4 behaviour (contract). Parity runner treats "both sides hung" as a match |
 | 2026-11-17 | main.ts runs legacy `runUploadsCleanupOnBoot` + `startUploadsCleanupInterval` | Per-process scratch cleanup of this server's own uploads/ dir (legacy's filled a disk to 169 GB once); no shared state, nothing duplicated |
+| 2026-11-17 | Importing legacy BullMQ **producers** (`new Queue(...)`) is allowed; **workers** are not | A producer only enqueues into the shared Redis queue; legacy's worker still consumes each job once. Workers would double-process |
+| 2026-11-17 | Jest safety net: loopback-only network guard (`net.Socket.connect`), `puppeteer.launch` refused, nodemailer faked; S3 `uploadObject` and `Queue.add` stubbed per spec | Delegated legacy code calls marketplaces, GitHub, Meta, S3, SMTP; no test may reach them |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -78,10 +80,10 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 3 | Notification | /api/notifications | 6 | SSE (?token=); delegated; change stream started in main.ts | 🧪 | 11 + SSE initial/push | |
 | 3 | Template | /api/templates | 8 | delegated; handlers lack try/catch → async errors hang (reproduced) | 🧪 | 13 (parity) | |
 | 3 | TDS | /api/tds | 5 | delegated; upload + Joi chains; S3 stubbed in tests | 🧪 | 8 (parity, incl. upload success path) | |
-| 3 | eCommercePlatform | /api/ecommerce-platform | 5 | | ⬜ | | |
-| 3 | ProductSkucodeMap | /api/product-skucode-map | 3 | upload? | ⬜ | | |
-| 3 | MasterImportSetting | /api/master-setting | 6 | | ⬜ | | |
-| 3 | MarketingSite | /api/marketing-site | 4 | public | ⬜ | | |
+| 3 | eCommercePlatform | /api/ecommerce-platform | 5 | delegated; logo upload | 🧪 | 5 (parity) | |
+| 3 | ProductSkucodeMap | /api/product-skucode-map | 3 | delegated; BullMQ producer (worker stays in legacy); upload before auth (legacy quirk) | 🧪 | 3 (parity) | |
+| 3 | MasterImportSetting | /api/master-setting | 6 | delegated (1,718 lines, puppeteer/axios logins) | 🧪 | 7 (parity) | |
+| 3 | MarketingSite | /api/marketing-site | 4 | public; per-route 6/min limiters; Meta/GitHub calls | 🧪 | 3 + 429 check | |
 | 3 | manualPayment | /api/manual-payment | 8 | | ⬜ | | |
 | 3 | razorpay | /api/razorpay | 9 | raw body / signature | ⬜ | | |
 | 3 | Files | /api/files | 5 | upload / stream | ⬜ | | |
@@ -142,6 +144,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Company (4) + AppSetting (5), delegated. APIs migrated: 68 / 497 | Notification (6, SSE), Template (8), TDS (5) |
 | 2026-11-17 | Claude | Notification (6, delegated, SSE incl. live push). APIs migrated: 74 / 497 | Template (8), TDS (5) |
 | 2026-11-17 | Claude | Template (8) + TDS (5), delegated. Found + fixed 3 runtime gaps: uploads path (cwd), missing process-level error handlers, async-rejection behaviour. APIs migrated: 87 / 497 | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4) |
+| 2026-11-17 | Claude | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4), delegated; network guard for tests. APIs migrated: 105 / 497 | Phase 3 rest: manualPayment (8), razorpay (8, raw body), Files (5), Imports (5), Webhook (3)… |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
@@ -153,6 +156,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 8. ⚠⚠ Company (LAYER 2 Blocker, overnight-damage class): `PUT /api/companies/update-claims` has NO auth and overwrites `settings.eCommercePlatform[].typeOfClaims` for EVERY company (operator-customised claim types are lost). Also a platform `switch` outside automationRouting.ts (LAYER 11). `GET /api/companies/update-settings` lets any logged-in user reset tatPeriod=60 for every company. Fix: `systemAdminAuth, adminOnly` on both (or delete if they were one-off scripts).
 9. AppSetting: `POST /api/app-settings/increff-qc-mapping` chains `authMiddleware` + `systemAdminAuth`; no single token passes both (users fail systemAdminAuth, system admins fail authMiddleware) → endpoint is unreachable.
 10. Template: handlers have no try/catch → any async error (e.g. validation on upsert, bad id on delete) leaves the request hanging until the client times out. Wrap in try/catch → 4xx/500.
+11. MasterImportSetting: `GET /api/master-setting/add-keys-settings` (any logged-in user) rewrites settings of every company; `POST /sync-spf-tat-to-companies` chains systemAdminAuth + authMiddleware → unreachable. ProductSkucodeMap `POST /` runs the file upload before auth (unauthenticated requests still write to disk).
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)
