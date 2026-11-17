@@ -1,6 +1,7 @@
 import { CMS_STATUS } from "@/config/constant";
 import { AUTOMATION_PLATFORMS, sampleBulkRows } from "@/mocks/cms-create";
 import { sampleClaims } from "@/mocks/cms";
+import { addClaim } from "@/services/cms-service";
 import { clone, delay, newId } from "@/mocks/delay";
 import { samplePlatforms } from "@/mocks/user";
 import type {
@@ -221,6 +222,19 @@ export const createCMS = async (formData: FormData): Promise<CreateCmsBody> => {
     skuName: text(formData, "skuName"),
   };
   createdClaims = [row, ...createdClaims];
+  addClaim({
+    _id: row._id,
+    eCommercePlatform: row.eCommercePlatform,
+    AWBNumber: row.AWBNumber,
+    typeOfClaim: row.typeOfClaim,
+    forwardAWB: row.forwardAWB,
+    customerOrderNumber: row.customerOrderNumber,
+    remark: row.remark,
+    status: CMS_STATUS.PENDING,
+    ticketNumber: "",
+    returnVideoLink: row.returnVideoLink,
+    forwardVideoLink: row.forwardVideoLink,
+  });
 
   const data = { _id: row._id, AWBNumber: awb, eCommercePlatform: platform };
   if (text(formData, "autoClaim") !== "true") return { isSuccess: true, displayMessage: "CMS created successfully", data };
@@ -388,6 +402,7 @@ export const bulkClaimCreate = async (payload: { rows: BulkClaimVerifyPayloadRow
       },
       ...createdClaims,
     ];
+    addClaim({ _id: id, eCommercePlatform: r.platform, AWBNumber: r.returnGateEntryAwb, typeOfClaim: r.qcReason, forwardAWB: r.forwardAwbNumber, status: CMS_STATUS.PENDING, createdAt: now });
     return { rowNumber: r.rowNumber, isSuccess: true, cmsId: id };
   });
   const created = results.filter((r) => r.isSuccess).length;

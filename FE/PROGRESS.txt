@@ -2,9 +2,9 @@ TRACKVID UI MIGRATION (Next.js 16 + Veylix template) — PROGRESS
 Mode: UI only, mock data, not connected to any backend, separate from ../BE
 Plan: MIGRATION_PLAN.md (§12 = autonomous rules)   Rules: CLAUDE.md
 
-MIGRATED: 22/34 routes   (22 migrated, 12 remaining)
-STATUS: RUNNING
-CURRENT: Wave 2 (dashboard group, settings, RMS/VMS/favorite, support/what's new, CMS create/update)
+MIGRATED: 34/34 routes   (34 migrated, 0 remaining)
+STATUS: FINISHED
+CURRENT: Done. Final report at the bottom of this file.
 
 ==========================================================================
 FOUNDATION (needed before routes count)
@@ -39,16 +39,16 @@ ROUTES (34) — status: PENDING | IN PROGRESS | MIGRATED | BLOCKED: <reason>
 [MIGRATED]  6  /auth/invitation
 
 -- Dashboard shell (25)
-[IN PROGRESS]  7  /                          Dashboard
+[MIGRATED]  7  /                          Dashboard
 [MIGRATED]  8  /profile
 [MIGRATED]  9  /manage-users
 [MIGRATED] 10  /manage-roles
-[IN PROGRESS] 11  /settings
+[MIGRATED] 11  /settings
 [MIGRATED] 12  /integrations
-[IN PROGRESS] 13  /refer-and-earn
-[IN PROGRESS] 14  /video-link
+[MIGRATED] 13  /refer-and-earn
+[MIGRATED] 14  /video-link
 [MIGRATED] 15  /feed
-[IN PROGRESS] 16  /pending-failed-orders
+[MIGRATED] 16  /pending-failed-orders
 [MIGRATED] 17  /system-admin
 [MIGRATED] 18  /account-summary
 [MIGRATED] 19  /master-data
@@ -57,13 +57,13 @@ ROUTES (34) — status: PENDING | IN PROGRESS | MIGRATED | BLOCKED: <reason>
 [MIGRATED] 22  /emails
 [MIGRATED] 23  /mailboxes/:mailboxId/logs
 [MIGRATED] 24  /cms
-[IN PROGRESS] 25  /rms
-[IN PROGRESS] 26  /vms
-[IN PROGRESS] 27  /favorite
-[IN PROGRESS] 28  /support
-[IN PROGRESS] 29  /whats-new
-[PENDING] 30  /cms/create
-[PENDING] 31  /cms/update
+[MIGRATED] 25  /rms
+[MIGRATED] 26  /vms
+[MIGRATED] 27  /favorite
+[MIGRATED] 28  /support
+[MIGRATED] 29  /whats-new
+[MIGRATED] 30  /cms/create
+[MIGRATED] 31  /cms/update
 
 -- Outside shell (3)
 [MIGRATED] 32  /impersonate/:userId
@@ -78,8 +78,8 @@ FINISH
 [DONE]    Z1  Dark mode: styles/trackvid/dark.css (tokens + template class overrides under [data-theme="dark"]);
               light / dark / system switch in topbar (persisted, follows OS in system mode, no flash via
               beforeInteractive script). Visual tuning continues in Z2.
-[PENDING] Z2  Responsive pass 1440 / 1024 / 390, keyboard + focus pass
-[PENDING] Z3  Final report (bottom of this file)
+[DONE]    Z2  Responsive + keyboard pass (static review + jsdom smoke test; no browser was available, see report)
+[DONE]    Z3  Final report (bottom of this file)
 
 ==========================================================================
 DECISIONS
@@ -150,3 +150,61 @@ LOG (newest last)
             selectionDisabledReason (tooltip on locked rows) and wired it into CMS.
 2026-11-17  WAVE 1 GATE: tsc 0 errors, eslint 0 warnings, npm run build OK (all routes). Routes 1-6, 8-10, 12, 15,
             17-24, 32, 33 → MIGRATED. MIGRATED 22/34. CMS create/update agent started.
+2026-11-17  Wave 2 agents done: dashboard/refer/video link/pending (7,13,14,16), settings (11), RMS/VMS/favorite
+            (25-27), support/what's new (28,29), CMS create/update (30,31). Own files clean in every report.
+            Decisions logged by agents: Settings has no WhatsApp section (TrackVid renders it only on /integrations)
+            and reuses MailboxManager; VMS/Favorite share one component and own vms-service data; RMS reuses
+            MasterData service; CMS create records the webcam on Return/Forward slots (TrackVid disabled capture
+            there); PDFs are print-view or minimal text PDFs (no jspdf); exports are CSV (no xlsx lib).
+2026-11-17  Shared fixes from agent reports: ICompanySettings.increffBulkClaim (+ sample true); Snapdeal added to the
+            sample company's platforms; master-data mock gains Physically Return Received / Marketplace Delivered
+            rows and Run Claim accepts Marketplace Delivered; cms-service addClaim() so /cms/create claims appear in
+            /cms; "Last week" preset is Monday–Sunday (TrackVid); sanitizeHtml forces target=_blank rel=noopener on
+            links; dark.css covers chat/inbox classes.
+2026-11-17  Added src/app/routes.smoke.test.tsx: mounts all 39 route variants + the full dashboard shell in jsdom with
+            the store and a mocked router; fails on render errors or console.error. 44/44 tests pass.
+2026-11-17  FINAL GATE: tsc 0 errors · npm run lint 0 warnings · npm run build OK · npm test 44/44. MIGRATED 34/34.
+
+==========================================================================
+FINAL REPORT (2026-11-17)
+==========================================================================
+Result: 34/34 routes MIGRATED, 0 BLOCKED. Foundation F1–F7 and finish steps Z1–Z3 done.
+Checks: `npm run build` OK · `npm run lint` 0 warnings · `npx tsc --noEmit` 0 errors · `npm test` 44/44
+        (4 editor HTML round-trip tests + 40 runtime smoke tests: every route variant and the full shell).
+Run:    cd FE && npm run dev  → http://localhost:3002  (sign in with any email + a password that meets
+        TrackVid's rule: 8+ chars, lowercase, number, special character, e.g. Track@123)
+
+What exists
+- Next.js 16 App Router app, UI only, every TrackVid URL kept (auth, dashboard shell, /impersonate, /oauth/zoho/callback, 404).
+- Veylix look: template CSS unchanged + styles/trackvid/* (tokens, primitives, one file per domain, dark.css).
+- Shell: TrackVid sidebar (roles/permissions, CMS submenu, email badge), topbar (title, credit/storage wallet,
+  theme light/dark/system, notifications with simulated SSE, settings gear, profile menu with sample-role switch),
+  banners (unverified credentials, CMS app), CMS script-progress widget, OTP prompt, mailbox-disconnected alert,
+  auth guard + AccessRestriction guard + video-link-only redirect.
+- Data: services/*-service.ts with TrackVid function names over typed mocks; live updates simulated with timers
+  that are always cleaned up. No axios, fetch-to-API, SSE or sockets anywhere.
+- Rich text: Tiptap editor reads Quill ql-* classes; round-trip test proves text, links, alignment, size, font,
+  indent and colours survive and that scripts / handlers / javascript: links are dropped.
+
+Could not be matched (and why)
+1. Browser click-through at 1440/1024/390 was not done: browser tools were not available in this session.
+   Coverage instead: jsdom smoke test of every route + static CSS review. Please do a visual pass (npm run dev),
+   especially dark mode, which is derived (dark.css) and may need tuning; Chart.js grid lines stay light-theme.
+2. Razorpay checkout → simulated payment dialog (success/failure); real Google/Zoho/Outlook OAuth → simulated
+   consent and callback.
+3. Excel (.xlsx) exports → CSV; jsPDF PDFs → print view ("Save as PDF") or minimal text PDF; .xlsx uploads are
+   simulated (CSV files are really parsed). No spreadsheet/PDF library was added.
+4. Editor HTML samples are representative, not taken from staging (TrackVid-BE was outside the allowed folders).
+5. Extra icons are hand-drawn stroke SVGs (installing @phosphor-icons/core was refused by the sandbox).
+6. RMS expandable multi-step video rows are not built (DataTable has no detail-panel rows; mock has no such data).
+7. Mock limits: uploaded files keep their bytes only until reload; claims created on /cms/create appear on /cms
+   with core fields only.
+
+Deliberate differences from TrackVid (bugs fixed or small additions), all listed in the LOG above, e.g.
+Users tab gated by manage_users::edit, Total Credit card shows credits not price, Flipkart import type not
+required, built-in roles fully read-only, confirm before removing marketplace accounts, extra search boxes,
+CSV exports and bulk actions on some tables.
+
+Next steps for the real integration (separate project): replace each services/*-service.ts body with the
+axios call (same names, return res.data), re-enable SSE/sockets in place of the timer simulations, add an
+xlsx/PDF library if exact file formats are needed, and run the visual QA pass above against staging.

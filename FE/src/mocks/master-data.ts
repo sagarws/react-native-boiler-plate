@@ -19,6 +19,8 @@ const ORDER_STATUSES = [
   "Return Not Delivered",
   "Return Dispute",
   "Return Dispute",
+  "Physically Return Received",
+  "Marketplace Delivered",
   "",
 ] as const;
 const CLAIM_STATUSES = ["Pending", "In Review", "In Review", "Approved", "Rejected"] as const;

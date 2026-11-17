@@ -38,7 +38,7 @@ function grabFrame(video: HTMLVideoElement, name: string): Promise<File | null> 
  * (six-side grid) collects up to nine shots with a thumbnail rail, preview, remove, Clear and Save. SPACE captures.
  */
 export function CaptureImagesDialog({ mode, feedId, onClose }: { mode: CaptureMode; feedId: string; onClose: () => void }) {
-  const camera = useCameraStream(false);
+  const { attach: attachCamera, getVideo, error: cameraError, ready: cameraReady } = useCameraStream(false);
   const [images, setImages] = useState<File[]>(mode.kind === "multi" ? mode.files : []);
   const [previewIndex, setPreviewIndex] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
@@ -48,7 +48,7 @@ export function CaptureImagesDialog({ mode, feedId, onClose }: { mode: CaptureMo
   const full = multi && images.length >= MAX_SHOTS;
 
   const capture = async () => {
-    const video = camera.videoRef.current;
+    const video = getVideo();
     if (!video || busyRef.current || full) return;
     busyRef.current = true;
     setBusy(true);
@@ -101,7 +101,7 @@ export function CaptureImagesDialog({ mode, feedId, onClose }: { mode: CaptureMo
       <span className="tv-cmsc-hint">
         Press <kbd>SPACE</kbd> to capture the screenshot
       </span>
-      <button type="button" className="primary-button" onClick={() => void capture()} disabled={Boolean(camera.error) || !camera.ready || busy || (multi && (full || previewing !== null))}>
+      <button type="button" className="primary-button" onClick={() => void capture()} disabled={Boolean(cameraError) || !cameraReady || busy || (multi && (full || previewing !== null))}>
         {busy ? <Spinner /> : <Icon name="camera" />} Capture Screenshot
       </button>
       {multi ? (
@@ -121,24 +121,24 @@ export function CaptureImagesDialog({ mode, feedId, onClose }: { mode: CaptureMo
 
   return (
     <AppDialog title={TITLES[name] ?? "Capture Image"} onClose={onClose} size="xl" footer={footer} locked={busy}>
-      {camera.error ? (
+      {cameraError ? (
         <Banner tone="error" title="Camera unavailable">
-          {camera.error} You can still upload images from your computer.
+          {cameraError} You can still upload images from your computer.
         </Banner>
       ) : null}
       <div className={`tv-cmsc-capture ${multi ? "is-multi" : ""}`}>
         <div className="tv-cmsc-stage">
           {previewing ? (
             <MediaImage src={previewing} alt="Captured preview" />
-          ) : camera.error ? (
+          ) : cameraError ? (
             <div className="tv-cmsc-stage-empty">
               <Icon name="camera" />
               <span>No camera stream</span>
             </div>
           ) : (
             <>
-              <video ref={camera.attach} autoPlay muted playsInline />
-              {!camera.ready ? (
+              <video ref={attachCamera} autoPlay muted playsInline />
+              {!cameraReady ? (
                 <div className="tv-cmsc-stage-overlay">
                   <Spinner label="Starting camera" />
                 </div>
@@ -146,7 +146,7 @@ export function CaptureImagesDialog({ mode, feedId, onClose }: { mode: CaptureMo
             </>
           )}
         </div>
-        {multi && !camera.error ? (
+        {multi && !cameraError ? (
           <aside className="tv-cmsc-rail" aria-label="Captured images">
             <div className="tv-cmsc-rail-list">
               {images.map((file, index) => (

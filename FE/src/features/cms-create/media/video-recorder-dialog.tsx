@@ -23,7 +23,7 @@ const formatDuration = (ms: number) => {
  * Mounted only while open: unmount stops the recorder, every camera track and the duration timer.
  */
 export function VideoRecorderDialog({ onClose, onCapture, feedId, title = "Record Video" }: { onClose: () => void; onCapture: (videoId: string, file: File) => void; feedId: string; title?: string }) {
-  const camera = useCameraStream(true);
+  const { attach: attachCamera, getStream, error: cameraError, ready: cameraReady } = useCameraStream(true);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
@@ -65,7 +65,7 @@ export function VideoRecorderDialog({ onClose, onCapture, feedId, title = "Recor
   );
 
   const handleStart = () => {
-    const stream = camera.streamRef.current;
+    const stream = getStream();
     if (!stream) {
       setMediaError("Camera stream not available");
       return;
@@ -140,8 +140,8 @@ export function VideoRecorderDialog({ onClose, onCapture, feedId, title = "Recor
   };
 
   const isLive = state === "idle" || state === "recording" || state === "paused";
-  const error = mediaError || camera.error;
-  const canRecord = camera.ready && !camera.error;
+  const error = mediaError || cameraError;
+  const canRecord = cameraReady && !cameraError;
 
   const footer = (
     <>
@@ -208,21 +208,21 @@ export function VideoRecorderDialog({ onClose, onCapture, feedId, title = "Recor
       footer={footer}
     >
       {error ? (
-        <Banner tone="error" title={camera.error ? "Camera unavailable" : undefined} onDismiss={mediaError ? () => setMediaError("") : undefined}>
+        <Banner tone="error" title={cameraError ? "Camera unavailable" : undefined} onDismiss={mediaError ? () => setMediaError("") : undefined}>
           {error}
         </Banner>
       ) : null}
       <div className="tv-cmsc-stage">
         {isLive ? (
-          camera.error ? (
+          cameraError ? (
             <div className="tv-cmsc-stage-empty">
               <Icon name="video-camera" />
               <span>You can still upload a video file instead.</span>
             </div>
           ) : (
             <>
-              <video ref={camera.attach} autoPlay muted playsInline />
-              {!camera.ready ? (
+              <video ref={attachCamera} autoPlay muted playsInline />
+              {!cameraReady ? (
                 <div className="tv-cmsc-stage-overlay">
                   <Spinner label="Starting camera" />
                 </div>

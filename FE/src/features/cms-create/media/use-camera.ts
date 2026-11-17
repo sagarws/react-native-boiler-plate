@@ -141,5 +141,7 @@ export function useCameraStream(withAudio: boolean) {
     if (el && streamRef.current) el.srcObject = streamRef.current;
   }, []);
 
-  return { attach, streamRef, videoRef, error, ready, setError };
+  const getStream = useCallback(() => streamRef.current, []);
+  const getVideo = useCallback(() => videoRef.current, []);
+  return { attach, getStream, getVideo, error, ready };
 }

@@ -427,3 +427,14 @@
 [data-theme="dark"] .tv-auth-brand img {
   filter: brightness(1.15);
 }
+
+/* chat / inbox (template commerce-ui hard-codes light colours) */
+[data-theme="dark"] .c-conversation,
+[data-theme="dark"] .c-message {
+  color: #ede6d6;
+  background: #25211b;
+  border-color: #3a3428;
+}
+[data-theme="dark"] .c-conversations h2 > span {
+  color: #2a1e05;
+}

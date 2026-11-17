@@ -36,6 +36,9 @@ export function useCmsAutoFetch({ formik, isMyntra, isMeesho, isSnapdeal, onRetu
   });
 
   const set = (field: string, value: string) => void live.current.formik.setFieldValue(field, value);
+  const lookupRef = useRef<(value: string, side: "Return" | "Forward") => void>(() => undefined);
+  const fetchReturn = useDebounced((awb: string) => lookupRef.current(awb, "Return"), 800);
+  const fetchForward = useDebounced((awb: string) => lookupRef.current(awb, "Forward"), 800);
 
   const applyReturn = (items: OrderLookupItem[], records?: OrderLookupRecord[]) => {
     const data = items[0];
@@ -90,8 +93,9 @@ export function useCmsAutoFetch({ formik, isMyntra, isMeesho, isSnapdeal, onRetu
       });
   };
 
-  const fetchReturn = useDebounced((awb: string) => lookup(awb, "Return"), 800);
-  const fetchForward = useDebounced((awb: string) => lookup(awb, "Forward"), 800);
+  useEffect(() => {
+    lookupRef.current = lookup;
+  });
 
   const fetchMeesho = useDebounced((params: { subOrderNo?: string; returnAwbNo?: string; forwardAwbNo?: string }) => {
     if (!Object.values(params).some((v) => v && v.trim())) return;

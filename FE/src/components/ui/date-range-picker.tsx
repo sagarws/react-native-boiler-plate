@@ -38,7 +38,10 @@ export const defaultDatePresets: DatePreset[] = [
   { label: "Last 7 days", compute: () => ({ startDate: startOfDay(subDays(new Date(), 6)), endDate: new Date() }) },
   {
     label: "Last week",
-    compute: () => ({ startDate: startOfWeek(subWeeks(new Date(), 1)), endDate: endOfWeek(subWeeks(new Date(), 1)) }),
+    compute: () => ({
+      startDate: startOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 1 }),
+      endDate: endOfWeek(subWeeks(new Date(), 1), { weekStartsOn: 1 }),
+    }),
   },
   { label: "This Month", compute: () => ({ startDate: startOfMonth(new Date()), endDate: new Date() }) },
   {

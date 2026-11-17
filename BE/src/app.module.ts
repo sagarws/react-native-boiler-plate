@@ -38,9 +38,13 @@ import { EasyEcomModule } from './modules/easy-ecom/easy-ecom.module';
 import { PlatformsModule } from './modules/platforms/platforms.module';
 import { OrderModule } from './modules/order/order.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { CmsModule } from './modules/cms/cms.module';
+import { SystemAdminModule } from './modules/system-admin/system-admin.module';
+import { ViewModule } from './modules/view/view.module';
+import { DesktopAppModule } from './modules/desktop-app/desktop-app.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule, PlatformsModule, OrderModule, AuthModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule, PlatformsModule, OrderModule, AuthModule, CmsModule, SystemAdminModule, ViewModule, DesktopAppModule],
   controllers: [RootController],
 })
 export class AppModule {}

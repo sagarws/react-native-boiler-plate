@@ -76,7 +76,8 @@ const importedNames = new Set();
 for (const m of code.matchAll(importRe)) {
   const clause = m[1].trim();
   const spec = m[2];
-  if (spec === 'express' || spec.startsWith('express/')) { imports.push({ skip: true, start: m.index, end: m.index + m[0].length }); continue; }
+  // express imports are kept verbatim: leftover module-level code may use its types/helpers
+  if (spec === 'express' || spec.startsWith('express/')) { imports.push({ clause, target: spec, start: m.index, end: m.index + m[0].length }); continue; }
   let target = spec;
   if (spec.startsWith('.')) {
     const resolved = path.resolve(path.dirname(abs), spec);

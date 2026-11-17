@@ -2,6 +2,8 @@ import type { IncomingMessage, ServerResponse } from 'http';
 import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import bodyParser from 'body-parser';
 import cors from 'cors';
+import express from 'express';
+import path from 'path';
 import etag from 'etag';
 import finalhandler from 'finalhandler';
 import fresh from 'fresh';
@@ -19,13 +21,15 @@ import { BODY_LIMIT } from './fastify-options';
 
 type ExpressMiddleware = (req: IncomingMessage, res: ServerResponse, next: (err?: unknown) => void) => void;
 
-/** Same order as legacy server.ts: securityHeaders → cors() → urlencoded → json. */
+/** Same order as legacy server.ts: securityHeaders → cors() → urlencoded → json → express.static('public'). */
 export const legacyMiddlewareChain = (): ExpressMiddleware[] => [
   securityHeaders as unknown as ExpressMiddleware,
   cors() as unknown as ExpressMiddleware,
   bodyParser.urlencoded({ extended: true, limit: '5mb' }) as unknown as ExpressMiddleware,
   // express.json({ limit: "5mb" }) === bodyParser.json({ limit: "5mb" }) in Express 4
   bodyParser.json({ limit: '5mb' }) as unknown as ExpressMiddleware,
+  // legacy: app.use(express.static(path.join("public"))) — cwd-relative (cwd = legacy root, see main.ts)
+  express.static(path.join('public')) as unknown as ExpressMiddleware,
 ];
 
 const expressEnv = () => process.env.NODE_ENV || 'development';

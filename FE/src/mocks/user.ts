@@ -12,12 +12,25 @@ function grantAll(map: PermissionMap): PermissionMap {
 
 export const allPermissions: PermissionMap = grantAll(PERMISSIONS);
 
-export const samplePlatforms: IEcommerce[] = DefaultECommercePlatforms.map((p, i) => ({
-  _id: `plat${String(i + 1).padStart(20, "0")}`,
-  name: p.name,
-  tatPeriod: [30, 15, 30, 30, 15, 30, 15, 30, 30][i] ?? 30,
-  typeOfClaims: p.typeOfClaims.map((c) => ({ ...c, isDisable: Boolean(c.isDisable) })),
-}));
+export const samplePlatforms: IEcommerce[] = [
+  ...DefaultECommercePlatforms.map((p, i) => ({
+    _id: `plat${String(i + 1).padStart(20, "0")}`,
+    name: p.name,
+    tatPeriod: [30, 15, 30, 30, 15, 30, 15, 30, 30][i] ?? 30,
+    typeOfClaims: p.typeOfClaims.map((c) => ({ ...c, isDisable: Boolean(c.isDisable) })),
+  })),
+  // Snapdeal is not in TrackVid's default catalogue; the sample company has it so its claim form can be reviewed.
+  {
+    _id: `plat${String(DefaultECommercePlatforms.length + 1).padStart(20, "0")}`,
+    name: "Snapdeal",
+    tatPeriod: 15,
+    typeOfClaims: [
+      { name: "Wrong product received", description: "Wrong product received", isDisable: false },
+      { name: "Damaged product received", description: "Damaged product received", isDisable: false },
+      { name: "Missing product", description: "Missing product", isDisable: false },
+    ],
+  },
+];
 
 export const sampleUser: IUser = {
   _id: "64f0c0ffee0000000000a001",
@@ -76,6 +89,7 @@ export const sampleUser: IUser = {
     },
     settings: {
       isUsingMasterData: true,
+      increffBulkClaim: true,
       cmsAppVersion: null,
       compressPercentage: 40,
       backupDuration: 90,

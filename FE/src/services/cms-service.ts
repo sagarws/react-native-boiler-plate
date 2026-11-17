@@ -678,6 +678,16 @@ const ajioSkuPobApply = async (payload: AjioApplyPayload): Promise<ApiBody<AjioA
   return ok({ wrote, failed }, `Applied ${wrote} claim(s)`);
 };
 
+/**
+ * Not a TrackVid endpoint: lets the mock create screen (/cms/create) put new claims into this list,
+ * the way the real backend would after POST /cms/createCMS.
+ */
+export function addClaim(row: Pick<ICms, "_id" | "eCommercePlatform" | "AWBNumber"> & Partial<ICms>): void {
+  if (claims.some((c) => c.AWBNumber === row.AWBNumber && c.eCommercePlatform.toLowerCase() === row.eCommercePlatform.toLowerCase())) return;
+  const full: ICms = { status: "Pending", createdAt: new Date().toISOString(), history: `hist-${row._id}`, ...row };
+  claims = [full, ...claims];
+}
+
 export const CmsService = {
   getCmsList,
   updateMailTemplate,

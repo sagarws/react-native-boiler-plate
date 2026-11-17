@@ -37,6 +37,7 @@ export const buildLegacyApp = (mounts: [string, express.Router | express.Request
   app.use(cors());
   app.use(bodyParser.urlencoded({ extended: true, limit: '5mb' }));
   app.use(express.json({ limit: '5mb' }));
+  app.use(express.static(require('path').join('public')));
   for (const [prefix, router] of mounts) app.use(prefix, router);
   return app;
 };

@@ -436,8 +436,8 @@ const scanReturnParcelOrders = async (payload: { notificationId: string }): Prom
 
 const triggerReturnNotDeliveredClaim = async (payload: { ids?: string[]; marketplace?: string }): Promise<TriggerClaimResponse> => {
   await delay(500);
-  const candidates = masterOrders.filter((o) => o.order_status === "Return Not Delivered" && (!payload.ids?.length || payload.ids.includes(o._id)));
-  if (!candidates.length) throw new Error("No Return Not Delivered orders to claim.");
+  const candidates = masterOrders.filter((o) => (o.order_status === "Return Not Delivered" || o.order_status === "Marketplace Delivered") && (!payload.ids?.length || payload.ids.includes(o._id)));
+  if (!candidates.length) throw new Error("No Return Not Delivered or Marketplace Delivered orders to claim.");
   return { message: "Claim script triggered", displayMessage: `${candidates.length} claim(s) queued for Return Not Delivered orders.`, data: { queued: candidates.length } };
 };
 

@@ -61,6 +61,8 @@ export interface IEcommerceLoginInfo {
 
 export interface ICompanySettings {
   isUsingMasterData?: boolean;
+  /** Company may create bulk claims from Increff QC reports (TrackVid flag). */
+  increffBulkClaim?: boolean;
   cmsAppVersion?: string | null;
   compressPercentage: number;
   backupDuration: number;
