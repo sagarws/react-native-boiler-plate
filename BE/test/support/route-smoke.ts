@@ -7,8 +7,8 @@ export interface SmokeRoute { method: string; path: string }
 
 /** Routes of a generated controller (from its `legacy line N: METHOD /path` comments). */
 export const routesOf = (controllerFile: string, prefix: string): SmokeRoute[] =>
-  [...fs.readFileSync(controllerFile, 'utf8').matchAll(/legacy line \d+: ([A-Z]+) (\S+) \*\//g)]
-    .map(([, method, p]) => ({ method, path: (prefix + (p === '/' ? '' : p)).replace(/\/+/g, '/') }));
+  [...fs.readFileSync(controllerFile, 'utf8').matchAll(/legacy line \d+: ([A-Z]+) (\S*) ?\*\//g)]
+    .map(([, method, p]) => ({ method, path: (prefix + (p === '/' || p === '' ? '' : p)).replace(/\/+/g, '/') }));
 
 const fill = (p: string) => p.replace(/:(\w+)/g, () => String(new mongoose.Types.ObjectId()));
 

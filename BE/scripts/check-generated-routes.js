@@ -7,7 +7,7 @@
 const fs = require('fs');
 const [file, prefix] = process.argv.slice(2);
 const src = fs.readFileSync(file, 'utf8');
-const gen = [...src.matchAll(/legacy line \d+: ([A-Z]+) (\S+) \*\//g)].map(([, m, p]) => `${m} ${(prefix + (p === '/' ? '' : p)).replace(/\/+/g, '/')}`);
+const gen = [...src.matchAll(/legacy line \d+: ([A-Z]+) (\S*) ?\*\//g)].map(([, m, p]) => `${m} ${(prefix + (p === '/' || p === '' ? '' : p)).replace(/\/+/g, '/')}`);
 const progress = fs.readFileSync(require('path').join(__dirname, '..', 'PROGRESS.txt'), 'utf8')
   .split('\n').map((l) => /^\[[ x]\] \[main\] ([A-Z]+)\s+(\S+)$/.exec(l)).filter(Boolean).map(([, m, p]) => `${m} ${p}`);
 const inPrefix = progress.filter((e) => e.split(' ')[1] === prefix || e.split(' ')[1].startsWith(prefix + '/'));

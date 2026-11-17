@@ -4,7 +4,7 @@ See [`MIGRATION_PLAN.md`](./MIGRATION_PLAN.md) for the plan.
 Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 staging cutover · ✅ prod cutover
 
 **API counter:** see [`PROGRESS.txt`](./PROGRESS.txt) (`APIs migrated: X / 497`, per module + full endpoint checklist; regenerate with `node scripts/api-progress.js`)
-**Current phase:** 3 done in-process; next Phase 4 (platforms, MasterImport, Order, Auth). Cutovers wait for staging (Blocked #1/#2) (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
+**Current phase:** 4 done in-process except MasterImport (blocked); next Phase 5 (CMS, SystemAdmin, Realtime, View, DesktopApp). Cutovers wait for staging (Blocked #1/#2) (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
 **Last updated:** 2026-11-17
 
 ## Decisions log
@@ -47,6 +47,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Tests connect to the local Redis (REDIS_PORT default 6379); ioredis clients tracked and closed per test file | Legacy modules open Redis connections at import. Suite now ~70 s |
 | 2026-11-17 | Route controllers generated from legacy route files (`scripts/gen-nest-controller.js`), cross-checked against PROGRESS.txt (`scripts/check-generated-routes.js`) | Same paths/methods/middleware chains by construction; the generator refuses wildcard/regex paths, Express order shadowing, duplicates and router.use (reported for hand-porting). Run over all remaining route files: no warnings |
 | 2026-11-17 | Route-smoke parity (`test/support/route-smoke.ts`): every route × {anon, admin, sysadmin, other token} vs legacy, response + DB | Broad coverage for generated modules; targeted success-path specs on top where data matters |
+| 2026-11-17 | Automated guard `test/e2e/no-legacy-workers.spec.ts` + `scripts/scan-import-side-effects.js` | Fails the suite if anything the Nest app imports starts a worker/cron/socket at import (hard rule). Found masterImportWorker.ts |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -102,18 +103,18 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 3 | SupportChat | /api/support-chat | 26 | generated + delegated; SSE registry is per-process — whole prefix must cut over together | 🧪 | route-smoke 26×4 | |
 | 3 | GoogleDrive | /api/drive | 4 | generated + delegated (OAuth) | 🧪 | route-smoke 4×4 | |
 | 3 | EasyEcom | /api/easy-ecom | 1 | generated + delegated | 🧪 | route-smoke 1×4 | |
-| 4 | Ajio | /api/ajio | 2 | platform | ⬜ | | |
-| 4 | Myntra | /api/myntra | 2 | platform | ⬜ | | |
-| 4 | Flipkart | /api/flipkart | 2 | platform | ⬜ | | |
-| 4 | TataCliq | /api/tatacliq | 2 | platform | ⬜ | | |
-| 4 | Snapdeal | /api/snapdeal | 2 | platform | ⬜ | | |
-| 4 | Delhivery | /api/delhivery | 2 | platform | ⬜ | | |
-| 4 | Xbees | /api/xbees | 2 | platform | ⬜ | | |
-| 4 | Meesho | /api/meesho | 2 | platform | ⬜ | | |
-| 4 | Nykaa | /api/nykaa | 2 | platform | ⬜ | | |
-| 4 | MasterImport | /api/master | 24 | SSE reports, v2 | ⬜ | | |
-| 4 | Order | /api/order | 19 | | ⬜ | | |
-| 4 | Auth | /api/auth | 24 | rate limits, all clients | ⬜ | | |
+| 4 | Ajio | /api/ajio | 2 | generated; `modules/platforms/ajio/` | 🧪 | route-smoke | |
+| 4 | Myntra | /api/myntra | 2 | generated; `modules/platforms/myntra/` | 🧪 | route-smoke | |
+| 4 | Flipkart | /api/flipkart | 2 | generated; `modules/platforms/flipkart/` | 🧪 | route-smoke | |
+| 4 | TataCliq | /api/tatacliq | 2 | generated; `modules/platforms/tatacliq/` | 🧪 | route-smoke | |
+| 4 | Snapdeal | /api/snapdeal | 2 | generated; `modules/platforms/snapdeal/` | 🧪 | route-smoke | |
+| 4 | Delhivery | /api/delhivery | 2 | generated; `modules/platforms/delhivery/` | 🧪 | route-smoke | |
+| 4 | Xbees | /api/xbees | 2 | generated; `modules/platforms/xbees/` | 🧪 | route-smoke | |
+| 4 | Meesho | /api/meesho | 2 | generated; `modules/platforms/meesho/` | 🧪 | route-smoke | |
+| 4 | Nykaa | /api/nykaa | 2 | generated; `modules/platforms/nykaa/` | 🧪 | route-smoke | |
+| 4 | MasterImport | /api/master | 25 | ⛔ BLOCKED: importing its controllers starts a BullMQ worker (masterImportWorker.ts → `startWorker()` at import) | ⛔ | | |
+| 4 | Order | /api/order | 19 | generated + delegated | 🧪 | route-smoke 19×3 | |
+| 4 | Auth | /api/auth | 24 | generated; login/rate-limit/revocation targeted tests; ⚠⚠ DO NOT CUT OVER until legacy fixes user-profile token leak | 🧪 | route-smoke 24×3 + 8 targeted | |
 | 5 | CMS | /api/cms | 80 | Trackvid-CMS contract | ⬜ | | |
 | 5 | SystemAdmin | /api/system-admin | 74 | Monitor contract | ⬜ | | |
 | 5 | Realtime | /internal, /api/internal | 1 | sockets | ⬜ | | |
@@ -155,8 +156,10 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | manualPayment (8) + razorpay (8), delegated; signed-webhook parity. APIs migrated: 121 / 497 | Files (5), Imports (5, upload+SSE), Webhook (3) |
 | 2026-11-17 | Claude | Files (5), Imports (5), Webhook (3), delegated. Found + fixed: malformed-URL handling, Express wildcard params. APIs migrated: 134 / 497 | Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) |
 | 2026-11-17 | Claude | Email group: Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) — generated controllers + route-smoke parity (374 cases). Phase 3 complete in-process. 812 tests green. APIs migrated: 227 / 497 | Phase 4: platforms (Ajio…Nykaa), MasterImport (25), Order (19), Auth (24) |
+| 2026-11-17 | Claude | Phase 4: 9 platforms (`modules/platforms/<p>/`), Order (19), Auth (24) generated; MasterImport BLOCKED (worker at import). Found CRITICAL legacy auth bypass (user-profile). Worker-import guard test added. 1007 tests green. APIs migrated: 288 / 497 | Phase 5: CMS (81), SystemAdmin (71), Realtime, View, DesktopApp; check each for import-time starters |
 
 ### Legacy PRs wanted (need user approval; not blocking)
+0. ⚠⚠⚠ CRITICAL: `GET /api/auth/user-profile?email=` issues an access token for any email without auth (see Blocked).
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
 2. ⚠ Security (LAYER 2 Blocker in legacy): `GET /api/storage-history/add-storage-history` is unauthenticated and rebuilds storage history for every company's orders; its catch never responds. Suggest `systemAdminAuth, adminOnly` + a response in catch. Kept identical in Nest until legacy changes (contract rule).
 3. Role: `GET /api/role/get-role/:id` not company-scoped; `get-roles?email=` filters a non-existent field.
@@ -172,6 +175,10 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)
+**⚠⚠ SECURITY — please read first.** Legacy `GET /api/auth/user-profile?email=<email>` has NO auth middleware and returns a valid access token for that user (`getUserProfile` → `generateTokenAccessToken(user)`). Anyone who knows an email (incl. admins) can obtain a session for that account. This is live in legacy prod now. Suggested fix (legacy PR, needs your approval): put `authMiddleware` on the route and drop `accessToken` from its response, or delete the route if no client uses it (grep TrackVid-FE / mobile apps first). The Nest port reproduces it (contract rule) and a test documents it; **Auth must not be cut over before this is fixed**.
+
+**MasterImport blocked.** `controllers/MasterImport/masterImportOrderReports.controller.ts` imports `invalidTransitions` from `masterImportWorker.ts`, whose last line is `startWorker();` → importing the routes would start a BullMQ master-import worker inside the Nest process (hard rule). Note: this means legacy's main API process ALSO runs that worker today via the same import, although server.ts has the direct import commented out — include it in the Phase 6 worker inventory. Options: (a) legacy PR moving `invalidTransitions`/`IMPORT_PLATFORM` into a constants file (cleanest, needs approval); (b) a module-resolution shim in Nest that serves those constants without loading the worker (no legacy change, small drift risk, guarded by a test comparing the constants). Waiting for your choice.
+
 0. **Merge into `nestjs` paused (2026-11-17).** Commit `1db4381` (by the user, 19:45) on `migrate/template-tds` adds the `FE/` project together with in-progress BE files, and `FE/` has uncommitted user changes. Switching to `nestjs` would overwrite them, and merging would carry `FE/` into `nestjs`. I did neither. BE work continues on stacked branches from that HEAD (`migrate/template-tds` → `migrate/phase3-batch2` → …). Question: OK to merge this chain (incl. 1db4381's FE/) into `nestjs`, or should FE be split out first?
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).
 2. **Staging env + nginx** (both servers side by side) — deployment step, user does it.
