@@ -25,6 +25,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Adapter gives raw req/res Express's real prototypes (`express` 4.22.3 is a runtime dep, settings-only app, never listens) | Same as Express's `expressInit`; needed for multer, express-rate-limit (`res.on('finish')`, trust proxy) and streams. Fastify's own reply methods are untouched |
 | 2026-11-17 | Ordinary endpoints: native Nest handlers that call legacy models/services; streaming/SSE/download endpoints may run the legacy controller via `runLegacyHandler` | Plan §2 (only HTTP layer rewritten) + §3 item 16; record any other delegation per module with a reason |
 | 2026-11-17 | Counter `[x]` = native Nest port + in-process parity spec (`test/modules/<m>.parity.spec.ts`) mounting the REAL legacy router in Express vs the Nest module, 0 diffs, build+tests green | The HTTP harness run against a staging DB is blocked (Blocked #1); in-process parity runs the same legacy code. DB-backed modules use fake model reads; the staging harness run is still required before each cutover (🚦) |
+| 2026-11-17 | Parity specs for DB modules run on `test/support/memory-db.ts`: Mongoose driver-collection methods replaced by an in-memory store (mingo 6.4.15 for query/update/aggregate) | Real Mongoose casting/defaults/hooks/hydration run on both sides; each case starts from the same snapshot and compares the DB state legacy vs new left behind |
+| 2026-11-17 | `core/envelope` `ok()/fail()` keep legacy key order `isSuccess, message, displayMessage, data` | Key order changes body bytes and ETag |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -47,7 +49,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 |---|---|---|---|---|---|---|---|
 | 2 | Common | /api/common | 1 | public, no DB | 🧪 | 6 (parity) | |
 | 2 | BaseLink | /api/base-link | 1 | public GET that inserts (legacy quirk, kept) | 🧪 | 7 (parity) + saved-doc check | |
-| 2 | plan | /api/plan | 4 | | ⬜ | | |
+| 2 | plan | /api/plan | 4 | adminAuth read, systemAdmin writes | 🧪 | 22 (parity, response + DB state) | |
 | 2 | Role | /api/role | 4 | | ⬜ | | |
 | 2 | Contact | /api/contacts | 3 | | ⬜ | | |
 | 2 | StorageHistory | /api/storage-history | 3 | | ⬜ | | |
@@ -116,6 +118,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Phase 1: adapter switched to native Express req/res; rate-limit, upload, SSE/stream parity green; build + 120 tests green. APIs migrated: 0 / 497 | Contract harness (`test/contract`, HTTP legacy vs new, needs DB for real runs), then Phase 2 pilot starting with Common |
 | 2026-11-17 | Claude | Phase 2: Common ported (native) + Root; parity specs green; build + 134 tests green. APIs migrated: 2 / 497 | BaseLink, then plan, Role, Contact… (Phase 2 order) |
 | 2026-11-17 | Claude | BaseLink ported (native); `fakeSave` test helper (validation runs, write stubbed). APIs migrated: 3 / 497 | plan module |
+| 2026-11-17 | Claude | plan ported (native) + memory-db harness for DB modules + envelope helpers. Jest gotcha: `it.each` rows shorter than the callback arity get jest's `done` → use defaults (`opts = {}`). APIs migrated: 7 / 497 | Role module |
 
 ### Blocked (needs user)
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).
