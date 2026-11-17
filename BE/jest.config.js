@@ -2,7 +2,7 @@
 module.exports = {
   rootDir: '.',
   testEnvironment: 'node',
-  testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/test/e2e/**/*.spec.ts'],
+  testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/test/e2e/**/*.spec.ts', '<rootDir>/test/modules/**/*.spec.ts'],
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
     // a few transitive deps (e.g. `cookie` via light-my-request) ship ESM only
