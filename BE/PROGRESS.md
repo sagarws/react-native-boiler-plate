@@ -4,7 +4,7 @@ See [`MIGRATION_PLAN.md`](./MIGRATION_PLAN.md) for the plan.
 Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 staging cutover · ✅ prod cutover
 
 **API counter:** see [`PROGRESS.txt`](./PROGRESS.txt) (`APIs migrated: X / 497`, per module + full endpoint checklist; regenerate with `node scripts/api-progress.js`)
-**Current phase:** 0 → 1 (scaffold done; Phase 1 compat core next)
+**Current phase:** 2 — pilot modules (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
 **Last updated:** 2026-11-17
 
 ## Decisions log
@@ -39,7 +39,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | core/rate-limit (login, forgot-password, generic) | 🧪 | Legacy limiter instances used as-is via `@Legacy(loginRateLimiter, ...)` (express-rate-limit 7.5.1 on native Express res). Create `rateLimiter({...})` once per route at class load, like legacy routes. Parity: login 10-fail + skipSuccessful, forgot 5/h, generic 6/min → identical 429s and RateLimit headers |
 | core/upload (multer-compatible) | 🧪 | Legacy `fileUploader`/`logoUploader`/`supportAttachmentUploader` (multer 1.4.5-lts.2) used as-is via `@Legacy(fileUploader.single('file'))`; `req.file(s)` via `@LegacyReq()`. Disk storage writes `./uploads` relative to cwd (same as legacy → run the new server with its own cwd and the same cleanup). Parity: 11 upload cases incl. multer errors |
 | core/sse | 🧪 | `runLegacyHandler(req, reply, fn)` hijacks the reply and runs an Express-style handler on native req/res (SSE, download, pipe, redirect). Parity: SSE framing/headers/close teardown, download, redirect, sync throw |
-| Contract harness + CI | ⬜ | |
+| Contract harness + CI | 🟡 | `test/contract` (`npm run test:contract`, LEGACY_URL/NEW_URL/CONTRACT_DB; write cases refused unless CONTRACT_DB is non-prod). Not run yet: needs both servers on a non-prod DB (Blocked #1). CI: todo (no CI config in repo yet). Meanwhile each module gets an in-process parity spec (legacy Express router vs Nest, fake models) |
 
 ## Modules (route counts measured 2026-11-17 by quick grep; exact per-endpoint counts are in PROGRESS.txt, total 497 incl. OrderServer 7 + MasterImportServer 20)
 | Phase | Module | Prefix | Routes | Special | Status | Contract cases | Cutover |
