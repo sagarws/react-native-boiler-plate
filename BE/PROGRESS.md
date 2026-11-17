@@ -4,7 +4,7 @@ See [`MIGRATION_PLAN.md`](./MIGRATION_PLAN.md) for the plan.
 Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 staging cutover · ✅ prod cutover
 
 **API counter:** see [`PROGRESS.txt`](./PROGRESS.txt) (`APIs migrated: X / 497`, per module + full endpoint checklist; regenerate with `node scripts/api-progress.js`)
-**Current phase:** 2 — pilot modules (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
+**Current phase:** 2 done in-process (all 12 pilot modules 🧪); next Phase 3. Pilot cutover waits for staging (Blocked #1/#2) (Phase 1 core done in-process; HTTP harness run waits for a non-prod DB)
 **Last updated:** 2026-11-17
 
 ## Decisions log
@@ -29,6 +29,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | `core/envelope` `ok()/fail()` keep legacy key order `isSuccess, message, displayMessage, data` | Key order changes body bytes and ETag |
 | 2026-11-17 | Delegation rule: when a legacy controller's logic sits in large non-exported helpers (StorageHistory: ~800 lines), the Nest route keeps routing/guards and runs the legacy handler via `runLegacyHandler` instead of copying it | Copying forks the code; extracting a service needs a legacy PR (user approval). Listed under "Legacy PRs wanted" below |
 | 2026-11-17 | `express` moved to runtime dependencies | It was dev-only by mistake; `npm ci --omit=dev` would have crashed at boot (adapter imports it) |
+| 2026-11-17 | Global jest setup fakes `nodemailer.createTransport` | Legacy `utils/mail.ts` opens an SMTP connection at import (`transporter.verify`); no test may reach a mail server or send mail |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -57,10 +58,10 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2 | StorageHistory | /api/storage-history | 3 | systemAdmin reports; **delegated** to legacy handlers (private helpers); ⚠ public mass-write `GET /add-storage-history` | 🧪 | 11 (parity) + success-path asserts | |
 | 2 | CreditHistory | /api/credit-history | 1 | authMiddleware; aggregation ($lookup/$facet) | 🧪 | 10 (parity) | |
 | 2 | ClaimHistory | /api/claim-history | 1 | adminAuth cms::view; populate | 🧪 | 5 (parity) | |
-| 2 | Account | /api/account | 1 | | ⬜ | | |
-| 2 | VideoLink | /api/video-link | 1 | | ⬜ | | |
-| 2 | Referral | /api/referrals | 1 | | ⬜ | | |
-| 2 | Credits | /api/credit | 2 | | ⬜ | | |
+| 2 | Account | /api/account | 1 | authMiddleware | 🧪 | 3 (parity) | |
+| 2 | VideoLink | /api/video-link | 1 | adminAuth + per-user rate limiter (same options, redeclared: not exported in legacy) | 🧪 | 8 + 429 check | |
+| 2 | Referral | /api/referrals | 1 | authMiddleware; lazily writes referralCode | 🧪 | 3 (parity) | |
+| 2 | Credits | /api/credit | 1 | ⚠ legacy route hangs (adminAuth factory used as middleware) — reproduced | 🧪 | hang check | |
 | 3 | Dashboard | /api/dashboard | 11 | | ⬜ | | |
 | 3 | Feed | /api/feed | 9 | | ⬜ | | |
 | 3 | User | /api/user | 17 | | ⬜ | | |
@@ -125,11 +126,14 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Contact ported (native, 2 live routes). APIs migrated: 13 / 497 | StorageHistory |
 | 2026-11-17 | Claude | ClaimHistory + CreditHistory ported (native). memory-db: all mingo operators loaded, `seedRaw` for $lookup sources, `$count` rewritten to Mongo semantics (empty → no doc). APIs migrated: 15 / 497 | StorageHistory (3 routes, 998-line controller) |
 | 2026-11-17 | Claude | StorageHistory ported (route+guards native, handlers delegated). memory-db: `$lookup` with let/pipeline + `$facet` implemented. APIs migrated: 18 / 497 | Account, VideoLink, Referral, Credits (rest of Phase 2) |
+| 2026-11-17 | Claude | Account, VideoLink, Referral, Credits ported (native). memory-db fix: RegExp filter values were dropped (regex queries matched nothing). Known memory-db limits: collation ignored, no indexes/transactions. Phase 2 complete in-process. APIs migrated: 22 / 497 | Phase 3: Dashboard, Feed, User, Company, AppSetting… |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
 2. ⚠ Security (LAYER 2 Blocker in legacy): `GET /api/storage-history/add-storage-history` is unauthenticated and rebuilds storage history for every company's orders; its catch never responds. Suggest `systemAdminAuth, adminOnly` + a response in catch. Kept identical in Nest until legacy changes (contract rule).
 3. Role: `GET /api/role/get-role/:id` not company-scoped; `get-roles?email=` filters a non-existent field.
+4. Credits: `PUT /api/credit/upgrade-storage` uses `authAdmin` (the adminAuth factory) as middleware → every request hangs. Fix: `authAdmin([...perm])`. Reproduced as-is in Nest.
+5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).

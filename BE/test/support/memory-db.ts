@@ -18,7 +18,7 @@ const OID = 'oid:';
 /** ObjectId → "oid:<hex>" so mingo can compare/sort them; reversed on the way out. */
 const encode = (v: any): any => {
   if (v instanceof mongoose.Types.ObjectId) return OID + v.toHexString();
-  if (v instanceof Date || Buffer.isBuffer(v) || v === null || typeof v !== 'object') return v;
+  if (v instanceof Date || v instanceof RegExp || Buffer.isBuffer(v) || v === null || typeof v !== 'object') return v;
   if (Array.isArray(v)) return v.map(encode);
   if (v._bsontype === 'ObjectId' || v._bsontype === 'ObjectID') return OID + v.toHexString();
   if (v._bsontype === 'Decimal128') return Number(v.toString());

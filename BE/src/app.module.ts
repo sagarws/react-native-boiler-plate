@@ -8,9 +8,13 @@ import { ContactModule } from './modules/contact/contact.module';
 import { ClaimHistoryModule } from './modules/claim-history/claim-history.module';
 import { CreditHistoryModule } from './modules/credit-history/credit-history.module';
 import { StorageHistoryModule } from './modules/storage-history/storage-history.module';
+import { AccountModule } from './modules/account/account.module';
+import { VideoLinkModule } from './modules/video-link/video-link.module';
+import { ReferralModule } from './modules/referral/referral.module';
+import { CreditsModule } from './modules/credits/credits.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule],
   controllers: [RootController],
 })
 export class AppModule {}
