@@ -3,6 +3,7 @@
 See [`MIGRATION_PLAN.md`](./MIGRATION_PLAN.md) for the plan.
 Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 staging cutover · ✅ prod cutover
 
+**API counter:** see [`PROGRESS.txt`](./PROGRESS.txt) (`APIs migrated: X / 497`, per module + full endpoint checklist; regenerate with `node scripts/api-progress.js`)
 **Current phase:** 0 → 1 (scaffold done; Phase 1 compat core next)
 **Last updated:** 2026-11-17
 
@@ -16,6 +17,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | New app refuses DB name `prod` unless `ALLOW_PROD_DB=true` | Stricter than legacy (warn only); prod host sets the flag at cutover. Prevents dev writes to prod |
 | 2026-11-17 | Query parser = `qs.parse(s, {allowPrototypes:true, arrayLimit:1000})` | Exact options of Express 4 `parseExtendedQueryString` |
 | 2026-11-17 | Imports from legacy via `@legacy/*` alias (tsc-alias rewrites at build, jest moduleNameMapper in tests) | Legacy files compile into `dist/legacy/src`; legacy deps must be installed in `BE/` with the same versions (mongoose 8.24.8, ioredis 5.11.1, …) so there is one mongoose instance |
+| 2026-11-17 | Reuse Express's own packages (body-parser 1.20.9, cors 2.8.6, finalhandler 1.3.2, etag 1.8.1, fresh 0.5.2) inside Fastify hooks instead of Fastify plugins | Byte-identical behaviour (error pages, 413/400, preflight headers, ETag) with no reimplementation; verified against a real Express app |
+| 2026-11-17 | `Post` wrapper with `HttpCode(200)` | Nest @Post defaults to 201; Express sends 200 |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -25,15 +28,15 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | Nest scaffold + Fastify adapter | 🧪 | Nest 11.2 / Fastify 5.12, `src/main.ts`, `src/bootstrap.ts`, `GET /` = legacy "Hello World!" |
 | Legacy submodule + path aliases | 🧪 | `BE/legacy` @ d52efb6e; `@legacy/*` verified at runtime (`runtimeGuard` import) |
 | Staging env (both servers + nginx) | ⛔ | Blocked: needs user (see Session log) |
-| core/http (qs, body limits, cors, headers, trust proxy, trailing slash) | 🟡 | Done: qs (1), bodyLimit 5MB (2, JSON only so far), trailing slash + case-insensitive (6), trust proxy loopback (13), no x-powered-by. Todo: formbody/urlencoded (2), empty/unknown body (3), cors (11), securityHeaders (12) |
-| core/errors + envelope | ⬜ | |
+| core/http (qs, body limits, cors, headers, trust proxy, trailing slash) | 🧪 | `src/core/http/*`. Runs legacy's own middleware (legacy `securityHeaders`, `cors()`, body-parser urlencoded+json 5mb) on raw req/res in legacy order; Fastify body parsers removed. Express weak ETag + 304. Ported controllers must use `Post` from `core/http/routes` (200 default) and set `text/html; charset=utf-8` when legacy does `res.send(string)`. Parity test `test/e2e/express-parity.spec.ts`: 25 cases × prod/dev env, all identical to a real Express app |
+| core/errors + envelope | 🟡 | `LegacyExceptionFilter`: 404 → Express `Cannot GET /x` page, body-parser errors/escaped throws → Express finalhandler page, `LegacyResponseException(status, body)` → exact body. Envelope helpers: todo (with first module) |
 | core/auth guards (all 11 middlewares) | ⬜ | |
 | core/rate-limit (login, forgot-password, generic) | ⬜ | |
 | core/upload (multer-compatible) | ⬜ | |
 | core/sse | ⬜ | |
 | Contract harness + CI | ⬜ | |
 
-## Modules (route counts measured 2026-11-17)
+## Modules (route counts measured 2026-11-17 by quick grep; exact per-endpoint counts are in PROGRESS.txt, total 497 incl. OrderServer 7 + MasterImportServer 20)
 | Phase | Module | Prefix | Routes | Special | Status | Contract cases | Cutover |
 |---|---|---|---|---|---|---|---|
 | 2 | Common | /api/common | 1 | | ⬜ | | |
@@ -101,6 +104,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 |---|---|---|---|
 | 2026-11-17 | Claude | Wrote plan + tracker from legacy analysis; set up in `react-native-boiler-plate/BE` | Phase 0: scaffold Nest + Fastify in `BE/`, legacy submodule, DB connection |
 | 2026-11-17 | Claude | Phase 0: branch `migrate/phase0-scaffold`; legacy submodule; Nest 11 + Fastify scaffold; Mongo connector with prod guard; HTTP compat options (qs, trailing slash, case-insensitive, trust proxy, 5MB). `npm run build && npm test` green (10 tests); compiled app smoke-run OK | Phase 1: finish core/http (formbody, empty body, cors, securityHeaders), then core/errors+envelope, core/auth guards |
+
+| 2026-11-17 | Claude | Phase 1 (branch `migrate/phase1-core`): Express-compat pipeline + legacy exception filter; parity test vs real Express app (50 cases) green; build + 60 tests green. APIs migrated: 0 / 497 | core/auth guards (port 11 legacy auth middlewares), then rate-limit, upload, sse |
 
 ### Blocked (needs user)
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).
