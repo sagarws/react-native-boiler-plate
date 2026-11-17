@@ -1,0 +1,67 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/apple/Documents/Sagar/Trackvid/TrackVid-BE"
+    ],
+    "allow": [
+      "Read",
+      "Edit(/**)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(node *)",
+      "Bash(nest *)",
+      "Bash(tsc *)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(sed -n *)",
+      "Bash(mkdir *)",
+      "Bash(curl http://localhost*)",
+      "Bash(curl -s http://localhost*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git show*)",
+      "Bash(git branch*)",
+      "Bash(git checkout -b *)",
+      "Bash(git switch *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git merge *)",
+      "Bash(git fetch*)",
+      "Bash(git submodule *)",
+      "Bash(git -C /Users/apple/Documents/Sagar/Trackvid/TrackVid-BE log*)",
+      "Bash(git -C /Users/apple/Documents/Sagar/Trackvid/TrackVid-BE show*)",
+      "Bash(git -C /Users/apple/Documents/Sagar/Trackvid/TrackVid-BE diff*)",
+      "Bash(redis-cli ping)",
+      "Bash(docker ps*)"
+    ],
+    "ask": [
+      "Edit(//Users/apple/Documents/Sagar/Trackvid/TrackVid-BE/**)",
+      "Bash(git -C /Users/apple/Documents/Sagar/Trackvid/TrackVid-BE commit*)",
+      "Bash(git -C /Users/apple/Documents/Sagar/Trackvid/TrackVid-BE checkout*)"
+    ],
+    "deny": [
+      "Bash(git push*)",
+      "Bash(git -C * push*)",
+      "Bash(git reset --hard*)",
+      "Bash(git clean*)",
+      "Bash(rm -rf *)",
+      "Bash(npm publish*)",
+      "Bash(git remote -v*)",
+      "Bash(cat .git/config*)",
+      "Bash(cat ../.git/config*)",
+      "Bash(git checkout main*)",
+      "Bash(git switch main*)",
+      "Read(//Users/apple/Documents/Sagar/Other/react-native-boiler-plate/.env)",
+      "Edit(//Users/apple/Documents/Sagar/Other/react-native-boiler-plate/.env)",
+      "Edit(//Users/apple/Documents/Sagar/Other/react-native-boiler-plate/prompt.txt)",
+      "Edit(//Users/apple/Documents/Sagar/Other/react-native-boiler-plate/FE/**)",
+      "Read(//Users/apple/Documents/Sagar/Trackvid/TrackVid-BE/.env.production)"
+    ]
+  }
+}

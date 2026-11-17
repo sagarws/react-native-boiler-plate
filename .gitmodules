@@ -1,0 +1,4 @@
+[submodule "BE/legacy"]
+	path = BE/legacy
+	url = https://github.com/trackVid21/TrackVid-BE.git
+	branch = main
