@@ -17,6 +17,8 @@
     "@nestjs/core": "^11.2.10",
     "@nestjs/platform-fastify": "^11.2.10",
     "aws-sdk": "^2.1693.0",
+    "axios": "^1.21.0",
+    "bcrypt": "^5.1.1",
     "body-parser": "^1.20.9",
     "cors": "^2.8.6",
     "dayjs": "^1.11.23",

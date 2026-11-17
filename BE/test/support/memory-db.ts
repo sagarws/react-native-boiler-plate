@@ -257,7 +257,16 @@ export const memoryDb: MemoryDb = {
   seed(model, docs) {
     this.use(model);
     const mc = this.collections.get(model.collection.collectionName);
-    for (const d of docs) mc.rows.push(encode({ _id: new mongoose.Types.ObjectId(), ...d }));
+    // Store docs the way mongoose would have written them (subdocument _ids, defaults, casting),
+    // like real data. Keys the caller set explicitly (timestamps, __v) win.
+    for (const d of docs) {
+      const shaped = new (model as any)({ _id: new mongoose.Types.ObjectId(), ...d }).toObject({ depopulate: true, virtuals: false });
+      for (const [k, v] of Object.entries(d)) {
+        // keep fields the schema dropped (strict) and explicit timestamps/version from the fixture
+        if (!(k in shaped) || k === 'createdAt' || k === 'updatedAt' || k === '__v') shaped[k] = v;
+      }
+      mc.rows.push(encode(shaped));
+    }
   },
   seedRaw(name, docs) {
     if (!this.collections.has(name)) this.collections.set(name, new MemoryCollection(name));
