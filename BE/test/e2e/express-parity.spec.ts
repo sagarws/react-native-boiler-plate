@@ -115,3 +115,25 @@ describe.each(['production', 'development'])('Express parity (NODE_ENV=%s)', (en
     expect(pb).toEqual(pa);
   });
 });
+
+describe('malformed HTTP → Node default raw response (no JSON body)', () => {
+  it('matches Express/Node for a request line parse error and header overflow', async () => {
+    const net = require('net');
+    const legacy = http.createServer(buildExpress());
+    await new Promise<void>((r) => legacy.listen(0, '127.0.0.1', () => r()));
+    const nest = await createApp(ProbeModule);
+    await nest.listen(0, '127.0.0.1');
+    const raw = (port: number, payload: string) => new Promise<string>((resolve) => {
+      const s = net.connect(port, '127.0.0.1', () => s.write(payload));
+      let out = ''; s.on('data', (d: Buffer) => (out += d)); s.on('close', () => resolve(out)); s.on('error', () => resolve(out));
+    });
+    for (const payload of ['GARBAGE\r\n\r\n', `GET / HTTP/1.1\r\nHost: x\r\nX-Big: ${'a'.repeat(20000)}\r\n\r\n`]) {
+      const a = await raw((legacy.address() as any).port, payload);
+      const b = await raw((nest.getHttpServer().address() as any).port, payload);
+      expect(b).toBe(a);
+      expect(a).toMatch(/^HTTP\/1\.1 4\d\d /);
+    }
+    await nest.close();
+    await new Promise((r) => legacy.close(r));
+  });
+});

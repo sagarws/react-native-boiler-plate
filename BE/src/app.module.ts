@@ -13,9 +13,10 @@ import { VideoLinkModule } from './modules/video-link/video-link.module';
 import { ReferralModule } from './modules/referral/referral.module';
 import { CreditsModule } from './modules/credits/credits.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { FeedModule } from './modules/feed/feed.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule],
   controllers: [RootController],
 })
 export class AppModule {}
