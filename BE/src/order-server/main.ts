@@ -1,9 +1,10 @@
 import 'reflect-metadata';
+import '../core/runtime/shims';
+// MUST stay before any legacy import: legacy modules read process.env at load time
+import '../config/load-env';
 import '@legacy/utils/logger';
-import { loadEnv } from '../config/env';
-loadEnv();
 import { connectMongo } from '../core/db/mongo';
-import { enterLegacyRoot, installLegacyProcessHandlers } from '../core/runtime/legacy-runtime';
+import { enterLegacyRoot, installGracefulShutdown, installLegacyProcessHandlers } from '../core/runtime/legacy-runtime';
 import { createOrderServerApp } from './bootstrap';
 
 /**
@@ -13,11 +14,14 @@ import { createOrderServerApp } from './bootstrap';
  */
 const main = async () => {
   installLegacyProcessHandlers();
+  let server: any;
+  installGracefulShutdown(() => server, '[OrderServer]');
   console.log(`cwd → ${enterLegacyRoot()}`);
   await connectMongo();
   const app = await createOrderServerApp();
   const port = Number(process.env.ORDER_SERVER_PORT || 8101);
   await app.listen(port, '0.0.0.0');
+  server = app.getHttpServer();
   console.log(`Nest OrderServer running at http://localhost:${port}`);
 };
 

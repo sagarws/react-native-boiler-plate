@@ -31,3 +31,28 @@ export const installLegacyProcessHandlers = (): void => {
     console.error('[UNHANDLED REJECTION]', reason);
   });
 };
+
+/**
+ * Same graceful shutdown as legacy server.ts. Required, not cosmetic: legacy config/redis.ts adds
+ * SIGINT/SIGTERM listeners, and once any listener exists Node no longer exits on those signals —
+ * without this the process ignores PM2 stop/reload.
+ */
+export const installGracefulShutdown = (getServer: () => { close: (cb?: () => void) => unknown } | undefined, label = ''): void => {
+  const shutdown = async (signal: string) => {
+    console.log(`${label}[${signal}] Graceful shutdown initiated...`);
+    try {
+      const server = getServer();
+      if (server) server.close(() => console.log(`${label}[Shutdown] HTTP server closed.`));
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      await require('mongoose').connection.close();
+      console.log(`${label}[Shutdown] MongoDB connection closed.`);
+      console.log(`${label}[Shutdown] Cleanup complete. Exiting.`);
+      process.exit(0);
+    } catch (err) {
+      console.error(`${label}[Shutdown] Error during cleanup:`, err);
+      process.exit(1);
+    }
+  };
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+};
