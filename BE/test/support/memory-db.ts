@@ -218,6 +218,8 @@ export interface MemoryDb {
   collections: Map<string, MemoryCollection>;
   /** Install the fake under these models (idempotent). */
   use(...models: mongoose.Model<any>[]): MemoryDb;
+  /** Install the fake under every model registered with mongoose so far (call after imports). */
+  useAll(): MemoryDb;
   /** Insert raw documents (as stored in Mongo) into a model's collection. */
   seed(model: mongoose.Model<any>, docs: Doc[]): void;
   /** Insert raw documents into a collection that has no model in this test (for $lookup sources). */
@@ -248,6 +250,9 @@ export const memoryDb: MemoryDb = {
       }
     }
     return this;
+  },
+  useAll() {
+    return this.use(...(Object.values(mongoose.models) as mongoose.Model<any>[]));
   },
   seed(model, docs) {
     this.use(model);

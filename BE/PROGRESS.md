@@ -30,6 +30,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Delegation rule: when a legacy controller's logic sits in large non-exported helpers (StorageHistory: ~800 lines), the Nest route keeps routing/guards and runs the legacy handler via `runLegacyHandler` instead of copying it | Copying forks the code; extracting a service needs a legacy PR (user approval). Listed under "Legacy PRs wanted" below |
 | 2026-11-17 | `express` moved to runtime dependencies | It was dev-only by mistake; `npm ci --omit=dev` would have crashed at boot (adapter imports it) |
 | 2026-11-17 | Global jest setup fakes `nodemailer.createTransport` | Legacy `utils/mail.ts` opens an SMTP connection at import (`transporter.verify`); no test may reach a mail server or send mail |
+| 2026-11-17 | Delegation widened: large legacy controllers (aggregation-heavy, module-level state such as caches) are delegated by default via `core/legacy/delegate.ts`; native rewrites only where small or where Nest-specific behaviour is needed | Two copies of thousands of lines would drift during a months-long migration (plan §8 risk). Routing, auth guards, parsing, errors are Nest/Fastify. Phase 6 moves handler code in when the submodule goes away. Reversible per module |
+| 2026-11-17 | `main.ts` imports `@legacy/utils/logger` | Same console→winston override as legacy server.ts, so log lines look the same to ops |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -62,7 +64,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2 | VideoLink | /api/video-link | 1 | adminAuth + per-user rate limiter (same options, redeclared: not exported in legacy) | 🧪 | 8 + 429 check | |
 | 2 | Referral | /api/referrals | 1 | authMiddleware; lazily writes referralCode | 🧪 | 3 (parity) | |
 | 2 | Credits | /api/credit | 1 | ⚠ legacy route hangs (adminAuth factory used as middleware) — reproduced | 🧪 | hang check | |
-| 3 | Dashboard | /api/dashboard | 11 | | ⬜ | | |
+| 3 | Dashboard | /api/dashboard | 11 | delegated (2,190 lines aggregation; insights per-process cache) | 🧪 | 16 (parity) | |
 | 3 | Feed | /api/feed | 9 | | ⬜ | | |
 | 3 | User | /api/user | 17 | | ⬜ | | |
 | 3 | Company | /api/companies | 4 | | ⬜ | | |
@@ -127,6 +129,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | ClaimHistory + CreditHistory ported (native). memory-db: all mingo operators loaded, `seedRaw` for $lookup sources, `$count` rewritten to Mongo semantics (empty → no doc). APIs migrated: 15 / 497 | StorageHistory (3 routes, 998-line controller) |
 | 2026-11-17 | Claude | StorageHistory ported (route+guards native, handlers delegated). memory-db: `$lookup` with let/pipeline + `$facet` implemented. APIs migrated: 18 / 497 | Account, VideoLink, Referral, Credits (rest of Phase 2) |
 | 2026-11-17 | Claude | Account, VideoLink, Referral, Credits ported (native). memory-db fix: RegExp filter values were dropped (regex queries matched nothing). Known memory-db limits: collation ignored, no indexes/transactions. Phase 2 complete in-process. APIs migrated: 22 / 497 | Phase 3: Dashboard, Feed, User, Company, AppSetting… |
+| 2026-11-17 | Claude | Dashboard (11 routes, delegated). memory-db `useAll()`. APIs migrated: 33 / 497 | Feed (9) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
