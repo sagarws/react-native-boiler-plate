@@ -156,5 +156,6 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)
+0. **Merge into `nestjs` paused (2026-11-17).** Commit `1db4381` (by the user, 19:45) on `migrate/template-tds` adds the `FE/` project together with in-progress BE files, and `FE/` has uncommitted user changes. Switching to `nestjs` would overwrite them, and merging would carry `FE/` into `nestjs`. I did neither. BE work continues on stacked branches from that HEAD (`migrate/template-tds` → `migrate/phase3-batch2` → …). Question: OK to merge this chain (incl. 1db4381's FE/) into `nestjs`, or should FE be split out first?
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).
 2. **Staging env + nginx** (both servers side by side) — deployment step, user does it.
