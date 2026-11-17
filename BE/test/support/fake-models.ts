@@ -30,3 +30,33 @@ export const fakeModel = (model: any, rows: Row[]) => {
   ];
   return () => spies.forEach((s) => s.mockRestore());
 };
+
+/**
+ * Stubs only the DB write of `Model.create()/doc.save()`: casting + validation still run
+ * (`validate()`), so cast/validation errors behave like a real save. Records saved docs.
+ */
+export const fakeSave = (model: any) => {
+  const saved: any[] = [];
+  const spy = jest.spyOn(model.prototype, '$save').mockImplementation(async function (this: any) {
+    await this.validate();
+    if (typeof this.initializeTimestamps === 'function' && this.schema.options.timestamps) this.initializeTimestamps();
+    this.$isNew = false;
+    saved.push(this.toObject());
+    return this;
+  });
+  return { saved, restore: () => spy.mockRestore() };
+};
+
+/** Replaces the volatile ids/timestamps that legitimately differ between two runs. */
+export const maskVolatile = (body: string, keys = ['_id', 'createdAt', 'updatedAt']) => {
+  try {
+    const walk = (n: any): any => {
+      if (Array.isArray(n)) return n.map(walk);
+      if (n && typeof n === 'object') return Object.fromEntries(Object.entries(n).map(([k, v]) => [k, keys.includes(k) ? '<v>' : walk(v)]));
+      return n;
+    };
+    return JSON.stringify(walk(JSON.parse(body)));
+  } catch {
+    return body;
+  }
+};
