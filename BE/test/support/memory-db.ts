@@ -8,6 +8,7 @@
  * both sides of a parity test. Use `snapshot()`/`restore()` to give each side the same start state.
  */
 import mongoose from 'mongoose';
+import 'mingo/init/system'; // all query/projection/pipeline/expression operators
 import { Aggregator, Query } from 'mingo';
 import { updateObject } from 'mingo/updater';
 
@@ -53,6 +54,18 @@ const applyUpdate = (doc: Doc, update: Doc, isInsert: boolean) => {
     updateObject(doc, { [op]: update[op] } as any);
   }
 };
+
+/**
+ * Rewrites stages where mingo differs from MongoDB:
+ * `$count` on zero input gives `{n: 0}` in mingo but no document in MongoDB → use the documented
+ * equivalent `$group {_id:null, n:{$sum:1}}` + `$project {_id:0}`. Recurses into `$facet`.
+ */
+const mongoCompatPipeline = (pipeline: Doc[]): Doc[] =>
+  pipeline.flatMap((stage) => {
+    if (stage.$count) return [{ $group: { _id: null, [stage.$count]: { $sum: 1 } } }, { $project: { _id: 0 } }];
+    if (stage.$facet) return [{ $facet: Object.fromEntries(Object.entries(stage.$facet).map(([k, v]) => [k, mongoCompatPipeline(v as Doc[])])) }];
+    return [stage];
+  });
 
 const cursor = (rows: Doc[]) => ({
   toArray: async () => rows.map(decode),
@@ -147,6 +160,7 @@ export class MemoryCollection {
   async deleteOne(filter: Doc) { const [t] = this.matchRefs(filter); if (t) this.rows = this.rows.filter((r) => r !== t); return { acknowledged: true, deletedCount: t ? 1 : 0 }; }
   async deleteMany(filter: Doc) { const ts = new Set(this.matchRefs(filter)); this.rows = this.rows.filter((r) => !ts.has(r)); return { acknowledged: true, deletedCount: ts.size }; }
   aggregate(pipeline: Doc[]) {
+    pipeline = mongoCompatPipeline(pipeline);
     const lookupSource = (name: string) => memoryDb.collections.get(name)?.rows ?? [];
     const out = new Aggregator(encode(pipeline), { collectionResolver: lookupSource } as any).run(this.rows) as Doc[];
     return cursor(out);
@@ -159,6 +173,8 @@ export interface MemoryDb {
   use(...models: mongoose.Model<any>[]): MemoryDb;
   /** Insert raw documents (as stored in Mongo) into a model's collection. */
   seed(model: mongoose.Model<any>, docs: Doc[]): void;
+  /** Insert raw documents into a collection that has no model in this test (for $lookup sources). */
+  seedRaw(collectionName: string, docs: Doc[]): void;
   rows(model: mongoose.Model<any>): Doc[];
   snapshot(): Map<string, Doc[]>;
   restore(snap: Map<string, Doc[]>): void;
@@ -189,6 +205,11 @@ export const memoryDb: MemoryDb = {
   seed(model, docs) {
     this.use(model);
     const mc = this.collections.get(model.collection.collectionName);
+    for (const d of docs) mc.rows.push(encode({ _id: new mongoose.Types.ObjectId(), ...d }));
+  },
+  seedRaw(name, docs) {
+    if (!this.collections.has(name)) this.collections.set(name, new MemoryCollection(name));
+    const mc = this.collections.get(name);
     for (const d of docs) mc.rows.push(encode({ _id: new mongoose.Types.ObjectId(), ...d }));
   },
   rows(model) { return (this.collections.get(model.collection.collectionName)?.rows ?? []).map(decode); },
