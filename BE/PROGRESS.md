@@ -54,6 +54,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | XLSX downloads compared by parsed workbook content in parity tests | ZIP entries carry 2-second timestamps; byte comparison was flaky |
 | 2026-11-17 | Express compat is per-app (`registerExpressCompat(fastify, { chain, expressApp })`) | OrderServer has different app middleware and Express settings than the main server; both apps can run in one process (tests) |
 | 2026-11-17 | OrderServer HTTP ported as a separate Nest entry point, workers excluded | Plan §6; nginx can move /order to it while legacy OrderServer keeps running only for its workers |
+| 2026-11-17 | **User decision: no changes to the legacy project.** The "Legacy PRs wanted" list stays informational only | User, 2026-11-17. Consequence: MasterImport goes with option (b) — a constants shim on the Nest side, guarded by a test; legacy security issues remain in legacy and are reproduced by the port unless the user asks to change them on the new side |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -175,7 +176,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 5. Merge of the branch chain (`migrate/template-tds` … `migrate/phase6-order-server`, incl. your FE commit 1db4381) into `nestjs`.
 6. Approval for the legacy PRs below (security first: user-profile token, public file delete, update-claims, add-storage-history, upload-logo).
 
-### Legacy PRs wanted (need user approval; not blocking)
+### Legacy issues (informational — user decided 2026-11-17 not to change the legacy project)
 0. ⚠⚠⚠ CRITICAL: `GET /api/auth/user-profile?email=` issues an access token for any email without auth (see Blocked).
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
 2. ⚠ Security (LAYER 2 Blocker in legacy): `GET /api/storage-history/add-storage-history` is unauthenticated and rebuilds storage history for every company's orders; its catch never responds. Suggest `systemAdminAuth, adminOnly` + a response in catch. Kept identical in Nest until legacy changes (contract rule).
