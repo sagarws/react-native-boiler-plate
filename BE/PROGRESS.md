@@ -32,6 +32,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Global jest setup fakes `nodemailer.createTransport` | Legacy `utils/mail.ts` opens an SMTP connection at import (`transporter.verify`); no test may reach a mail server or send mail |
 | 2026-11-17 | Delegation widened: large legacy controllers (aggregation-heavy, module-level state such as caches) are delegated by default via `core/legacy/delegate.ts`; native rewrites only where small or where Nest-specific behaviour is needed | Two copies of thousands of lines would drift during a months-long migration (plan §8 risk). Routing, auth guards, parsing, errors are Nest/Fastify. Phase 6 moves handler code in when the submodule goes away. Reversible per module |
 | 2026-11-17 | `main.ts` imports `@legacy/utils/logger` | Same console→winston override as legacy server.ts, so log lines look the same to ops |
+| 2026-11-17 | Fastify `clientErrorHandler` = Node's built-in raw responses (400/408/413/431, `Connection: close`, empty body) | Express adds no clientError listener; Fastify's default sends JSON. Raw-socket parity test added |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -65,7 +66,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2 | Referral | /api/referrals | 1 | authMiddleware; lazily writes referralCode | 🧪 | 3 (parity) | |
 | 2 | Credits | /api/credit | 1 | ⚠ legacy route hangs (adminAuth factory used as middleware) — reproduced | 🧪 | hang check | |
 | 3 | Dashboard | /api/dashboard | 11 | delegated (2,190 lines aggregation; insights per-process cache) | 🧪 | 16 (parity) | |
-| 3 | Feed | /api/feed | 9 | | ⬜ | | |
+| 3 | Feed | /api/feed | 9 | delegated; ⚠ legacy scoping issues (see Legacy PRs) | 🧪 | 17 (parity, response + DB) | |
 | 3 | User | /api/user | 17 | | ⬜ | | |
 | 3 | Company | /api/companies | 4 | | ⬜ | | |
 | 3 | AppSetting | /api/app-settings | 5 | | ⬜ | | |
@@ -130,12 +131,14 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | StorageHistory ported (route+guards native, handlers delegated). memory-db: `$lookup` with let/pipeline + `$facet` implemented. APIs migrated: 18 / 497 | Account, VideoLink, Referral, Credits (rest of Phase 2) |
 | 2026-11-17 | Claude | Account, VideoLink, Referral, Credits ported (native). memory-db fix: RegExp filter values were dropped (regex queries matched nothing). Known memory-db limits: collation ignored, no indexes/transactions. Phase 2 complete in-process. APIs migrated: 22 / 497 | Phase 3: Dashboard, Feed, User, Company, AppSetting… |
 | 2026-11-17 | Claude | Dashboard (11 routes, delegated). memory-db `useAll()`. APIs migrated: 33 / 497 | Feed (9) |
+| 2026-11-17 | Claude | Feed (9 routes, delegated). Found + fixed compat gap: malformed-HTTP responses. APIs migrated: 42 / 497 | User (17) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
 2. ⚠ Security (LAYER 2 Blocker in legacy): `GET /api/storage-history/add-storage-history` is unauthenticated and rebuilds storage history for every company's orders; its catch never responds. Suggest `systemAdminAuth, adminOnly` + a response in catch. Kept identical in Nest until legacy changes (contract rule).
 3. Role: `GET /api/role/get-role/:id` not company-scoped; `get-roles?email=` filters a non-existent field.
 4. Credits: `PUT /api/credit/upgrade-storage` uses `authAdmin` (the adminAuth factory) as middleware → every request hangs. Fix: `authAdmin([...perm])`. Reproduced as-is in Nest.
+6. ⚠ Feed (LAYER 2): `POST /api/feed/add-update` takes `companyId` from the body; `DELETE /delete`, `POST /disable`, `POST /enable` update feeds by id without a company filter → an admin of company A with `feed::edit` can modify company B's feeds. Fix: scope by `req.user.companyId`.
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)

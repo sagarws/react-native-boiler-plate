@@ -18,7 +18,10 @@ export const listen = (server: http.Server) =>
 
 export const send = (port: number, r: Req) =>
   new Promise<Captured>((resolve, reject) => {
-    const req = http.request({ host: '127.0.0.1', port, method: r.method, path: r.path, headers: r.headers }, (res) => {
+    const headers: Record<string, string | number> = { ...(r.headers || {}) };
+    // Node's client sends DELETE/GET bodies without Content-Length or chunking unless told
+    if (r.body !== undefined && !Object.keys(headers).some((h) => h.toLowerCase() === 'content-length')) headers['content-length'] = Buffer.byteLength(r.body);
+    const req = http.request({ host: '127.0.0.1', port, method: r.method, path: r.path, headers }, (res) => {
       const chunks: Buffer[] = [];
       res.on('data', (c) => chunks.push(c));
       res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body: Buffer.concat(chunks).toString('utf8') }));

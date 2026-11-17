@@ -27,6 +27,7 @@
     "express-rate-limit": "^7.5.1",
     "finalhandler": "^1.3.2",
     "fresh": "^0.5.2",
+    "generate-password": "^1.7.1",
     "ioredis": "^5.11.1",
     "joi": "^17.13.9",
     "jsonwebtoken": "^9.0.3",
