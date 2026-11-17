@@ -31,7 +31,8 @@ export const nodeDefaultClientError = (err: NodeJS.ErrnoException, socket: impor
 /**
  * Fastify options reproducing Express defaults (MIGRATION_PLAN §3 items 1, 2, 6, 13).
  */
-export const fastifyOptions = (): FastifyServerOptions => ({
+export const fastifyOptions = (frameworkErrors?: FastifyServerOptions['frameworkErrors']): FastifyServerOptions => ({
+  ...(frameworkErrors ? { frameworkErrors } : {}),
   bodyLimit: BODY_LIMIT,
   trustProxy: 'loopback', // app.set("trust proxy", "loopback")
   routerOptions: {

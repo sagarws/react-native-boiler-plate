@@ -41,6 +41,10 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Importing legacy BullMQ **producers** (`new Queue(...)`) is allowed; **workers** are not | A producer only enqueues into the shared Redis queue; legacy's worker still consumes each job once. Workers would double-process |
 | 2026-11-17 | Jest safety net: loopback-only network guard (`net.Socket.connect`), `puppeteer.launch` refused, nodemailer faked; S3 `uploadObject` and `Queue.add` stubbed per spec | Delegated legacy code calls marketplaces, GitHub, Meta, S3, SMTP; no test may reach them |
 | 2026-11-17 | razorpay: no `rawBody` capture | Plan §5 assumed raw-body signatures, but legacy HMACs `JSON.stringify(req.body)` after body-parser. Same body-parser here ⇒ identical digest; tested with a pretty-printed signed body |
+| 2026-11-17 | Express wildcard params (`/:key(*)`) rebuilt from the raw URL (`core/http/express-wildcard.ts`) | Fastify's `*` decodes/matches differently; Express gives `{0, key}`, decodes `%2F`, matches the bare prefix with key "" and needs the slash after a sub-prefix |
+| 2026-11-17 | Fastify `frameworkErrors` → Express behaviour for malformed URLs (after running the legacy app middleware) | Express only decodes params: bad escape in a param → 400 URIError page, elsewhere → 404 page |
+| 2026-11-17 | Realtime: new server owns no sockets; legacy `realtime.service` forwards emits to `REALTIME_INTERNAL_URL` (legacy /internal/realtime/broadcast) | Plan §2 mechanism; env keys added to `.env.example` |
+| 2026-11-17 | Tests connect to the local Redis (REDIS_PORT default 6379); ioredis clients tracked and closed per test file | Legacy modules open Redis connections at import. Suite now ~70 s |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -87,9 +91,9 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 3 | MarketingSite | /api/marketing-site | 4 | public; per-route 6/min limiters; Meta/GitHub calls | 🧪 | 3 + 429 check | |
 | 3 | manualPayment | /api/manual-payment | 8 | delegated (1,772 lines); xlsx/invoice downloads | 🧪 | 10 (parity) | |
 | 3 | razorpay | /api/razorpay | 8 | delegated; signatures = HMAC(JSON.stringify(parsed body)) → no raw body needed; signed webhooks parity-tested | 🧪 | 14 (parity) | |
-| 3 | Files | /api/files | 5 | upload / stream | ⬜ | | |
-| 3 | Imports | /api/external-imports | 5 | upload + SSE | ⬜ | | |
-| 3 | Webhook | /api/webhooks | 3 | raw body? | ⬜ | | |
+| 3 | Files | /api/files | 5 | delegated; Express `:key(*)` params rebuilt from raw URL; public get/delete (legacy) | 🧪 | 17 (parity) | |
+| 3 | Imports | /api/external-imports | 5 | delegated; BullMQ producers; public SSE polls shared Redis | 🧪 | 5 + SSE | |
+| 3 | Webhook | /api/webhooks | 3 | public; realtime emits forwarded to legacy via REALTIME_INTERNAL_URL | 🧪 | 4 (parity) | |
 | 3 | Email | /api/emails | 19 | | ⬜ | | |
 | 3 | Mailbox | /api/mailboxes, /api/mailbox/password | 27 | stream | ⬜ | | |
 | 3 | WhatsApp | /api/whatsapp | 16 | | ⬜ | | |
@@ -147,6 +151,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Template (8) + TDS (5), delegated. Found + fixed 3 runtime gaps: uploads path (cwd), missing process-level error handlers, async-rejection behaviour. APIs migrated: 87 / 497 | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4) |
 | 2026-11-17 | Claude | eCommercePlatform (5), ProductSkucodeMap (3), MasterImportSetting (6), MarketingSite (4), delegated; network guard for tests. APIs migrated: 105 / 497 | Phase 3 rest: manualPayment (8), razorpay (8, raw body), Files (5), Imports (5), Webhook (3)… |
 | 2026-11-17 | Claude | manualPayment (8) + razorpay (8), delegated; signed-webhook parity. APIs migrated: 121 / 497 | Files (5), Imports (5, upload+SSE), Webhook (3) |
+| 2026-11-17 | Claude | Files (5), Imports (5), Webhook (3), delegated. Found + fixed: malformed-URL handling, Express wildcard params. APIs migrated: 134 / 497 | Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
@@ -160,6 +165,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 10. Template: handlers have no try/catch → any async error (e.g. validation on upsert, bad id on delete) leaves the request hanging until the client times out. Wrap in try/catch → 4xx/500.
 11. MasterImportSetting: `GET /api/master-setting/add-keys-settings` (any logged-in user) rewrites settings of every company; `POST /sync-spf-tat-to-companies` chains systemAdminAuth + authMiddleware → unreachable. ProductSkucodeMap `POST /` runs the file upload before auth (unauthenticated requests still write to disk).
 12. razorpay: `POST /verify-signature` never responds when the signature is VALID (empty else); `POST /payment-event` destructures `req.body.payload` outside try → malformed body hangs; `POST /place-order` uses the adminAuth factory → every request hangs. Signature check over `JSON.stringify(parsed body)` instead of the raw bytes can reject genuine webhooks whose JSON is not byte-identical after re-serialisation (e.g. unicode escapes, number formats) — Razorpay recommends verifying the raw body.
+13. ⚠ Files: `GET /api/files/:key(*)` (download any S3 object by key), `GET /get-file-link/:key(*)`, `GET /get-drive-link/:key(*)` and `DELETE /api/files/:key(*)` (delete any S3 object!) have NO auth. Imports `GET /import-status/:jobId` is public and creates a Notification when it sees a finished job.
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)

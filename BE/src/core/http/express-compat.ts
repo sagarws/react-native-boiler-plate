@@ -29,6 +29,8 @@ export const legacyMiddlewareChain = (): ExpressMiddleware[] => [
 ];
 
 const expressEnv = () => process.env.NODE_ENV || 'development';
+/** separate instance for requests Fastify rejects before routing (see expressFrameworkErrors) */
+let frameworkChain: ExpressMiddleware[] = [];
 
 /** Express app `logerror`: prints the stack unless env is "test". */
 const logError = (err: any) => {
@@ -99,6 +101,7 @@ const etagOnSend = async (request: FastifyRequest, reply: FastifyReply, payload:
 
 export const registerExpressCompat = (fastify: FastifyInstance): void => {
   const chain = legacyMiddlewareChain();
+  frameworkChain = legacyMiddlewareChain();
 
   fastify.addHook('onRequest', async (request, reply) => {
     const { err, ended } = await runChain(chain, request.raw, reply.raw);
@@ -117,3 +120,38 @@ export const registerExpressCompat = (fastify: FastifyInstance): void => {
 };
 
 export { BODY_LIMIT };
+
+/**
+ * Fastify `frameworkErrors`: malformed percent-escapes make Fastify reject the URL before routing
+ * (FST_ERR_BAD_URL, JSON body). Express matches routes on the raw path and only decodes PARAMS:
+ * a bad escape inside a param → 400 URIError final-handler page; anywhere else → no match → the
+ * 404 "Cannot METHOD /path" page. Reproduced by looking the route up with the bad escapes made
+ * valid ("%" → "%25").
+ */
+export const expressFrameworkErrors = async (error: any, request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  // Fastify calls this before onRequest hooks; Express would already have run the app-level
+  // middleware (security headers, cors, body parsers) before routing.
+  const { err: mwErr, ended } = await runChain(frameworkChain, request.raw, reply.raw);
+  if (ended) return void reply.hijack();
+  if (mwErr) return sendExpressFinal(request, reply, mwErr);
+  if (error?.code !== 'FST_ERR_BAD_URL') {
+    sendExpressFinal(request, reply, error);
+    return;
+  }
+  const rawPath = (request.raw.url || '').split('?')[0];
+  const fixed = rawPath.replace(/%(?![0-9A-Fa-f]{2})/g, '%25');
+  let found: any = null;
+  try {
+    found = (request.server as any).findRoute({ method: request.raw.method, url: fixed });
+  } catch {
+    found = null;
+  }
+  const badParam = found && Object.values(found.params || {}).find((v: any) => typeof v === 'string' && /%(?![0-9A-Fa-f]{2})/.test(v));
+  if (!badParam) {
+    sendExpressFinal(request, reply); // 404 Cannot METHOD /path
+    return;
+  }
+  const err: any = new URIError(`Failed to decode param '${badParam}'`);
+  err.status = err.statusCode = 400;
+  sendExpressFinal(request, reply, err);
+};

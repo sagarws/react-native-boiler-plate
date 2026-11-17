@@ -24,7 +24,8 @@
     "forceConsistentCasingInFileNames": true,
     "paths": {
       "@legacy/*": ["legacy/src/*"],
-      "@core/*": ["src/core/*"]
+      "@core/*": ["src/core/*"],
+      "src/types/*": ["legacy/src/types/*"]
     }
   },
   "include": ["src/**/*", "test/**/*"]

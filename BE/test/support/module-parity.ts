@@ -28,6 +28,8 @@ export interface ParityOpts {
   creates?: boolean;
   /** header value patterns to mask (e.g. a timestamp in a download filename) */
   headerMasks?: Record<string, RegExp>;
+  /** body patterns to mask (e.g. stack traces legacy prints into error pages) — drops etag/length */
+  bodyMasks?: RegExp[];
 }
 
 /**
@@ -44,6 +46,11 @@ export const runParity = async (ports: { legacyPort: number; newPort: number }, 
   const keys = opts.creates ? [...VOLATILE, ...(opts.volatile || [])] : opts.volatile || [];
   const norm = (x: ReturnType<typeof pick>) => {
     const out = { ...x, headers: { ...x.headers } };
+    if (opts.bodyMasks?.length) {
+      for (const re of opts.bodyMasks) out.body = out.body.replace(re, '<masked>');
+      delete out.headers.etag;
+      delete out.headers['content-length'];
+    }
     for (const [h, re] of Object.entries(opts.headerMasks || {})) {
       if (typeof out.headers[h] === 'string') out.headers[h] = (out.headers[h] as string).replace(re, '<v>');
     }

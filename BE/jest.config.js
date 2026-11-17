@@ -7,6 +7,7 @@ module.exports = {
   maxWorkers: '50%',
   testTimeout: 30000,
   setupFiles: ['<rootDir>/test/support/jest-setup.ts'],
+  setupFilesAfterEnv: ['<rootDir>/test/support/jest-teardown.ts'],
   testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/test/e2e/**/*.spec.ts', '<rootDir>/test/modules/**/*.spec.ts'],
   transform: {
     '^.+\\.ts$': ['ts-jest', { tsconfig: 'tsconfig.json' }],
@@ -17,6 +18,8 @@ module.exports = {
   moduleNameMapper: {
     '^@legacy/(.*)$': '<rootDir>/legacy/src/$1',
     '^@core/(.*)$': '<rootDir>/src/core/$1',
+    // legacy file.controller.ts has one baseUrl-style type import (`src/types/...`)
+    '^src/types/(.*)$': '<rootDir>/legacy/src/types/$1',
   },
   modulePathIgnorePatterns: ['<rootDir>/dist', '<rootDir>/legacy/dist'],
 };

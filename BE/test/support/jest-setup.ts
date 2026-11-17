@@ -1,3 +1,7 @@
+// Legacy modules build Redis connections at import with `port: +process.env.REDIS_PORT`
+// (NaN when unset). Tests use the local Redis on loopback.
+process.env.REDIS_PORT = process.env.REDIS_PORT || '6379';
+process.env.REDIS_HOST = process.env.REDIS_HOST || '127.0.0.1';
 /**
  * Global test safety net (runs before every test file):
  * - nodemailer: legacy utils/mail.ts opens an SMTP connection at import (`transporter.verify`).
@@ -46,4 +50,24 @@ jest.mock('puppeteer', () => {
   const actual = jest.requireActual('puppeteer');
   const launch = () => Promise.reject(new Error('test guard: puppeteer.launch is disabled in tests'));
   return { ...actual, launch, default: { ...(actual.default || actual), launch } };
+});
+
+/**
+ * Legacy modules open long-lived Redis connections at import (ioredis + BullMQ queues). Record
+ * every ioredis client so test/support/jest-teardown.ts can close them after each test file.
+ */
+jest.mock('ioredis', () => {
+  const Actual = jest.requireActual('ioredis');
+  const Base = Actual.default ?? Actual;
+  const clients: any[] = ((globalThis as any).__redisClients = (globalThis as any).__redisClients || []);
+  class TrackedRedis extends Base {
+    constructor(...args: any[]) {
+      super(...args);
+      clients.push(this);
+    }
+  }
+  // static members (Cluster, Command, …) are inherited through `extends`; export shape like ioredis
+  const mod: any = TrackedRedis;
+  for (const k of ['default', 'Redis']) Object.defineProperty(mod, k, { value: TrackedRedis, configurable: true });
+  return mod;
 });

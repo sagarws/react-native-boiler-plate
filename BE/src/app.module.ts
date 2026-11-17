@@ -26,9 +26,12 @@ import { MasterImportSettingModule } from './modules/master-import-setting/maste
 import { MarketingSiteModule } from './modules/marketing-site/marketing-site.module';
 import { ManualPaymentModule } from './modules/manual-payment/manual-payment.module';
 import { RazorpayModule } from './modules/razorpay/razorpay.module';
+import { FilesModule } from './modules/files/files.module';
+import { ImportsModule } from './modules/imports/imports.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule],
   controllers: [RootController],
 })
 export class AppModule {}
