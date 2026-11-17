@@ -51,7 +51,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2 | BaseLink | /api/base-link | 1 | public GET that inserts (legacy quirk, kept) | 🧪 | 7 (parity) + saved-doc check | |
 | 2 | plan | /api/plan | 4 | adminAuth read, systemAdmin writes | 🧪 | 22 (parity, response + DB state) | |
 | 2 | Role | /api/role | 4 | adminAuth manage_roles; lazy system-role upsert | 🧪 | 24 (parity, response + DB) | |
-| 2 | Contact | /api/contacts | 3 | | ⬜ | | |
+| 2 | Contact | /api/contacts | 2 | authMiddleware; legacy validateRequest via @Legacy (PUT update commented out in legacy) | 🧪 | 10 (parity) | |
 | 2 | StorageHistory | /api/storage-history | 3 | | ⬜ | | |
 | 2 | CreditHistory | /api/credit-history | 1 | | ⬜ | | |
 | 2 | ClaimHistory | /api/claim-history | 1 | | ⬜ | | |
@@ -120,6 +120,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | BaseLink ported (native); `fakeSave` test helper (validation runs, write stubbed). APIs migrated: 3 / 497 | plan module |
 | 2026-11-17 | Claude | plan ported (native) + memory-db harness for DB modules + envelope helpers. Jest gotcha: `it.each` rows shorter than the callback arity get jest's `done` → use defaults (`opts = {}`). APIs migrated: 7 / 497 | Role module |
 | 2026-11-17 | Claude | Role ported (native). Legacy issues kept as-is (contract), for a later legacy PR: `GET /api/role/get-role/:id` is not company-scoped (returns another company's role); `get-roles?email=` filters Role on a non-existent `email` field. APIs migrated: 11 / 497 | Contact module |
+| 2026-11-17 | Claude | Contact ported (native, 2 live routes). APIs migrated: 13 / 497 | StorageHistory |
 
 ### Blocked (needs user)
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).
