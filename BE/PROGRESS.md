@@ -27,6 +27,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Counter `[x]` = native Nest port + in-process parity spec (`test/modules/<m>.parity.spec.ts`) mounting the REAL legacy router in Express vs the Nest module, 0 diffs, build+tests green | The HTTP harness run against a staging DB is blocked (Blocked #1); in-process parity runs the same legacy code. DB-backed modules use fake model reads; the staging harness run is still required before each cutover (🚦) |
 | 2026-11-17 | Parity specs for DB modules run on `test/support/memory-db.ts`: Mongoose driver-collection methods replaced by an in-memory store (mingo 6.4.15 for query/update/aggregate) | Real Mongoose casting/defaults/hooks/hydration run on both sides; each case starts from the same snapshot and compares the DB state legacy vs new left behind |
 | 2026-11-17 | `core/envelope` `ok()/fail()` keep legacy key order `isSuccess, message, displayMessage, data` | Key order changes body bytes and ETag |
+| 2026-11-17 | Delegation rule: when a legacy controller's logic sits in large non-exported helpers (StorageHistory: ~800 lines), the Nest route keeps routing/guards and runs the legacy handler via `runLegacyHandler` instead of copying it | Copying forks the code; extracting a service needs a legacy PR (user approval). Listed under "Legacy PRs wanted" below |
+| 2026-11-17 | `express` moved to runtime dependencies | It was dev-only by mistake; `npm ci --omit=dev` would have crashed at boot (adapter imports it) |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -52,7 +54,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2 | plan | /api/plan | 4 | adminAuth read, systemAdmin writes | 🧪 | 22 (parity, response + DB state) | |
 | 2 | Role | /api/role | 4 | adminAuth manage_roles; lazy system-role upsert | 🧪 | 24 (parity, response + DB) | |
 | 2 | Contact | /api/contacts | 2 | authMiddleware; legacy validateRequest via @Legacy (PUT update commented out in legacy) | 🧪 | 10 (parity) | |
-| 2 | StorageHistory | /api/storage-history | 3 | | ⬜ | | |
+| 2 | StorageHistory | /api/storage-history | 3 | systemAdmin reports; **delegated** to legacy handlers (private helpers); ⚠ public mass-write `GET /add-storage-history` | 🧪 | 11 (parity) + success-path asserts | |
 | 2 | CreditHistory | /api/credit-history | 1 | authMiddleware; aggregation ($lookup/$facet) | 🧪 | 10 (parity) | |
 | 2 | ClaimHistory | /api/claim-history | 1 | adminAuth cms::view; populate | 🧪 | 5 (parity) | |
 | 2 | Account | /api/account | 1 | | ⬜ | | |
@@ -122,6 +124,12 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Role ported (native). Legacy issues kept as-is (contract), for a later legacy PR: `GET /api/role/get-role/:id` is not company-scoped (returns another company's role); `get-roles?email=` filters Role on a non-existent `email` field. APIs migrated: 11 / 497 | Contact module |
 | 2026-11-17 | Claude | Contact ported (native, 2 live routes). APIs migrated: 13 / 497 | StorageHistory |
 | 2026-11-17 | Claude | ClaimHistory + CreditHistory ported (native). memory-db: all mingo operators loaded, `seedRaw` for $lookup sources, `$count` rewritten to Mongo semantics (empty → no doc). APIs migrated: 15 / 497 | StorageHistory (3 routes, 998-line controller) |
+| 2026-11-17 | Claude | StorageHistory ported (route+guards native, handlers delegated). memory-db: `$lookup` with let/pipeline + `$facet` implemented. APIs migrated: 18 / 497 | Account, VideoLink, Referral, Credits (rest of Phase 2) |
+
+### Legacy PRs wanted (need user approval; not blocking)
+1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
+2. ⚠ Security (LAYER 2 Blocker in legacy): `GET /api/storage-history/add-storage-history` is unauthenticated and rebuilds storage history for every company's orders; its catch never responds. Suggest `systemAdminAuth, adminOnly` + a response in catch. Kept identical in Nest until legacy changes (contract rule).
+3. Role: `GET /api/role/get-role/:id` not company-scoped; `get-roles?email=` filters a non-existent field.
 
 ### Blocked (needs user)
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).

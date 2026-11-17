@@ -67,6 +67,56 @@ const mongoCompatPipeline = (pipeline: Doc[]): Doc[] =>
     return [stage];
   });
 
+const lookupSource = (name: string) => memoryDb.collections.get(name)?.rows ?? [];
+
+/**
+ * Runs an (encoded) pipeline. Standard stages go to mingo in chunks; these are handled here
+ * because mingo 6 lacks them: `$lookup` with `let`/`pipeline` (incl. the combined
+ * localField/foreignField + pipeline form) and `$facet` (so its sub-pipelines can use them).
+ * `vars` are the enclosing `$$` variables (from an outer `$lookup.let`).
+ */
+const runPipeline = (input: Doc[], pipeline: Doc[], vars: Doc): Doc[] => {
+  let current = input;
+  let chunk: Doc[] = [];
+  const flush = () => {
+    if (chunk.length) current = new Aggregator(chunk, { collectionResolver: lookupSource, variables: vars } as any).run(current) as Doc[];
+    chunk = [];
+  };
+  for (const stage of pipeline) {
+    if (stage.$lookup && stage.$lookup.pipeline) {
+      flush();
+      const { from, let: letSpec = {}, pipeline: sub, localField, foreignField, as } = stage.$lookup;
+      const foreign = lookupSource(from);
+      current = current.map((doc) => {
+        // `let` values are expressions evaluated against the outer document
+        const letVars = Object.keys(letSpec).length
+          ? (new Aggregator([{ $replaceRoot: { newRoot: letSpec } }], { variables: vars } as any).run([doc])[0] as Doc)
+          : {};
+        let candidates = foreign;
+        if (localField && foreignField) {
+          const local = localField.split('.').reduce((o: any, k: string) => o?.[k], doc);
+          const keys = new Set((Array.isArray(local) ? local : [local]).map((x) => JSON.stringify(x ?? null)));
+          candidates = foreign.filter((f) => {
+            const fv = foreignField.split('.').reduce((o: any, k: string) => o?.[k], f);
+            return (Array.isArray(fv) ? fv : [fv]).some((x) => keys.has(JSON.stringify(x ?? null)));
+          });
+        }
+        return { ...doc, [as]: runPipeline(candidates, sub, { ...vars, ...letVars }) };
+      });
+      continue;
+    }
+    if (stage.$facet) {
+      flush();
+      const base = current;
+      current = [Object.fromEntries(Object.entries(stage.$facet).map(([k, sub]) => [k, runPipeline(base, sub as Doc[], vars)]))];
+      continue;
+    }
+    chunk.push(stage);
+  }
+  flush();
+  return current;
+};
+
 const cursor = (rows: Doc[]) => ({
   toArray: async () => rows.map(decode),
   explain: async () => ({}),
@@ -160,10 +210,7 @@ export class MemoryCollection {
   async deleteOne(filter: Doc) { const [t] = this.matchRefs(filter); if (t) this.rows = this.rows.filter((r) => r !== t); return { acknowledged: true, deletedCount: t ? 1 : 0 }; }
   async deleteMany(filter: Doc) { const ts = new Set(this.matchRefs(filter)); this.rows = this.rows.filter((r) => !ts.has(r)); return { acknowledged: true, deletedCount: ts.size }; }
   aggregate(pipeline: Doc[]) {
-    pipeline = mongoCompatPipeline(pipeline);
-    const lookupSource = (name: string) => memoryDb.collections.get(name)?.rows ?? [];
-    const out = new Aggregator(encode(pipeline), { collectionResolver: lookupSource } as any).run(this.rows) as Doc[];
-    return cursor(out);
+    return cursor(runPipeline(this.rows, mongoCompatPipeline(encode(pipeline)), {}));
   }
 }
 
