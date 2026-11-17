@@ -67,7 +67,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2 | Credits | /api/credit | 1 | ⚠ legacy route hangs (adminAuth factory used as middleware) — reproduced | 🧪 | hang check | |
 | 3 | Dashboard | /api/dashboard | 11 | delegated (2,190 lines aggregation; insights per-process cache) | 🧪 | 16 (parity) | |
 | 3 | Feed | /api/feed | 9 | delegated; ⚠ legacy scoping issues (see Legacy PRs) | 🧪 | 17 (parity, response + DB) | |
-| 3 | User | /api/user | 17 | | ⬜ | | |
+| 3 | User | /api/user | 17 | delegated; ⚠ /members + /delete hang (factory bug), /upload-logo has no auth | 🧪 | 22 + 2 hang checks | |
 | 3 | Company | /api/companies | 4 | | ⬜ | | |
 | 3 | AppSetting | /api/app-settings | 5 | | ⬜ | | |
 | 3 | Notification | /api/notifications | 6 | SSE | ⬜ | | |
@@ -133,6 +133,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Dashboard (11 routes, delegated). memory-db `useAll()`. APIs migrated: 33 / 497 | Feed (9) |
 | 2026-11-17 | Claude | Feed (9 routes, delegated). Found + fixed compat gap: malformed-HTTP responses. APIs migrated: 42 / 497 | User (17) |
 | 2026-11-17 | Claude | ⚠ The Feed merge (ee1445f) went in with 1 intermittently failing test: my verify step grepped the test output instead of checking `npm test`'s exit code. Cause: parallel jest workers each load the whole legacy model graph → 5s timeouts under load (auth/middleware parity specs, 75–114s suites). Fix: `maxWorkers: '50%'`, `testTimeout: 30000`; 6/6 full runs green (7–10s). Verify step now uses the exit code | User (17) |
+| 2026-11-17 | Claude | User (17 routes, delegated). memory-db `seed()` now stores docs shaped by mongoose (subdoc _ids/defaults) like real data. APIs migrated: 59 / 497 | Company (4), AppSetting (5) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
@@ -140,6 +141,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 3. Role: `GET /api/role/get-role/:id` not company-scoped; `get-roles?email=` filters a non-existent field.
 4. Credits: `PUT /api/credit/upgrade-storage` uses `authAdmin` (the adminAuth factory) as middleware → every request hangs. Fix: `authAdmin([...perm])`. Reproduced as-is in Nest.
 6. ⚠ Feed (LAYER 2): `POST /api/feed/add-update` takes `companyId` from the body; `DELETE /delete`, `POST /disable`, `POST /enable` update feeds by id without a company filter → an admin of company A with `feed::edit` can modify company B's feeds. Fix: scope by `req.user.companyId`.
+7. User: `GET /api/user/members` and `DELETE /api/user/delete` use the adminAuth factory as middleware → hang (same bug as Credits). `POST /api/user/upload-logo` has no auth middleware.
 5. `utils/mail.ts` loads `dotenv` from `<legacy>/.env` at import and verifies SMTP at import. In the Nest app that path is `BE/legacy/.env` (absent). Never copy the prod `.env` there.
 
 ### Blocked (needs user)
