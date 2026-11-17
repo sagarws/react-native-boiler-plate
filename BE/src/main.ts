@@ -5,11 +5,15 @@ import { loadEnv } from './config/env';
 loadEnv();
 import { connectMongo } from './core/db/mongo';
 import { createApp } from './bootstrap';
+import { startNotificationStream } from '@legacy/utils/notificationStream';
 
 // NOTE: no legacy worker / cron / socket-init imports here until Phase 5/6 (would duplicate jobs).
 const main = async () => {
   await connectMongo();
   console.log('MongoDB connected');
+  // Read-only change stream that pushes to SSE clients of THIS process (/api/notifications/sse).
+  // Not a worker/cron: it writes nothing; legacy runs its own for its own SSE clients.
+  startNotificationStream();
   const app = await createApp();
   const port = Number(process.env.PORT || 8100);
   await app.listen(port, '0.0.0.0');

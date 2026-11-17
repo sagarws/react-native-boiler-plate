@@ -17,9 +17,10 @@ import { FeedModule } from './modules/feed/feed.module';
 import { UserModule } from './modules/user/user.module';
 import { CompanyModule } from './modules/company/company.module';
 import { AppSettingModule } from './modules/app-setting/app-setting.module';
+import { NotificationModule } from './modules/notification/notification.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule],
   controllers: [RootController],
 })
 export class AppModule {}

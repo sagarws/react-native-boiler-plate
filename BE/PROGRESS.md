@@ -33,6 +33,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Delegation widened: large legacy controllers (aggregation-heavy, module-level state such as caches) are delegated by default via `core/legacy/delegate.ts`; native rewrites only where small or where Nest-specific behaviour is needed | Two copies of thousands of lines would drift during a months-long migration (plan §8 risk). Routing, auth guards, parsing, errors are Nest/Fastify. Phase 6 moves handler code in when the submodule goes away. Reversible per module |
 | 2026-11-17 | `main.ts` imports `@legacy/utils/logger` | Same console→winston override as legacy server.ts, so log lines look the same to ops |
 | 2026-11-17 | Fastify `clientErrorHandler` = Node's built-in raw responses (400/408/413/431, `Connection: close`, empty body) | Express adds no clientError listener; Fastify's default sends JSON. Raw-socket parity test added |
+| 2026-11-17 | Nest `main.ts` starts legacy `startNotificationStream()` (read-only Mongo change stream → SSE clients of this process) | Without it SSE clients on the new server get the initial list but no live inserts. It writes nothing and runs no jobs, so it is not a worker/cron; legacy keeps its own for its own clients. Read/archive pushes (`notifyCompany`) are per-process — fine because the whole /api/notifications prefix cuts over together |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -70,7 +71,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 3 | User | /api/user | 17 | delegated; ⚠ /members + /delete hang (factory bug), /upload-logo has no auth | 🧪 | 22 + 2 hang checks | |
 | 3 | Company | /api/companies | 4 | delegated; ⚠ public PUT /update-claims rewrites all companies | 🧪 | 7 + risk check | |
 | 3 | AppSetting | /api/app-settings | 5 | delegated; increff-qc-mapping chain authMiddleware+systemAdminAuth (no token passes both) | 🧪 | 8 (parity) | |
-| 3 | Notification | /api/notifications | 6 | SSE | ⬜ | | |
+| 3 | Notification | /api/notifications | 6 | SSE (?token=); delegated; change stream started in main.ts | 🧪 | 11 + SSE initial/push | |
 | 3 | Template | /api/templates | 8 | | ⬜ | | |
 | 3 | TDS | /api/tds | 5 | | ⬜ | | |
 | 3 | eCommercePlatform | /api/ecommerce-platform | 5 | | ⬜ | | |
@@ -135,6 +136,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | ⚠ The Feed merge (ee1445f) went in with 1 intermittently failing test: my verify step grepped the test output instead of checking `npm test`'s exit code. Cause: parallel jest workers each load the whole legacy model graph → 5s timeouts under load (auth/middleware parity specs, 75–114s suites). Fix: `maxWorkers: '50%'`, `testTimeout: 30000`; 6/6 full runs green (7–10s). Verify step now uses the exit code | User (17) |
 | 2026-11-17 | Claude | User (17 routes, delegated). memory-db `seed()` now stores docs shaped by mongoose (subdoc _ids/defaults) like real data. APIs migrated: 59 / 497 | Company (4), AppSetting (5) |
 | 2026-11-17 | Claude | Company (4) + AppSetting (5), delegated. APIs migrated: 68 / 497 | Notification (6, SSE), Template (8), TDS (5) |
+| 2026-11-17 | Claude | Notification (6, delegated, SSE incl. live push). APIs migrated: 74 / 497 | Template (8), TDS (5) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
