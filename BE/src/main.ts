@@ -10,6 +10,8 @@ import { createApp } from './bootstrap';
 import { startNotificationStream } from '@legacy/utils/notificationStream';
 import { runUploadsCleanupOnBoot, startUploadsCleanupInterval } from '@legacy/utils/uploadsCleanup';
 import { enterLegacyRoot, installGracefulShutdown, installLegacyProcessHandlers } from './core/runtime/legacy-runtime';
+import { isLegacyBackgroundOn, startLegacyBackground } from './core/runtime/legacy-background';
+import { ensureCmsAppDir } from '@legacy/controllers/DesktopApp/cmsApp.controller';
 
 // NOTE: no legacy worker / cron / socket-init imports here until Phase 5/6 (would duplicate jobs).
 const main = async () => {
@@ -26,10 +28,13 @@ const main = async () => {
   // Per-process scratch cleanup of THIS server's uploads/ (legacy server.ts does the same for its own)
   runUploadsCleanupOnBoot();
   startUploadsCleanupInterval();
+  ensureCmsAppDir(); // legacy server.ts creates <cwd>/cmsapp on boot
   const app = await createApp();
   const port = Number(process.env.PORT || 8100);
   await app.listen(port, '0.0.0.0');
   server = app.getHttpServer();
+  if (isLegacyBackgroundOn()) startLegacyBackground(server);
+  else console.log('[legacy-background] off — workers/crons/Socket.IO stay in the legacy process (set LEGACY_BACKGROUND=on at cutover)');
   console.log(`Nest (Fastify) running at http://localhost:${port}`);
 };
 

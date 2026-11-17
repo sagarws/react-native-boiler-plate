@@ -18,6 +18,8 @@ export const installWorkerShims = (): void => {
   const original = M._resolveFilename;
   M._resolveFilename = function resolveWithShims(request: string, parent: any, ...rest: any[]) {
     const resolved: string = original.call(this, request, parent, ...rest);
+    // full-replacement mode (legacy process stopped): the real workers run here
+    if (String(process.env.LEGACY_BACKGROUND || '').trim().toLowerCase() === 'on') return resolved;
     const normalized = resolved.split(path.sep).join('/').replace(/\.(ts|js)$/, '');
     for (const [suffix, shim] of Object.entries(WORKER_SHIMS)) {
       if (normalized.endsWith(`/legacy/src/${suffix}`)) return original.call(this, shim, parent, ...rest);

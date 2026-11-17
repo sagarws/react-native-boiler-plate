@@ -60,6 +60,9 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Local contract setup: legacy runs from the submodule via `npm run legacy:local` with a hand-built local-only env (never the legacy prod `.env`; refuses non-local/prod DBs); `npm run seed:local` seeds `trackvid_dev` + tokens; cases = every migrated main-server endpoint (`test/contract/cases/AllMigrated.cases.ts`) | User provided local MongoDB; no prod credentials in any process |
 | 2026-11-17 | Env loaded by a first-import module (`src/config/load-env.ts`) in both entry points | Found by the live contract run: legacy modules read process.env at load time (S3 bucket/region…); loading env in main() body was too late. Order guarded by `src/config/load-env.spec.ts` |
 | 2026-11-17 | Graceful shutdown in both entry points (`installGracefulShutdown`) | Found by the live run: legacy config/redis.ts adds SIGINT/SIGTERM listeners, so without an exiting handler the process ignored stop signals (PM2 reload would hang) |
+| 2026-11-17 | User approved (2026-11-17): move MasterImportServer and live updates; merge everything into nestjs; new servers use the same AWS/Redis/JWT/email/… values as legacy | `.env.example` now lists all 154 legacy key names (no values) |
+| 2026-11-17 | One switch `LEGACY_BACKGROUND=on` = "this process replaces the legacy process": main starts legacy workers/Socket.IO/crons/migrations; worker shim steps aside; MasterImportServer refuses to start without it | Never run both: the operator stops the legacy process and flips the switch in the same step |
+| 2026-11-17 | Compile-only `legacy-background.entries.ts` | Lazily required legacy modules are not reachable by static imports, so tsc would not emit them (found by inspecting dist); test guards it is never imported |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -129,15 +132,15 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 4 | Auth | /api/auth | 24 | generated; login/rate-limit/revocation targeted tests; ⚠⚠ DO NOT CUT OVER until legacy fixes user-profile token leak | 🧪 | route-smoke 24×3 + 8 targeted | |
 | 5 | CMS | /api/cms | 81 | generated + delegated; route-file helpers copied verbatim (freshness test guards drift); Trackvid-CMS desktop must be coordinated at cutover | 🧪 | route-smoke 81×3 | |
 | 5 | SystemAdmin | /api/system-admin | 71 | generated + delegated; Monitor contract | 🧪 | route-smoke 71×3 | |
-| 5 | Realtime | /internal, /api/internal | 2 | NOT ported: the broadcast receiver must live with Socket.IO (new server forwards emits here; moving it alone would loop). Moves with the socket cutover | ⏸ | | |
+| 5 | Realtime | /internal, /api/internal | 2 | generated; emits into this process's Socket.IO, which exists with LEGACY_BACKGROUND=on (end-to-end socket test passed) | 🧪 | socket e2e | |
 | 5 | View | /view | 1 | generated + delegated | 🧪 | route-smoke | |
 | 5 | DesktopApp | / (catch-all) | 2 | generated; `/:filename` reads `<cwd>/cmsapp` → on the new server `BE/dist/legacy/cmsapp` must hold (or symlink) the installers | 🧪 | route-smoke + catch-all cases | |
 | 5 | bull-board | /admin/queues | — | | ⬜ | | |
-| 5 | Socket.IO (realtime + cms-realtime) | — | — | event contract | ⬜ | | |
+| 5 | Socket.IO (realtime + cms-realtime) | — | — | `initializeRealtime(httpServer)` on the Nest HTTP server when LEGACY_BACKGROUND=on (same namespaces/events: legacy code) | 🧪 | handshake + event delivery | |
 | 6 | OrderServer | (separate process) /order | 7 | second Nest app `src/order-server` (`node dist/src/order-server/main.js`, ORDER_SERVER_PORT, default 8101); its own Express settings (x-powered-by on, no trust proxy, 100kb bodies); orderWorker/whatsappWorker/bull-board stay in legacy OrderServer until the worker cutover | 🧪 | 14 smoke + 8 edge/stream | |
-| 6 | MasterImportServer | (separate process) | 20 | ⛔ same worker-import blocker as MasterImport; its v2 HTTP routes also drive in-process pipeline state (triggerDeferredFile, file trackers) → likely must move together with its workers/crons in the worker cutover | ⛔ | | |
+| 6 | MasterImportServer | (separate process) | 20 | third Nest app `src/master-import-server` = full replacement (HTTP + all workers/crons, mirror-tested); refuses to start unless LEGACY_BACKGROUND=on | 🧪 | 41 parity + live boot | |
 | 6 | Email-Automation server | (separate process) | — | | ⬜ | | |
-| 6 | Workers + crons → Nest worker process | — | — | stop in legacy same deploy | ⬜ | | |
+| 6 | Workers + crons → Nest | — | — | main: `LEGACY_BACKGROUND=on` starts everything legacy server.ts runs (workers, Socket.IO, schedulers, crons, migrations), mirror-tested; MasterImportServer: always full. OrderServer + Email-Automation workers still legacy | 🧪 | live boot | |
 | 6 | Decommission legacy | — | — | | ⬜ | | |
 
 ## Session log
@@ -173,7 +176,16 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Phase 6: OrderServer HTTP (7 routes) as a second Nest app; compat made per-app. 1535 tests green. APIs migrated: 450 / 497 | MasterImportServer (20) — check its worker imports; then wait on decisions (MasterImport, sockets, workers cutover) |
 | 2026-11-17 | Claude | MasterImport (25) ported with the worker shim; 1615 tests green. APIs migrated: 475 / 497 | Run legacy + new on the local MongoDB and `npm run test:contract` |
 | 2026-11-17 | Claude | **Live contract run on local MongoDB + Redis: 960 / 960 cases identical** (legacy :8000 from submodule, new :8100; 468 migrated main-server endpoints × identities). It found and I fixed 2 real bugs (env loaded too late; SIGTERM ignored). 1617 unit/parity tests green. APIs migrated: 475 / 497 | User: merge decision; staging + nginx; plan socket + worker moves |
+| 2026-11-17 | Claude | Merged all branches into nestjs (worktree; FE/PROGRESS.txt untouched). MasterImportServer (20, full replacement) + Realtime (2) + background mode for main (workers/Socket.IO/crons/migrations behind LEGACY_BACKGROUND=on) built and boot-tested on local DB; socket event e2e OK. 1670 tests green. APIs migrated: 497 / 497 | User: deploy per runbook; OrderServer + Email-Automation workers move next |
 | 2026-11-17 | Claude | Loop stopped: every remaining endpoint is waiting on a user decision. Done in-process: 450 / 497. Remaining 47 = MasterImport (25) + MasterImportServer (20) [worker-import decision], Realtime (2) [socket cutover]. | See "What needs the user" below |
+
+### Cutover runbook (plain steps, for the server)
+1. Build: `npm ci && npm run build` in `BE/`. Put the SAME env values as the legacy server into `BE/.env` (keys: `BE/.env.example`) + `ALLOW_PROD_DB=true` on the prod host. Desktop installers → `BE/dist/legacy/cmsapp`.
+2. Strangler phase (legacy still running): start the new main server with `LEGACY_BACKGROUND` unset → `npm start` (PORT e.g. 8100). Route `/api/*`, `/view`, `/cms-app`, `/:file` in nginx to it module by module; legacy keeps workers, crons and sockets.
+3. Live-updates + workers cutover (quiet time, coordinate the CMS desktop app): stop the legacy main process → start the new main with `LEGACY_BACKGROUND=on` → route `/socket.io` and `/internal` in nginx to it. Other legacy processes post realtime events to `REALTIME_INTERNAL_URL`: point it at the new main (or give the new main the old port 8000).
+4. MasterImportServer cutover: stop the legacy MasterImportServer → start `npm run start:master-import-server` with `LEGACY_BACKGROUND=on` and the same `MASTER_IMPORT_PORT`.
+5. OrderServer HTTP: `npm run start:order-server` (ORDER_SERVER_PORT) and route `/order` to it; the legacy OrderServer keeps running ONLY for its workers until they are moved too.
+6. Rollback at any step: stop the new process, start the legacy one again, revert the nginx block.
 
 ### What needs the user (to continue)
 1. ⚠⚠ Fix the legacy `GET /api/auth/user-profile` token leak (Blocked, top).

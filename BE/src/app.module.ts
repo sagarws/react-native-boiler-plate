@@ -43,9 +43,10 @@ import { SystemAdminModule } from './modules/system-admin/system-admin.module';
 import { ViewModule } from './modules/view/view.module';
 import { DesktopAppModule } from './modules/desktop-app/desktop-app.module';
 import { MasterImportModule } from './modules/master-import/master-import.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 
 @Module({
-  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule, PlatformsModule, OrderModule, AuthModule, CmsModule, SystemAdminModule, ViewModule, DesktopAppModule, MasterImportModule],
+  imports: [CommonModule, BaseLinkModule, PlanModule, RoleModule, ContactModule, ClaimHistoryModule, CreditHistoryModule, StorageHistoryModule, AccountModule, VideoLinkModule, ReferralModule, CreditsModule, DashboardModule, FeedModule, UserModule, CompanyModule, AppSettingModule, NotificationModule, TemplateModule, TdsModule, ECommercePlatformModule, ProductSkucodeMapModule, MasterImportSettingModule, MarketingSiteModule, ManualPaymentModule, RazorpayModule, FilesModule, ImportsModule, WebhookModule, EmailModule, MailboxModule, WhatsAppModule, SupportChatModule, GoogleDriveModule, EasyEcomModule, PlatformsModule, OrderModule, AuthModule, CmsModule, SystemAdminModule, ViewModule, DesktopAppModule, MasterImportModule, RealtimeModule],
   controllers: [RootController],
 })
 export class AppModule {}
