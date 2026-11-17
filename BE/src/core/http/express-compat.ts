@@ -9,6 +9,7 @@ import finalhandler from 'finalhandler';
 import fresh from 'fresh';
 import { securityHeaders } from '@legacy/middleware/securityHeaders.middleware';
 import { BODY_LIMIT } from './fastify-options';
+import { EXPRESS_APP } from '../legacy/express-adapter';
 
 /**
  * Express-compatible request/response pipeline on Fastify (MIGRATION_PLAN §3 items 2–5, 11, 12).
@@ -33,8 +34,8 @@ export const legacyMiddlewareChain = (): ExpressMiddleware[] => [
 ];
 
 const expressEnv = () => process.env.NODE_ENV || 'development';
-/** separate instance for requests Fastify rejects before routing (see expressFrameworkErrors) */
-let frameworkChain: ExpressMiddleware[] = [];
+/** per-instance chain for requests Fastify rejects before routing (see expressFrameworkErrors) */
+const FRAMEWORK_CHAIN = Symbol.for('legacyFrameworkChain');
 
 /** Express app `logerror`: prints the stack unless env is "test". */
 const logError = (err: any) => {
@@ -103,9 +104,18 @@ const etagOnSend = async (request: FastifyRequest, reply: FastifyReply, payload:
   return payload;
 };
 
-export const registerExpressCompat = (fastify: FastifyInstance): void => {
-  const chain = legacyMiddlewareChain();
-  frameworkChain = legacyMiddlewareChain();
+export interface ExpressCompatOptions {
+  /** app-level middleware in legacy order (default: legacy server.ts chain) */
+  chain?: () => ExpressMiddleware[];
+  /** Express app whose settings back req/res (trust proxy, etag, …); default legacyExpressApp */
+  expressApp?: unknown;
+}
+
+export const registerExpressCompat = (fastify: FastifyInstance, opts: ExpressCompatOptions = {}): void => {
+  const makeChain = opts.chain || legacyMiddlewareChain;
+  const chain = makeChain();
+  (fastify as any)[FRAMEWORK_CHAIN] = makeChain();
+  if (opts.expressApp) (fastify as any)[EXPRESS_APP] = opts.expressApp;
 
   fastify.addHook('onRequest', async (request, reply) => {
     const { err, ended } = await runChain(chain, request.raw, reply.raw);
@@ -135,7 +145,7 @@ export { BODY_LIMIT };
 export const expressFrameworkErrors = async (error: any, request: FastifyRequest, reply: FastifyReply): Promise<void> => {
   // Fastify calls this before onRequest hooks; Express would already have run the app-level
   // middleware (security headers, cors, body parsers) before routing.
-  const { err: mwErr, ended } = await runChain(frameworkChain, request.raw, reply.raw);
+  const { err: mwErr, ended } = await runChain((request.server as any)[FRAMEWORK_CHAIN] || [], request.raw, reply.raw);
   if (ended) return void reply.hijack();
   if (mwErr) return sendExpressFinal(request, reply, mwErr);
   if (error?.code !== 'FST_ERR_BAD_URL') {

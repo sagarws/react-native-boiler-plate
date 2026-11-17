@@ -52,6 +52,8 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Build copies `legacy/views` + `legacy/public` into `dist/legacy` (`scripts/copy-legacy-assets.js`) | Legacy renders `ejs.renderFile("views/…")` and serves `public/` relative to cwd (= dist/legacy). Without it, register/forgot-password/payment/book-demo mails and invoices would fail in prod |
 | 2026-11-17 | `test/e2e/generated-controllers-fresh.spec.ts` + `scripts/regen-controllers.js` | Regenerating from the current legacy route files must reproduce every generated controller; a pin bump that changes routes/middleware/helpers fails the suite until regenerated |
 | 2026-11-17 | XLSX downloads compared by parsed workbook content in parity tests | ZIP entries carry 2-second timestamps; byte comparison was flaky |
+| 2026-11-17 | Express compat is per-app (`registerExpressCompat(fastify, { chain, expressApp })`) | OrderServer has different app middleware and Express settings than the main server; both apps can run in one process (tests) |
+| 2026-11-17 | OrderServer HTTP ported as a separate Nest entry point, workers excluded | Plan §6; nginx can move /order to it while legacy OrderServer keeps running only for its workers |
 | 2026-11-17 | Tests: jest + ts-jest, Fastify `inject()` for in-process HTTP tests | No DB/network needed for compat tests |
 | 2026-11-17 | New app lives in `react-native-boiler-plate/BE`, base branch `nestjs` | User's choice. `FE/` is a sibling folder (not ours); `prompt.txt` + root `.env` are unrelated leftovers, untouched |
 
@@ -126,7 +128,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 5 | DesktopApp | / (catch-all) | 2 | generated; `/:filename` reads `<cwd>/cmsapp` → on the new server `BE/dist/legacy/cmsapp` must hold (or symlink) the installers | 🧪 | route-smoke + catch-all cases | |
 | 5 | bull-board | /admin/queues | — | | ⬜ | | |
 | 5 | Socket.IO (realtime + cms-realtime) | — | — | event contract | ⬜ | | |
-| 6 | OrderServer | (separate process) /order | — | uploads | ⬜ | | |
+| 6 | OrderServer | (separate process) /order | 7 | second Nest app `src/order-server` (`node dist/src/order-server/main.js`, ORDER_SERVER_PORT, default 8101); its own Express settings (x-powered-by on, no trust proxy, 100kb bodies); orderWorker/whatsappWorker/bull-board stay in legacy OrderServer until the worker cutover | 🧪 | 14 smoke + 8 edge/stream | |
 | 6 | MasterImportServer | (separate process) | — | | ⬜ | | |
 | 6 | Email-Automation server | (separate process) | — | | ⬜ | | |
 | 6 | Workers + crons → Nest worker process | — | — | stop in legacy same deploy | ⬜ | | |
@@ -162,6 +164,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Email group: Email (19), Mailbox (27), WhatsApp (16), SupportChat (26), GoogleDrive (4), EasyEcom (1) — generated controllers + route-smoke parity (374 cases). Phase 3 complete in-process. 812 tests green. APIs migrated: 227 / 497 | Phase 4: platforms (Ajio…Nykaa), MasterImport (25), Order (19), Auth (24) |
 | 2026-11-17 | Claude | Phase 4: 9 platforms (`modules/platforms/<p>/`), Order (19), Auth (24) generated; MasterImport BLOCKED (worker at import). Found CRITICAL legacy auth bypass (user-profile). Worker-import guard test added. 1007 tests green. APIs migrated: 288 / 497 | Phase 5: CMS (81), SystemAdmin (71), Realtime, View, DesktopApp; check each for import-time starters |
 | 2026-11-17 | Claude | Phase 5: CMS (81), SystemAdmin (71), View, DesktopApp generated; static/public + views assets fixed for prod layout; generated-controller freshness test. 1513 tests green. APIs migrated: 443 / 497 | Phase 6: OrderServer (7) as a second Nest app — check its workers first; MasterImport + MasterImportServer wait for the worker decision; Realtime waits for socket cutover plan |
+| 2026-11-17 | Claude | Phase 6: OrderServer HTTP (7 routes) as a second Nest app; compat made per-app. 1535 tests green. APIs migrated: 450 / 497 | MasterImportServer (20) — check its worker imports; then wait on decisions (MasterImport, sockets, workers cutover) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 0. ⚠⚠⚠ CRITICAL: `GET /api/auth/user-profile?email=` issues an access token for any email without auth (see Blocked).

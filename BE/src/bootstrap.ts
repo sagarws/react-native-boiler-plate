@@ -2,12 +2,12 @@ import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { fastifyOptions } from './core/http/fastify-options';
-import { expressFrameworkErrors, registerExpressCompat } from './core/http/express-compat';
+import { ExpressCompatOptions, expressFrameworkErrors, registerExpressCompat } from './core/http/express-compat';
 import { LegacyExceptionFilter } from './core/errors/legacy-exception.filter';
 
 /** Applies the legacy-compat layer to any Nest app (used by the real app and by tests). */
-export const applyCompat = (app: NestFastifyApplication): NestFastifyApplication => {
-  registerExpressCompat(app.getHttpAdapter().getInstance());
+export const applyCompat = (app: NestFastifyApplication, opts?: ExpressCompatOptions): NestFastifyApplication => {
+  registerExpressCompat(app.getHttpAdapter().getInstance(), opts);
   app.useGlobalFilters(new LegacyExceptionFilter());
   return app;
 };
