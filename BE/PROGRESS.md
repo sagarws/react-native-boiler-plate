@@ -46,7 +46,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | Phase | Module | Prefix | Routes | Special | Status | Contract cases | Cutover |
 |---|---|---|---|---|---|---|---|
 | 2 | Common | /api/common | 1 | public, no DB | 🧪 | 6 (parity) | |
-| 2 | BaseLink | /api/base-link | 1 | | ⬜ | | |
+| 2 | BaseLink | /api/base-link | 1 | public GET that inserts (legacy quirk, kept) | 🧪 | 7 (parity) + saved-doc check | |
 | 2 | plan | /api/plan | 4 | | ⬜ | | |
 | 2 | Role | /api/role | 4 | | ⬜ | | |
 | 2 | Contact | /api/contacts | 3 | | ⬜ | | |
@@ -115,6 +115,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Phase 1: core/auth guards via legacy middleware adapter; auth parity 40 cases green; build + 101 tests green. APIs migrated: 0 / 497 | core/rate-limit (authRateLimit + rateLimit middlewares), core/upload (multer), core/sse; then the trivial-endpoint exit check and Phase 2 pilot |
 | 2026-11-17 | Claude | Phase 1: adapter switched to native Express req/res; rate-limit, upload, SSE/stream parity green; build + 120 tests green. APIs migrated: 0 / 497 | Contract harness (`test/contract`, HTTP legacy vs new, needs DB for real runs), then Phase 2 pilot starting with Common |
 | 2026-11-17 | Claude | Phase 2: Common ported (native) + Root; parity specs green; build + 134 tests green. APIs migrated: 2 / 497 | BaseLink, then plan, Role, Contact… (Phase 2 order) |
+| 2026-11-17 | Claude | BaseLink ported (native); `fakeSave` test helper (validation runs, write stubbed). APIs migrated: 3 / 497 | plan module |
 
 ### Blocked (needs user)
 1. **No non-prod MongoDB.** No local mongod/docker; legacy `.env` `MONGO_URI` targets DB `prod`. Contract harness and any DB-touching run need a staging/dev DB. Options: (a) put a `dev`-database `MONGO_URI` in `BE/.env.development.local` (legacy notes the `dev` DB lives on the same Atlas cluster), or (b) install MongoDB locally (`brew install mongodb-community`) + seed snapshot. Redis is available locally (PONG).
