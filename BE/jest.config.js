@@ -2,6 +2,10 @@
 module.exports = {
   rootDir: '.',
   testEnvironment: 'node',
+  // parity specs load the whole legacy model graph per worker; too many parallel workers
+  // starve each other and requests time out (seen as flaky 5s timeouts)
+  maxWorkers: '50%',
+  testTimeout: 30000,
   setupFiles: ['<rootDir>/test/support/jest-setup.ts'],
   testMatch: ['<rootDir>/src/**/*.spec.ts', '<rootDir>/test/e2e/**/*.spec.ts', '<rootDir>/test/modules/**/*.spec.ts'],
   transform: {

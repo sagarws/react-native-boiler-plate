@@ -132,6 +132,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Account, VideoLink, Referral, Credits ported (native). memory-db fix: RegExp filter values were dropped (regex queries matched nothing). Known memory-db limits: collation ignored, no indexes/transactions. Phase 2 complete in-process. APIs migrated: 22 / 497 | Phase 3: Dashboard, Feed, User, Company, AppSetting… |
 | 2026-11-17 | Claude | Dashboard (11 routes, delegated). memory-db `useAll()`. APIs migrated: 33 / 497 | Feed (9) |
 | 2026-11-17 | Claude | Feed (9 routes, delegated). Found + fixed compat gap: malformed-HTTP responses. APIs migrated: 42 / 497 | User (17) |
+| 2026-11-17 | Claude | ⚠ The Feed merge (ee1445f) went in with 1 intermittently failing test: my verify step grepped the test output instead of checking `npm test`'s exit code. Cause: parallel jest workers each load the whole legacy model graph → 5s timeouts under load (auth/middleware parity specs, 75–114s suites). Fix: `maxWorkers: '50%'`, `testTimeout: 30000`; 6/6 full runs green (7–10s). Verify step now uses the exit code | User (17) |
 
 ### Legacy PRs wanted (need user approval; not blocking)
 1. StorageHistory: extract `getCompanyOverviewReport` / `getCompanyFeedDetailsReport` / `getCompanyList` / `getCompanyAggregatedData` into `services/storageHistoryReport.service.ts` (pure functions) so the Nest controller can stop delegating.
