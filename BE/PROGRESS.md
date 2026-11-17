@@ -129,7 +129,7 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 5 | bull-board | /admin/queues | — | | ⬜ | | |
 | 5 | Socket.IO (realtime + cms-realtime) | — | — | event contract | ⬜ | | |
 | 6 | OrderServer | (separate process) /order | 7 | second Nest app `src/order-server` (`node dist/src/order-server/main.js`, ORDER_SERVER_PORT, default 8101); its own Express settings (x-powered-by on, no trust proxy, 100kb bodies); orderWorker/whatsappWorker/bull-board stay in legacy OrderServer until the worker cutover | 🧪 | 14 smoke + 8 edge/stream | |
-| 6 | MasterImportServer | (separate process) | — | | ⬜ | | |
+| 6 | MasterImportServer | (separate process) | 20 | ⛔ same worker-import blocker as MasterImport; its v2 HTTP routes also drive in-process pipeline state (triggerDeferredFile, file trackers) → likely must move together with its workers/crons in the worker cutover | ⛔ | | |
 | 6 | Email-Automation server | (separate process) | — | | ⬜ | | |
 | 6 | Workers + crons → Nest worker process | — | — | stop in legacy same deploy | ⬜ | | |
 | 6 | Decommission legacy | — | — | | ⬜ | | |
@@ -165,6 +165,15 @@ Status: ⬜ not started · 🟡 in progress · 🧪 contract-tested · 🚦 stag
 | 2026-11-17 | Claude | Phase 4: 9 platforms (`modules/platforms/<p>/`), Order (19), Auth (24) generated; MasterImport BLOCKED (worker at import). Found CRITICAL legacy auth bypass (user-profile). Worker-import guard test added. 1007 tests green. APIs migrated: 288 / 497 | Phase 5: CMS (81), SystemAdmin (71), Realtime, View, DesktopApp; check each for import-time starters |
 | 2026-11-17 | Claude | Phase 5: CMS (81), SystemAdmin (71), View, DesktopApp generated; static/public + views assets fixed for prod layout; generated-controller freshness test. 1513 tests green. APIs migrated: 443 / 497 | Phase 6: OrderServer (7) as a second Nest app — check its workers first; MasterImport + MasterImportServer wait for the worker decision; Realtime waits for socket cutover plan |
 | 2026-11-17 | Claude | Phase 6: OrderServer HTTP (7 routes) as a second Nest app; compat made per-app. 1535 tests green. APIs migrated: 450 / 497 | MasterImportServer (20) — check its worker imports; then wait on decisions (MasterImport, sockets, workers cutover) |
+| 2026-11-17 | Claude | Loop stopped: every remaining endpoint is waiting on a user decision. Done in-process: 450 / 497. Remaining 47 = MasterImport (25) + MasterImportServer (20) [worker-import decision], Realtime (2) [socket cutover]. | See "What needs the user" below |
+
+### What needs the user (to continue)
+1. ⚠⚠ Fix the legacy `GET /api/auth/user-profile` token leak (Blocked, top).
+2. MasterImport worker import: option (a) legacy PR moving `invalidTransitions`/`IMPORT_PLATFORM` to constants, or (b) Nest shim. Then MasterImport (25). MasterImportServer (20) additionally needs a plan for moving its workers/crons with it.
+3. Socket.IO + Realtime receiver move (Phase 5 socket cutover) — coordinate with Trackvid-CMS desktop/web.
+4. A non-prod MongoDB URI → run `npm run test:contract` against both servers; staging + nginx per prefix; then cutovers (✅ column).
+5. Merge of the branch chain (`migrate/template-tds` … `migrate/phase6-order-server`, incl. your FE commit 1db4381) into `nestjs`.
+6. Approval for the legacy PRs below (security first: user-profile token, public file delete, update-claims, add-storage-history, upload-logo).
 
 ### Legacy PRs wanted (need user approval; not blocking)
 0. ⚠⚠⚠ CRITICAL: `GET /api/auth/user-profile?email=` issues an access token for any email without auth (see Blocked).
