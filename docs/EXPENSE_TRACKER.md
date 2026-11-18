@@ -40,26 +40,19 @@ device; nothing is sent anywhere.
      decline a payment to a person that another app started (e.g. PhonePe's "pay up to ₹2,000
      with QR codes via gallery", Google Pay's "money has not been debited"), but not from their
      own scanner.
-   Before the UPI app opens, the expense is saved as **pending** and its id is stored as
-   `awaitingConfirmationId`.
-8. When the user returns, a sheet asks *Did the payment go through?* — **Payment successful /
-   Pending / Payment failed**. Only *successful* marks it `paid`.
+   Choosing an app records the expense as **paid** and redirects to that app.
+8. There is no "did it go through?" question: whatever happens in the UPI app (success,
+   failure, back without paying) the record stays `paid`. It can be edited from History.
 
 ### Business rules
 
-- **No gateway, no credentials, no fake confirmation.** The UPI PIN is entered in the UPI app.
-  The UPI app's own `Status=` response, when present, is shown only as a hint ("isn't proof of
-  payment"); the user's answer decides the status.
+- **No gateway, no credentials.** The UPI PIN is entered in the UPI app. The UPI app's
+  `Status=` response is ignored: every payment started from Scan & Pay is recorded as `paid`.
 - Only `paid` expenses count as spending (summary, budget, analytics). `pending` is shown
-  separately; `failed` is excluded.
-- If the UPI app can't be opened, the pending record is deleted (no money can have moved).
-- **Lifecycle:** the confirmation question survives Android killing the app while the UPI app is
-  in front (it is re-asked on next launch from `awaitingConfirmationId`). If a UPI app returns
-  without a result, the question is asked 1.5 s after the app becomes active again, and *I'm
-  back* is always available.
-- Closing the confirmation sheet keeps the payment pending; it can be updated from History.
-- After a pay link, the confirmation offers *Didn't work? Scan in <app>*, which reopens that
-  app for scanning and keeps the same pending record.
+  separately; `failed` is excluded. Pending/failed can still be set by hand from History.
+- If the UPI app can't be opened (no redirect happened), the record is deleted.
+- `awaitingConfirmationId` is kept in storage only for compatibility: a value left by an
+  older version is cleared on launch.
 - Amounts are integer paise (₹1 = 100). Limits: > ₹0 and ≤ ₹1 crore. Dates can't be in the future.
 
 ## Storage (MMKV — the app's existing local database)

@@ -12,12 +12,11 @@ import { Sheet } from '@/features/followup';
 import { FormField } from '@/features/life';
 import { Button, Icon, Notice, SegmentedControl } from '@/shared/components';
 import { useTheme } from '@/theme';
-import type { CategoryLookup } from '../hooks/useExpense';
 import type { PayHow, UpiPayment } from '../hooks/useUpiPayment';
 import type { UpiPayee } from '../services/upi';
-import type { Expense, TransactionStatus } from '../types';
+import type { UpiApp } from '../services/native.service';
+import type { Expense } from '../types';
 import { formatInr, parseAmount } from '../utils/money';
-import { useExpenseLabels } from './labels';
 
 function DetailRow({ label, value }: { label: string; value: string }) {
   const { colors, typography, spacing } = useTheme();
@@ -152,112 +151,6 @@ function EnterAmount({
   );
 }
 
-function ConfirmPayment({
-  expense,
-  report,
-  lookup,
-  onAnswer,
-  retryApp,
-  onRetryInApp,
-}: {
-  expense: Expense;
-  report: 'success' | 'failure' | 'submitted' | 'unknown';
-  lookup: CategoryLookup;
-  onAnswer: (status: TransactionStatus) => void;
-  /** Label of the UPI app used, when retrying by scanning in it is possible. */
-  retryApp: string | null;
-  onRetryInApp: () => void;
-}) {
-  const { t } = useTranslation();
-  const { spacing, colors, radius } = useTheme();
-  const labels = useExpenseLabels();
-  return (
-    <Sheet
-      visible
-      title={t('expense.confirmTitle')}
-      subtitle={t('expense.confirmHint')}
-      // Closing without an answer keeps it pending; it can be updated later.
-      onClose={() => onAnswer('pending')}
-      testID="pay-confirm"
-      footer={
-        <>
-          <Button
-            iconName="circleCheck"
-            label={t('expense.paymentSuccessful')}
-            onPress={() => onAnswer('paid')}
-            testID="pay-confirm-paid"
-          />
-          <View style={[styles.row, { gap: spacing.sm }]}>
-            <Button
-              variant="soft"
-              iconName="hourglass"
-              label={t('expense.paymentPending')}
-              onPress={() => onAnswer('pending')}
-              style={styles.flex}
-              testID="pay-confirm-pending"
-            />
-            <Button
-              variant="danger"
-              iconName="circleX"
-              label={t('expense.paymentFailed')}
-              onPress={() => onAnswer('failed')}
-              style={styles.flex}
-              testID="pay-confirm-failed"
-            />
-          </View>
-          {retryApp ? (
-            <Button
-              variant="ghost"
-              iconName="qrCode"
-              label={t('expense.retryScanInApp', { app: retryApp })}
-              onPress={onRetryInApp}
-              testID="pay-confirm-retry"
-            />
-          ) : null}
-        </>
-      }
-    >
-      <View
-        style={{
-          backgroundColor: colors.surfaceMuted,
-          borderRadius: radius.lg,
-          padding: spacing.md,
-          gap: spacing.xs,
-        }}
-      >
-        <DetailRow
-          label={t('expense.amount')}
-          value={formatInr(expense.amount)}
-        />
-        <DetailRow
-          label={t('expense.payee')}
-          value={
-            [expense.merchantName, expense.merchantUpiId]
-              .filter(Boolean)
-              .join(' · ') || t('expense.unnamedPayee')
-          }
-        />
-        <DetailRow
-          label={t('expense.category')}
-          value={lookup.nameById(expense.categoryId)}
-        />
-        <DetailRow
-          label={t('expense.paymentMethod')}
-          value={labels.method(expense.paymentMethod)}
-        />
-      </View>
-      {report !== 'unknown' ? (
-        <Notice
-          tone="info"
-          title={t(`expense.report_${report}`)}
-          message={t('expense.reportHint')}
-          testID="pay-confirm-report"
-        />
-      ) : null}
-    </Sheet>
-  );
-}
-
 type ChooseStep = Extract<UpiPayment['step'], { kind: 'chooseApp' }>;
 
 /**
@@ -268,9 +161,11 @@ type ChooseStep = Extract<UpiPayment['step'], { kind: 'chooseApp' }>;
 function ChooseApp({
   payment,
   step,
+  onPaid,
 }: {
   payment: UpiPayment;
   step: ChooseStep;
+  onPaid: (expense: Expense) => void;
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing, radius } = useTheme();
@@ -278,6 +173,10 @@ function ChooseApp({
     step.payee.personal ? 'scanInApp' : 'link',
   );
   const scan = how === 'scanInApp';
+  const payWith = async (app: UpiApp | null, method?: PayHow) => {
+    const saved = await payment.pay(app, method);
+    if (saved) onPaid(saved);
+  };
   return (
     <Sheet
       visible
@@ -320,7 +219,7 @@ function ChooseApp({
         <Pressable
           key={app.packageName}
           testID={`pay-app-${app.packageName}`}
-          onPress={() => payment.pay(app, how)}
+          onPress={() => payWith(app, how)}
           accessibilityRole="button"
           accessibilityLabel={
             scan
@@ -374,7 +273,7 @@ function ChooseApp({
       {scan ? null : (
         <Pressable
           testID="pay-app-chooser"
-          onPress={() => payment.pay(null)}
+          onPress={() => payWith(null)}
           accessibilityRole="button"
           accessibilityLabel={t('expense.otherUpiApp')}
           style={({ pressed }) => [
@@ -417,16 +316,15 @@ function ChooseApp({
 
 /**
  * Every sheet of the Scan QR & Pay flow, driven by the payment hook's step.
- * [onConfirmed] runs after the user answered "did it go through?".
+ * [onPaid] runs once the UPI app was opened; the payment is already
+ * recorded as paid, whatever happens in that app.
  */
 export function PaymentSheets({
   payment,
-  lookup,
-  onConfirmed,
+  onPaid,
 }: {
   payment: UpiPayment;
-  lookup: CategoryLookup;
-  onConfirmed: (expense: Expense) => void;
+  onPaid: (expense: Expense) => void;
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -477,40 +375,7 @@ export function PaymentSheets({
         </Sheet>
       );
     case 'chooseApp':
-      return <ChooseApp payment={payment} step={step} />;
-    case 'launching':
-      return (
-        <Sheet
-          visible
-          title={t('expense.waitingTitle')}
-          subtitle={t('expense.waitingHint')}
-          onClose={payment.returned}
-          testID="pay-waiting"
-          footer={
-            <Button
-              label={t('expense.imBack')}
-              onPress={payment.returned}
-              testID="pay-returned"
-            />
-          }
-        >
-          <ActivityIndicator color={colors.primary} />
-        </Sheet>
-      );
-    case 'confirm':
-      return payment.confirming ? (
-        <ConfirmPayment
-          expense={payment.confirming}
-          report={step.report}
-          lookup={lookup}
-          onAnswer={status => {
-            const saved = payment.confirm(status);
-            if (saved) onConfirmed(saved);
-          }}
-          retryApp={step.app?.label ?? null}
-          onRetryInApp={payment.scanInAppInstead}
-        />
-      ) : null;
+      return <ChooseApp payment={payment} step={step} onPaid={onPaid} />;
     default:
       return null;
   }

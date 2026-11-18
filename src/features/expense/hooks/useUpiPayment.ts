@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AppState } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   ensureCamera,
@@ -7,7 +6,6 @@ import {
   utilityNative,
   UtilityError,
 } from '@/features/utility';
-import { logger } from '@/shared/utils';
 import {
   ExpenseNativeError,
   upiNative,
@@ -16,13 +14,11 @@ import {
 import {
   buildUpiUri,
   parseUpiQr,
-  parseUpiResponse,
-  type UpiAppReport,
   type UpiParseError,
   type UpiPayee,
 } from '../services/upi';
 import { expenseStore } from '../store/expense.store';
-import type { Expense, TransactionStatus } from '../types';
+import type { Expense } from '../types';
 import { parseAmount } from '../utils/money';
 import { expenseActions } from './useExpense';
 
@@ -59,16 +55,6 @@ export type PayStep =
       amount: number;
       uri: string;
       apps: UpiApp[];
-    }
-  /** The UPI app is in front; waiting for the user to come back. */
-  | { kind: 'launching'; expenseId: string; app: UpiApp | null }
-  /** Back from the UPI app: the user says what happened. */
-  | {
-      kind: 'confirm';
-      expenseId: string;
-      report: UpiAppReport;
-      /** The app used, so the user can retry by scanning in it. */
-      app: UpiApp | null;
     };
 
 /**
@@ -86,28 +72,20 @@ export interface PayRequest {
   description: string;
 }
 
-/** How long after returning to the app before we stop waiting for the UPI
- *  app's result and ask the user directly. */
-const RETURN_GRACE_MS = 1500;
-
 export interface UpiPayment {
   step: PayStep;
   problem: PayProblem | null;
-  /** The expense being confirmed (for the confirmation sheet). */
-  confirming: Expense | undefined;
   /** Scan the QR with the camera. */
   start: (request: PayRequest) => Promise<void>;
   /** Read the QR from an image in the gallery. */
   startFromGallery: (request: PayRequest) => Promise<void>;
   pickAmount: (amount: number) => void;
-  /** Pays with [app], or with Android's app chooser when null. */
-  pay: (app: UpiApp | null, how?: PayHow) => Promise<void>;
-  /** From the confirmation: the link failed, so scan in the same app. */
-  scanInAppInstead: () => Promise<void>;
-  /** "I'm back" while waiting on the UPI app. */
-  returned: () => void;
-  /** Records the user's answer; only `paid` marks it paid. */
-  confirm: (status: TransactionStatus) => Expense | null;
+  /**
+   * Records the payment as `paid` and opens [app] (or Android's app chooser
+   * when null). Resolves to the saved expense, or null when the UPI app
+   * could not be opened (the record is then dropped).
+   */
+  pay: (app: UpiApp | null, how?: PayHow) => Promise<Expense | null>;
   cancel: () => void;
   clearProblem: () => void;
   openSettings: () => void;
@@ -115,10 +93,10 @@ export interface UpiPayment {
 
 /**
  * Scan QR & Pay. The QR is parsed and validated, the user picks the amount
- * if the QR and their entry disagree, then picks a UPI app. The expense is
- * saved as `pending` *before* the UPI app opens, and the "did it go
- * through?" question is persisted, so it is asked even if Android closes this
- * app meanwhile. Nothing is marked paid until the user says so.
+ * if the QR and their entry disagree, then picks a UPI app. Choosing an app
+ * records the expense as `paid` and redirects to that app; whatever happens
+ * there (success or failure) the record stays `paid` — it can be edited
+ * from History.
  */
 export function useUpiPayment(): UpiPayment {
   const { t } = useTranslation();
@@ -126,55 +104,12 @@ export function useUpiPayment(): UpiPayment {
   const [problem, setProblem] = useState<PayProblem | null>(null);
   const request = useRef<PayRequest | null>(null);
 
-  // Ask about a payment left unconfirmed (app closed while in the UPI app).
+  // Older versions asked "did it go through?" after the UPI app; that
+  // question is gone, so forget any one left over.
   useEffect(() => {
-    const id = expenseStore.read().settings.awaitingConfirmationId;
-    if (!id) return;
-    if (expenseStore.find(id))
-      setStep({ kind: 'confirm', expenseId: id, report: 'unknown', app: null });
-    else expenseStore.setAwaitingConfirmation('');
-  }, []);
-
-  // Back in the app but the UPI app never reported back (some don't): ask.
-  useEffect(() => {
-    if (step.kind !== 'launching') return undefined;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const sub = AppState.addEventListener('change', state => {
-      if (state !== 'active') return;
-      clearTimeout(timer);
-      timer = setTimeout(
-        () =>
-          setStep(cur =>
-            cur.kind === 'launching'
-              ? {
-                  kind: 'confirm',
-                  expenseId: cur.expenseId,
-                  report: 'unknown',
-                  app: cur.app,
-                }
-              : cur,
-          ),
-        RETURN_GRACE_MS,
-      );
-    });
-    return () => {
-      clearTimeout(timer);
-      sub.remove();
-    };
-  }, [step.kind]);
-
-  // The expense being confirmed was deleted (e.g. from history): stop asking.
-  const confirmId = step.kind === 'confirm' ? step.expenseId : '';
-  useEffect(() => {
-    if (!confirmId) return undefined;
-    const check = () => {
-      if (expenseStore.find(confirmId)) return;
+    if (expenseStore.read().settings.awaitingConfirmationId)
       expenseStore.setAwaitingConfirmation('');
-      setStep({ kind: 'idle' });
-    };
-    check();
-    return expenseStore.subscribe(check);
-  }, [confirmId]);
+  }, []);
 
   const toApps = useCallback(async (payee: UpiPayee, amount: number) => {
     const uri = buildUpiUri(payee, amount, request.current?.description ?? '');
@@ -295,118 +230,59 @@ export function useUpiPayment(): UpiPayment {
     }
   };
 
-  const pay = async (app: UpiApp | null, how: PayHow = 'link') => {
-    if (step.kind !== 'chooseApp' || !request.current) return;
+  const pay = async (
+    app: UpiApp | null,
+    how: PayHow = 'link',
+  ): Promise<Expense | null> => {
+    if (step.kind !== 'chooseApp' || !request.current) return null;
     const { payee, amount, uri } = step;
     const created = expenseActions.createExpense({
       amount,
       categoryId: request.current.categoryId,
       description: request.current.description,
       paymentMethod: 'upi',
-      status: 'pending',
+      // Recorded as paid as soon as the user is sent to the UPI app,
+      // whatever the app reports afterwards.
+      status: 'paid',
       transactionDate: new Date().toISOString(),
       merchantName: payee.name,
       merchantUpiId: payee.upiId,
     });
+    setStep({ kind: 'idle' });
     if (!created.ok) {
       setProblem('save_failed');
-      setStep({ kind: 'idle' });
-      return;
+      return null;
     }
-    const id = created.value.id;
-    expenseStore.setAwaitingConfirmation(id);
-    setStep({ kind: 'launching', expenseId: id, app });
-    if (how === 'scanInApp' && app) {
-      try {
-        // No result comes back from the app's home screen: the return to
-        // this app (AppState) brings up the confirmation.
-        await upiNative.openApp(app.packageName);
-      } catch {
-        // Logged by the service. The app never opened: drop the draft.
-        expenseActions.deleteExpense(id);
-        setProblem('launch_failed');
-        setStep({ kind: 'idle' });
-      }
-      return;
-    }
+    const expense = created.value;
     try {
-      const { response } = await upiNative.launch(
-        uri,
-        app?.packageName ?? null,
-        t('expense.payWith'),
-      );
-      const report = parseUpiResponse(response);
-      setStep(cur =>
-        (cur.kind === 'launching' || cur.kind === 'confirm') &&
-        cur.expenseId === id
-          ? { kind: 'confirm', expenseId: id, report, app }
-          : cur,
-      );
+      if (how === 'scanInApp' && app) await upiNative.openApp(app.packageName);
+      else
+        await upiNative.launch(
+          uri,
+          app?.packageName ?? null,
+          t('expense.payWith'),
+        );
+      return expense;
     } catch (error) {
-      // The UPI app never opened, so no money can have moved: drop the draft.
-      expenseActions.deleteExpense(id);
+      // Logged by the service. The UPI app never opened, so there was no
+      // redirect and no money can have moved: drop the record.
+      expenseActions.deleteExpense(expense.id);
       const code =
         error instanceof ExpenseNativeError ? error.code : 'launch_failed';
       setProblem(code === 'no_app' ? 'no_app' : 'launch_failed');
-      setStep({ kind: 'idle' });
-    }
-  };
-
-  const returned = () =>
-    setStep(cur =>
-      cur.kind === 'launching'
-        ? {
-            kind: 'confirm',
-            expenseId: cur.expenseId,
-            report: 'unknown',
-            app: cur.app,
-          }
-        : cur,
-    );
-
-  const scanInAppInstead = async () => {
-    if (step.kind !== 'confirm' || !step.app) return;
-    const { expenseId, app } = step;
-    setStep({ kind: 'launching', expenseId, app });
-    try {
-      await upiNative.openApp(app.packageName);
-    } catch {
-      // Logged by the service. Couldn't open it: back to the question, the record stays pending.
-      setStep({ kind: 'confirm', expenseId, report: 'unknown', app });
-    }
-  };
-
-  const confirm = (status: TransactionStatus): Expense | null => {
-    if (step.kind !== 'confirm') return null;
-    const result = expenseActions.setStatus(step.expenseId, status);
-    expenseStore.setAwaitingConfirmation('');
-    setStep({ kind: 'idle' });
-    if (!result.ok) {
-      logger.warn('payment status could not be saved', result.error);
       return null;
     }
-    return result.value;
   };
 
-  const cancel = () => {
-    if (step.kind === 'confirm' || step.kind === 'launching') return;
-    setStep({ kind: 'idle' });
-  };
-
-  const confirming =
-    step.kind === 'confirm' ? expenseStore.find(step.expenseId) : undefined;
+  const cancel = () => setStep({ kind: 'idle' });
 
   return {
     step,
     problem,
-    confirming,
     start,
     startFromGallery,
     pickAmount,
     pay,
-    scanInAppInstead,
-    returned,
-    confirm,
     cancel,
     clearProblem: () => setProblem(null),
     openSettings: openAppSettings,

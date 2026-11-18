@@ -97,12 +97,11 @@ export default function ExpenseTrackerScreen() {
     payment.startFromGallery(payRequest());
   };
 
-  const onConfirmed = (expense: Expense) => {
+  const onPaid = (expense: Expense) => {
     setTab('add');
     const amount = formatInr(expense.amount);
-    setSaved(t(`expense.confirmed_${expense.status}`, { amount }));
-    // A failed payment keeps the form filled so it can be retried.
-    if (expense.status !== 'failed') form.reset();
+    setSaved(t('expense.confirmed_paid', { amount }));
+    form.reset();
   };
 
   const showPending = () => {
@@ -221,11 +220,7 @@ export default function ExpenseTrackerScreen() {
           lookup={lookup}
         />
       ) : null}
-      <PaymentSheets
-        payment={payment}
-        lookup={lookup}
-        onConfirmed={onConfirmed}
-      />
+      <PaymentSheets payment={payment} onPaid={onPaid} />
     </View>
   );
 }

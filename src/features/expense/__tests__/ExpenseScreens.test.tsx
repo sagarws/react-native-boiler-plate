@@ -1,5 +1,5 @@
 import React from 'react';
-import { Alert, AppState, type AlertButton } from 'react-native';
+import { Alert, type AlertButton } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 import { check, request } from 'react-native-permissions';
 import '@/i18n';
@@ -186,7 +186,7 @@ describe('Scan QR & Pay', () => {
     return r;
   }
 
-  it('asks which amount, lists UPI apps, opens one and records only what the user confirms', async () => {
+  it('asks which amount, lists UPI apps, opens one and records it as paid', async () => {
     const r = await startScan('450');
     expect(has(r, 'pay-choose-amount')).toBe(true);
     expect(texts(r)).toContain('Ram Stores');
@@ -204,26 +204,25 @@ describe('Scan QR & Pay', () => {
       expect.stringContaining('am=450.00'),
       GPAY.packageName,
     );
-    // Saved as pending before anyone says it was paid.
-    const [pending] = expenseStore.read().expenses;
-    expect(pending).toMatchObject({
+    // Recorded as paid on redirect, with no "did it go through?" question.
+    const [paid] = expenseStore.read().expenses;
+    expect(paid).toMatchObject({
       amount: 45_000,
-      status: 'pending',
+      status: 'paid',
       paymentMethod: 'upi',
       categoryId: 'shopping',
       merchantName: 'Ram Stores',
       merchantUpiId: 'ramstores@okaxis',
     });
-    expect(has(r, 'pay-confirm')).toBe(true);
-    expect(texts(r)).toContain('Your UPI app reported: Success');
-
-    await press(r, 'pay-confirm-paid');
-    expect(expenseStore.find(pending.id)?.status).toBe('paid');
-    expect(expenseStore.read().settings.awaitingConfirmationId).toBe('');
+    expect(has(r, 'pay-confirm')).toBe(false);
+    expect(has(r, 'pay-apps')).toBe(false);
     expect(texts(r)).toContain('₹450 payment marked as paid.');
   });
 
-  it('uses the QR amount when none was typed, and keeps the form after a failure', async () => {
+  it('uses the QR amount when none was typed, and records it as paid even if the UPI app reports a failure', async () => {
+    upi.launchUpiApp.mockResolvedValue(
+      JSON.stringify({ result: 'ok', response: 'txnId=1&Status=FAILURE' }),
+    );
     const r = await startScan('');
     expect(has(r, 'pay-choose-amount')).toBe(false);
     // The QR's own amount is passed through exactly as scanned.
@@ -231,150 +230,24 @@ describe('Scan QR & Pay', () => {
       expect.stringContaining('&am=500&'),
     );
     await press(r, `pay-app-${GPAY.packageName}`);
-    await press(r, 'pay-confirm-failed');
-    expect(expenseStore.read().expenses[0].status).toBe('failed');
-    const description = r.root.findAll(
-      n => n.props.testID === 'add-description' && 'value' in n.props,
-    )[0];
-    expect(description.props.value).toBe('Shirt');
+    expect(expenseStore.read().expenses[0]).toMatchObject({
+      amount: 50_000,
+      status: 'paid',
+    });
   });
 
-  it('asks for an amount when neither the user nor the QR gave one', async () => {
-    utility.scanBarcode.mockResolvedValue(
-      JSON.stringify({ value: 'upi://pay?pa=friend@ybl', format: 'QR_CODE' }),
-    );
-    const r = await startScan('');
-    expect(has(r, 'pay-enter-amount')).toBe(true);
-    await type(r, 'pay-enter-amount-field', '75');
-    await press(r, 'pay-enter-amount-continue');
-    expect(upi.getUpiApps).toHaveBeenCalledWith(
-      expect.stringContaining('am=75.00'),
-    );
-  });
-
-  it('rejects a QR that is not a UPI payment', async () => {
-    utility.scanBarcode.mockResolvedValue(
-      JSON.stringify({ value: 'https://example.com', format: 'QR_CODE' }),
-    );
-    const r = await startScan('100');
-    expect(texts(r)).toContain('Not a UPI payment QR');
-    expect(upi.getUpiApps).not.toHaveBeenCalled();
-    expect(expenseStore.read().expenses).toHaveLength(0);
-  });
-
-  it("falls back to Android's chooser when apps can't be listed", async () => {
-    upi.getUpiApps.mockResolvedValue('[]');
-    upi.launchUpiChooser.mockResolvedValue(
-      JSON.stringify({ result: 'cancelled', response: '' }),
-    );
-    const r = await startScan('500');
-    expect(has(r, 'pay-no-apps')).toBe(true);
-    expect(expenseStore.read().expenses).toHaveLength(0);
-    await press(r, 'pay-app-chooser');
-    expect(upi.launchUpiChooser).toHaveBeenCalledWith(
-      expect.stringContaining('am=500'),
-      'Pay with',
-    );
-    expect(upi.launchUpiApp).not.toHaveBeenCalled();
-    expect(has(r, 'pay-confirm')).toBe(true);
-    expect(expenseStore.read().expenses[0].status).toBe('pending');
-  });
-
-  it('reads the QR from a gallery image', async () => {
-    upi.pickQrImage.mockResolvedValue(QR);
-    const r = await render();
-    await press(r, 'expense-tab-add');
-    await press(r, 'add-gallery');
-    expect(utility.scanBarcode).not.toHaveBeenCalled();
-    expect(upi.getUpiApps).toHaveBeenCalledWith(
-      expect.stringContaining('pa=ramstores@okaxis'),
-    );
-    expect(has(r, 'pay-apps')).toBe(true);
-  });
-
-  it('explains an image without a QR, and a cancelled pick does nothing', async () => {
-    upi.pickQrImage.mockRejectedValueOnce(
-      Object.assign(new Error('x'), { code: 'no_qr' }),
-    );
-    const r = await render();
-    await press(r, 'expense-tab-add');
-    await press(r, 'add-gallery');
-    expect(texts(r)).toContain('No QR code found');
-
-    upi.pickQrImage.mockResolvedValueOnce('');
-    await press(r, 'add-gallery');
-    expect(has(r, 'pay-problem')).toBe(false);
-    expect(upi.getUpiApps).not.toHaveBeenCalled();
-  });
-
-  it('pays a person by scanning in the UPI app, then asks what happened', async () => {
+  it('records it as paid when scanning in the UPI app', async () => {
     utility.scanBarcode.mockResolvedValue(
       JSON.stringify({ value: PERSONAL_QR, format: 'QR_CODE' }),
     );
-    upi.openUpiApp.mockResolvedValue(true);
-    jest.useFakeTimers();
-    try {
-      const r = await startScan('5');
-      expect(texts(r)).toContain('Scan in Google Pay');
-      await press(r, `pay-app-${GPAY.packageName}`);
-      expect(upi.openUpiApp).toHaveBeenCalledWith(GPAY.packageName);
-      expect(upi.launchUpiApp).not.toHaveBeenCalled();
-      expect(expenseStore.read().expenses[0]).toMatchObject({
-        amount: 500,
-        status: 'pending',
-        merchantUpiId: 'friend@kotakbank',
-      });
-      expect(has(r, 'pay-waiting')).toBe(true);
-
-      // Back from the UPI app → the confirmation question.
-      // React Native's preset already mocks AppState: read its listeners.
-      const listeners = (AppState.addEventListener as jest.Mock).mock.calls
-        .filter(([event]) => event === 'change')
-        .map(([, listener]) => listener as (s: string) => void);
-      await ReactTestRenderer.act(async () => {
-        listeners.forEach(l => l('active'));
-        jest.advanceTimersByTime(2000);
-      });
-      expect(has(r, 'pay-confirm')).toBe(true);
-      await press(r, 'pay-confirm-paid');
-      expect(expenseStore.read().expenses[0].status).toBe('paid');
-    } finally {
-      jest.useRealTimers();
-    }
-  });
-
-  it('can switch a personal payment back to the pay link', async () => {
-    utility.scanBarcode.mockResolvedValue(
-      JSON.stringify({ value: PERSONAL_QR, format: 'QR_CODE' }),
-    );
-    const r = await startScan('5');
-    expect(texts(r)).toContain('Scan in app');
-    const link = r.root.findAll(
-      n => n.props.accessibilityLabel === 'Pay link' && n.props.onPress,
-    )[0];
-    await ReactTestRenderer.act(async () => link.props.onPress());
+    const r = await startScan('200');
     await press(r, `pay-app-${GPAY.packageName}`);
-    expect(upi.launchUpiApp).toHaveBeenCalledWith(
-      'upi://pay?pa=friend@kotakbank&pn=Asha&mode=02&am=5.00&cu=INR&tn=Shirt',
-      GPAY.packageName,
-    );
-  });
-
-  it('offers to scan in the same app when a pay link failed', async () => {
-    upi.launchUpiApp.mockResolvedValue(
-      JSON.stringify({ result: 'ok', response: 'Status=FAILURE' }),
-    );
-    upi.openUpiApp.mockResolvedValue(true);
-    const r = await startScan('');
-    await press(r, `pay-app-${GPAY.packageName}`);
-    expect(texts(r)).toContain('Your UPI app reported: Failed');
-    expect(texts(r)).toContain("Didn't work? Scan in Google Pay");
-    await press(r, 'pay-confirm-retry');
     expect(upi.openUpiApp).toHaveBeenCalledWith(GPAY.packageName);
-    expect(has(r, 'pay-waiting')).toBe(true);
-    // Still the same single pending record.
-    expect(expenseStore.read().expenses).toHaveLength(1);
-    expect(expenseStore.read().expenses[0].status).toBe('pending');
+    expect(upi.launchUpiApp).not.toHaveBeenCalled();
+    expect(expenseStore.read().expenses[0]).toMatchObject({
+      amount: 20_000,
+      status: 'paid',
+    });
   });
 
   it('pays a signed QR at its own amount, untouched', async () => {
@@ -412,7 +285,7 @@ describe('Scan QR & Pay', () => {
     expect(texts(r)).toContain('Check the amount');
   });
 
-  it('asks again about a payment left unconfirmed when the app was closed', async () => {
+  it('forgets a confirmation question left over from an older version', async () => {
     const created = expenseStore.createExpense({
       amount: 9_900,
       categoryId: 'food',
@@ -426,9 +299,7 @@ describe('Scan QR & Pay', () => {
     if (!created.ok) throw new Error('create failed');
     expenseStore.setAwaitingConfirmation(created.value.id);
     const r = await render();
-    expect(has(r, 'pay-confirm')).toBe(true);
-    expect(has(r, 'pay-confirm-report')).toBe(false);
-    await press(r, 'pay-confirm-pending');
+    expect(has(r, 'pay-confirm')).toBe(false);
     expect(expenseStore.find(created.value.id)?.status).toBe('pending');
     expect(expenseStore.read().settings.awaitingConfirmationId).toBe('');
   });
