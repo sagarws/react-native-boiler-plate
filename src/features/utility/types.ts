@@ -33,7 +33,8 @@ export interface Measurement {
   id: string;
   mode: MeasureMode;
   meters: number;
-  /** Which ARCore surface the points were on: plane | depth | point. */
+  /** Which ARCore surface the points were on (plane | depth | point), or
+   *  'angle' for an angle (trigonometric) measurement. */
   source: string;
   label: string;
   at: string;
@@ -50,6 +51,11 @@ export interface ScannedDocument {
 
 export interface UtilityPrefs {
   unit: LengthUnit;
+  /** Bubble level zero offsets, degrees (set by "Calibrate"). */
+  levelCalibration: { x: number; y: number; edge: number };
+  /** Last known lengths for angle measuring, metres (0 = not set). */
+  sightDistance: number;
+  sightDeviceHeight: number;
   waterMode: WaterMode;
   waterSeconds: number;
   waterVibrate: boolean;

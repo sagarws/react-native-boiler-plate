@@ -36,6 +36,10 @@ import {
   RecordingsScreen,
   MeasureScreen,
   ScannerScreen,
+  StopwatchScreen,
+  TimerScreen,
+  LevelScreen,
+  ConverterScreen,
   UtilityHubScreen,
   WaterEjectScreen,
 } from '@/features/utility';
@@ -107,6 +111,16 @@ export default function MainNavigator() {
           component={WaterEjectScreen}
         />
         <Stack.Screen name={ROUTES.UTILITY_MEASURE} component={MeasureScreen} />
+        <Stack.Screen
+          name={ROUTES.UTILITY_STOPWATCH}
+          component={StopwatchScreen}
+        />
+        <Stack.Screen name={ROUTES.UTILITY_TIMER} component={TimerScreen} />
+        <Stack.Screen name={ROUTES.UTILITY_LEVEL} component={LevelScreen} />
+        <Stack.Screen
+          name={ROUTES.UTILITY_CONVERTER}
+          component={ConverterScreen}
+        />
         <Stack.Screen
           name={ROUTES.UTILITY_RECORDER}
           component={RecorderScreen}

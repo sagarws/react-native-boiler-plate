@@ -5,6 +5,8 @@ import {
   utilityNative,
   type CompassReading,
   type CompassSupport,
+  type TiltReading,
+  type TiltSupport,
 } from '../services/native.service';
 import { utilityStore } from '../store/utility.store';
 import type { UtilityData, WaterMode } from '../types';
@@ -60,6 +62,37 @@ export function useCompass(): {
   useEffect(() => {
     if (!active || support === 'checking' || support === 'none') return;
     return utilityNative.watchCompass(setReading);
+  }, [active, support]);
+
+  return { support, reading };
+}
+
+/**
+ * Gravity readings for the bubble level while the screen is active; the
+ * sensor is released as soon as it isn't.
+ */
+export function useTilt(): {
+  support: TiltSupport | 'checking';
+  reading: TiltReading | null;
+} {
+  const active = useScreenActive();
+  const [support, setSupport] = useState<TiltSupport | 'checking'>('checking');
+  const [reading, setReading] = useState<TiltReading | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    utilityNative
+      .tiltSupport()
+      .then(s => !cancelled && setSupport(s))
+      .catch(() => !cancelled && setSupport('none'));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!active || support === 'checking' || support === 'none') return;
+    return utilityNative.watchTilt(setReading);
   }, [active, support]);
 
   return { support, reading };

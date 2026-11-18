@@ -38,6 +38,8 @@ class UtilityModule(context: ReactApplicationContext) : NativeUtilitySpec(contex
   private var pendingBarcode: Promise? = null
   private var pendingDocument: Promise? = null
   private var pendingMeasure: Promise? = null
+  private var pendingSight: Promise? = null
+  private var tilt: TiltSensor? = null
 
   private val results = object : BaseActivityEventListener() {
     override fun onActivityResult(activity: Activity, requestCode: Int, resultCode: Int, data: Intent?) {
@@ -45,6 +47,7 @@ class UtilityModule(context: ReactApplicationContext) : NativeUtilitySpec(contex
         REQUEST_BARCODE -> onBarcode(resultCode, data)
         REQUEST_DOCUMENT -> onDocument(resultCode, data)
         REQUEST_MEASURE -> onMeasure(resultCode, data)
+        REQUEST_SIGHT -> onSight(resultCode, data)
       }
     }
   }
@@ -60,6 +63,7 @@ class UtilityModule(context: ReactApplicationContext) : NativeUtilitySpec(contex
     saver.detach()
     UiThreadUtil.runOnUiThread {
       compass?.stop()
+      tilt?.stop()
       tone?.stop(null)
     }
     io.shutdown()
@@ -300,8 +304,85 @@ class UtilityModule(context: ReactApplicationContext) : NativeUtilitySpec(contex
     }
   }
 
+  // ── Angle measure ──
+
+  override fun sightAngles(labelsJson: String, promise: Promise) {
+    val activity = reactApplicationContext.currentActivity
+    if (activity == null) {
+      promise.reject(E_NO_ACTIVITY, "The app must be in the foreground")
+      return
+    }
+    pendingSight?.resolve("")
+    pendingSight = promise
+    val intent = Intent(activity, SightActivity::class.java).putExtra(SightActivity.EXTRA_LABELS, labelsJson)
+    try {
+      @Suppress("DEPRECATION") activity.startActivityForResult(intent, REQUEST_SIGHT)
+    } catch (e: ActivityNotFoundException) {
+      pendingSight = null
+      promise.reject("sight_failed", "Angle measure could not start", e)
+    }
+  }
+
+  private fun onSight(resultCode: Int, data: Intent?) {
+    val promise = pendingSight ?: return
+    pendingSight = null
+    val error = data?.getStringExtra(SightActivity.EXTRA_ERROR)
+    val result = data?.getStringExtra(SightActivity.EXTRA_RESULT)
+    when {
+      error != null -> promise.reject(error, "Angle measure: $error")
+      resultCode == Activity.RESULT_OK && result != null -> promise.resolve(result)
+      else -> promise.resolve("")
+    }
+  }
+
+  // ── Bubble level ──
+
+  private fun tiltSensor(): TiltSensor =
+    tilt ?: TiltSensor(reactApplicationContext) { x, y, z ->
+      emit(EVENT_TILT, Arguments.createMap().apply {
+        putDouble("x", x)
+        putDouble("y", y)
+        putDouble("z", z)
+      })
+    }.also { tilt = it }
+
+  override fun getTiltSupport(promise: Promise) = promise.resolve(tiltSensor().support)
+
+  override fun startTilt() {
+    UiThreadUtil.runOnUiThread { tiltSensor().start() }
+  }
+
+  override fun stopTilt() {
+    UiThreadUtil.runOnUiThread { tilt?.stop() }
+  }
+
+  // ── Countdown timer ──
+
+  override fun scheduleTimerAlarm(atMs: Double, title: String, body: String, promise: Promise) {
+    try {
+      promise.resolve(TimerAlarm.schedule(reactApplicationContext, atMs.toLong(), title, body))
+    } catch (e: Exception) {
+      promise.reject("alarm_failed", e.message ?: "Could not set the alarm", e)
+    }
+  }
+
+  override fun cancelTimerAlarm() = TimerAlarm.cancel(reactApplicationContext)
+
+  override fun canScheduleExactAlarms(promise: Promise) =
+    promise.resolve(TimerAlarm.canScheduleExact(reactApplicationContext))
+
+  override fun openExactAlarmSettings() {
+    val intent = TimerAlarm.exactAlarmSettings(reactApplicationContext) ?: return
+    try {
+      reactApplicationContext.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+      // Not on this Android version / OEM: nothing to open.
+    }
+  }
+
   companion object {
     const val NAME = NativeUtilitySpec.NAME
+    const val EVENT_TILT = "UtilityTilt"
     const val EVENT_COMPASS = "UtilityCompass"
     const val EVENT_TONE_ENDED = "UtilityToneEnded"
     private const val E_NO_ACTIVITY = "no_activity"
@@ -309,6 +390,7 @@ class UtilityModule(context: ReactApplicationContext) : NativeUtilitySpec(contex
     private const val REQUEST_BARCODE = 0x5510
     private const val REQUEST_DOCUMENT = 0x5511
     private const val REQUEST_MEASURE = 0x5512
+    private const val REQUEST_SIGHT = 0x5513
   }
 }
 

@@ -22,6 +22,7 @@ import {
 } from '@/shared/components';
 import { toDayKey } from '@/shared/utils/dayKey';
 import { useTheme } from '@/theme';
+import { AngleMeasure } from '../components/AngleMeasure';
 import { useUtilityData } from '../hooks/useUtility';
 import { ensureCamera, openAppSettings } from '../services/camera';
 import {
@@ -42,10 +43,16 @@ type Problem =
   | 'ar_failed'
   | null;
 
+type Method = 'ar' | 'angle';
+const METHODS: readonly Method[] = ['ar', 'angle'];
+
 /**
- * AR Measure (ARCore): length between two points, height (vertical
- * difference) and distance to a surface. Works only where ARCore runs; on
- * other phones it says so instead of guessing from the camera image.
+ * Two ways to measure:
+ * - AR (ARCore): length between two points, height (vertical difference)
+ *   and distance to a surface. Works only where ARCore runs; on other
+ *   phones it says so instead of guessing from the camera image.
+ * - Angle: one length the user knows + the phone's tilt towards each point,
+ *   solved with trigonometry (works on any phone with a tilt sensor).
  */
 export default function MeasureScreen() {
   const { t } = useTranslation();
@@ -53,6 +60,7 @@ export default function MeasureScreen() {
   const { colors, typography, spacing, radius } = useTheme();
   const { prefs, measurements } = useUtilityData();
   const [support, setSupport] = useState<ArSupport | null>(null);
+  const [method, setMethod] = useState<Method>('ar');
   const [mode, setMode] = useState<MeasureMode>('length');
   const [problem, setProblem] = useState<Problem>(null);
   const [last, setLast] = useState<MeasureResult | null>(null);
@@ -146,15 +154,51 @@ export default function MeasureScreen() {
           gap: spacing.md,
         }}
       >
-        {support === null ? (
+        <SegmentedControl
+          options={METHODS.map(m => ({
+            value: m,
+            label: t(`utility.measureMethod_${m}`),
+          }))}
+          value={method}
+          onChange={setMethod}
+          accessibilityLabel={t('utility.measureMethod')}
+          testID="measure-method"
+        />
+        {method === 'angle' ? (
+          <>
+            <Text style={[typography.label, { color: colors.textPrimary }]}>
+              {t('utility.unit')}
+            </Text>
+            <SegmentedControl
+              options={UNITS.map(u => ({
+                value: u,
+                label: t(`utility.unit_${u}`),
+              }))}
+              value={prefs.unit}
+              onChange={unit => utilityStore.updatePrefs({ unit })}
+              accessibilityLabel={t('utility.unit')}
+              testID="angle-unit"
+            />
+            <AngleMeasure unit={prefs.unit} prefs={prefs} />
+          </>
+        ) : support === null ? (
           <Loader />
         ) : unsupported ? (
-          <EmptyState
-            icon="ruler"
-            title={t('utility.arUnsupportedTitle')}
-            message={t('utility.arUnsupportedBody')}
-            testID="measure-unsupported"
-          />
+          <>
+            <EmptyState
+              icon="ruler"
+              title={t('utility.arUnsupportedTitle')}
+              message={t('utility.arUnsupportedBody')}
+              testID="measure-unsupported"
+            />
+            <Button
+              variant="soft"
+              iconName="crosshair"
+              label={t('utility.useAngleInstead')}
+              onPress={() => setMethod('angle')}
+              testID="measure-use-angle"
+            />
+          </>
         ) : (
           <>
             {support === 'install_required' ? (
@@ -301,6 +345,9 @@ export default function MeasureScreen() {
                 <Text style={[typography.body, { color: colors.textPrimary }]}>
                   {formatLength(m.meters, prefs.unit)} ·{' '}
                   {t(`utility.measure_${m.mode}`)}
+                  {m.source === 'angle'
+                    ? ` · ${t('utility.source_angle')}`
+                    : ''}
                 </Text>
                 <Text
                   style={[typography.caption, { color: colors.textSecondary }]}

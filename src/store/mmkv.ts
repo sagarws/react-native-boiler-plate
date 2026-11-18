@@ -47,6 +47,8 @@ export const StorageKeys = {
   UtilityDocuments: 'utility.documents',
   /** Utility: tool preferences (units, water-eject mode, …). */
   UtilityPrefs: 'utility.prefs',
+  /** Utility: stopwatch and countdown timer (timestamps only). */
+  UtilityClock: 'utility.clock',
   /** Expense Tracker: schema version (drives migrations). */
   ExpenseMeta: 'expense.meta',
   /** Expense Tracker: the "expenses" table. */

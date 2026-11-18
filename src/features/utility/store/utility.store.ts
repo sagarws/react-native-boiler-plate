@@ -92,6 +92,9 @@ function cleanDocument(r: R): ScannedDocument | null {
 
 const DEFAULT_PREFS: UtilityPrefs = {
   unit: 'cm',
+  levelCalibration: { x: 0, y: 0, edge: 0 },
+  sightDistance: 0,
+  sightDeviceHeight: 0,
   waterMode: 'low',
   waterSeconds: 30,
   waterVibrate: false,
@@ -100,8 +103,21 @@ const DEFAULT_PREFS: UtilityPrefs = {
 function cleanPrefs(v: unknown): UtilityPrefs {
   if (!v || typeof v !== 'object') return DEFAULT_PREFS;
   const r = v as R;
+  const cal = (r.levelCalibration ?? {}) as R;
+  /** A small calibration angle (a bigger one is a mistake, not an offset). */
+  const offset = (n: unknown) =>
+    typeof n === 'number' && Number.isFinite(n) && Math.abs(n) <= 15 ? n : 0;
+  const length = (n: unknown) =>
+    typeof n === 'number' && Number.isFinite(n) && n > 0 && n <= 10_000 ? n : 0;
   return {
     unit: oneOf(r.unit, UNITS, DEFAULT_PREFS.unit),
+    levelCalibration: {
+      x: offset(cal.x),
+      y: offset(cal.y),
+      edge: offset(cal.edge),
+    },
+    sightDistance: length(r.sightDistance),
+    sightDeviceHeight: length(r.sightDeviceHeight),
     waterMode: oneOf(r.waterMode, WATER_MODES, DEFAULT_PREFS.waterMode),
     waterSeconds: (WATER_DURATIONS as readonly number[]).includes(
       r.waterSeconds as number,

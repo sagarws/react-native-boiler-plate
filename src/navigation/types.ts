@@ -59,6 +59,10 @@ export type MainStackParamList = {
   UtilityDocument: { documentId: string };
   UtilityWaterEject: undefined;
   UtilityMeasure: undefined;
+  UtilityStopwatch: undefined;
+  UtilityTimer: undefined;
+  UtilityLevel: undefined;
+  UtilityConverter: undefined;
   UtilityRecorder: undefined;
   /** `filter` opens a library tab directly (e.g. interrupted sessions). */
   UtilityRecordings:

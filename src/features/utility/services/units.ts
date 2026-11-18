@@ -8,6 +8,16 @@ const PER_METER: Record<LengthUnit, number> = {
 };
 const DECIMALS: Record<LengthUnit, number> = { cm: 1, m: 2, in: 1, ft: 2 };
 
+/** A length typed in [unit] → metres. */
+export const toMeters = (value: number, unit: LengthUnit): number =>
+  value / PER_METER[unit];
+
+/** Metres → [unit], rounded to that unit's display precision (for inputs). */
+export function fromMeters(meters: number, unit: LengthUnit): number {
+  const f = 10 ** DECIMALS[unit];
+  return Math.round(meters * PER_METER[unit] * f) / f;
+}
+
 /** "123.4 cm", "1.23 m", "48.6 in", "4.05 ft" (number in the device locale). */
 export function formatLength(meters: number, unit: LengthUnit): string {
   const value = meters * PER_METER[unit];

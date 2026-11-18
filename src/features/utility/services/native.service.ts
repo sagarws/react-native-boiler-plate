@@ -23,6 +23,22 @@ export interface BarcodeResult {
   wifi?: { ssid: string; password: string; type: number };
 }
 
+export type TiltSupport = 'gravity' | 'accelerometer' | 'none';
+
+/** One aimed point from the sighting camera. */
+export interface SightCapture {
+  /** Degrees, + above the horizon. */
+  elevation: number;
+  /** Degrees; null when the phone has no rotation sensor. */
+  azimuth: number | null;
+}
+
+export interface TiltReading {
+  x: number;
+  y: number;
+  z: number;
+}
+
 export interface MeasureResult {
   mode: MeasureMode;
   meters: number;
@@ -185,5 +201,77 @@ export const utilityNative = {
     } catch (error) {
       throw new UtilityError(errorCode(error));
     }
+  },
+
+  // ── Angle measure ──
+  /** One capture per step, or null when closed. Bad values are dropped. */
+  async sightAngles(labels: {
+    steps: string[];
+    [key: string]: string | string[];
+  }): Promise<SightCapture[] | null> {
+    try {
+      const raw = parse<unknown[]>(
+        await need().sightAngles(JSON.stringify(labels)),
+      );
+      if (!Array.isArray(raw)) return null;
+      const out = raw
+        .map(r => r as { elevation?: unknown; azimuth?: unknown })
+        .filter(
+          r => typeof r?.elevation === 'number' && Number.isFinite(r.elevation),
+        )
+        .map(r => ({
+          elevation: r.elevation as number,
+          azimuth:
+            typeof r.azimuth === 'number' && Number.isFinite(r.azimuth)
+              ? r.azimuth
+              : null,
+        }));
+      return out.length === labels.steps.length ? out : null;
+    } catch (error) {
+      throw new UtilityError(errorCode(error));
+    }
+  },
+
+  // ── Bubble level ──
+  async tiltSupport(): Promise<TiltSupport> {
+    if (!NativeUtility) return 'none';
+    return (await NativeUtility.getTiltSupport()) as TiltSupport;
+  },
+  /** Starts the sensor and returns an unsubscribe that also stops it. */
+  watchTilt(onTilt: (r: TiltReading) => void): () => void {
+    if (!NativeUtility) return () => {};
+    const sub = DeviceEventEmitter.addListener('UtilityTilt', onTilt);
+    NativeUtility.startTilt();
+    return () => {
+      sub.remove();
+      NativeUtility?.stopTilt();
+    };
+  },
+
+  // ── Countdown timer ──
+  /** 'unavailable' without the native module (or if arming failed). */
+  async scheduleTimerAlarm(
+    at: number,
+    title: string,
+    body: string,
+  ): Promise<'exact' | 'inexact' | 'unavailable'> {
+    if (!NativeUtility) return 'unavailable';
+    try {
+      return (await NativeUtility.scheduleTimerAlarm(at, title, body)) as
+        | 'exact'
+        | 'inexact';
+    } catch (error) {
+      logger.warn('timer alarm failed', errorCode(error));
+      return 'unavailable';
+    }
+  },
+  cancelTimerAlarm() {
+    NativeUtility?.cancelTimerAlarm();
+  },
+  async canScheduleExactAlarms(): Promise<boolean> {
+    return NativeUtility ? NativeUtility.canScheduleExactAlarms() : true;
+  },
+  openExactAlarmSettings() {
+    NativeUtility?.openExactAlarmSettings();
   },
 };

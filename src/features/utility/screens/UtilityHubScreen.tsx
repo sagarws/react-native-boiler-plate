@@ -21,8 +21,22 @@ import {
 } from '../services/native.service';
 
 type Tool = {
-  key: 'compass' | 'measure' | 'scanner' | 'documents' | 'water' | 'recorder';
+  key:
+    | 'compass'
+    | 'measure'
+    | 'scanner'
+    | 'documents'
+    | 'water'
+    | 'recorder'
+    | 'stopwatch'
+    | 'timer'
+    | 'level'
+    | 'converter';
   route:
+    | typeof ROUTES.UTILITY_STOPWATCH
+    | typeof ROUTES.UTILITY_TIMER
+    | typeof ROUTES.UTILITY_LEVEL
+    | typeof ROUTES.UTILITY_CONVERTER
     | typeof ROUTES.UTILITY_COMPASS
     | typeof ROUTES.UTILITY_MEASURE
     | typeof ROUTES.UTILITY_SCANNER
@@ -57,6 +71,30 @@ const TOOLS: readonly Tool[] = [
     route: ROUTES.UTILITY_MEASURE,
     icon: 'ruler',
     color: 'amber',
+  },
+  {
+    key: 'stopwatch',
+    route: ROUTES.UTILITY_STOPWATCH,
+    icon: 'clock',
+    color: 'emerald',
+  },
+  {
+    key: 'timer',
+    route: ROUTES.UTILITY_TIMER,
+    icon: 'hourglass',
+    color: 'orange',
+  },
+  {
+    key: 'level',
+    route: ROUTES.UTILITY_LEVEL,
+    icon: 'crosshair',
+    color: 'slate',
+  },
+  {
+    key: 'converter',
+    route: ROUTES.UTILITY_CONVERTER,
+    icon: 'refreshCw',
+    color: 'pink',
   },
   {
     key: 'water',
@@ -101,9 +139,16 @@ export default function UtilityHubScreen() {
         return compass === 'none'
           ? { text: t('utility.noSensor'), warn: true }
           : { text: t('utility.needsSensors'), warn: false };
+      case 'stopwatch':
+      case 'converter':
+        return { text: t('utility.noPermissionNeeded'), warn: false };
+      case 'timer':
+        return { text: t('utility.usesNotifications'), warn: false };
+      case 'level':
+        return { text: t('utility.needsTiltSensor'), warn: false };
       case 'measure':
         return ar === 'unsupported'
-          ? { text: t('utility.arUnsupportedShort'), warn: true }
+          ? { text: t('utility.arUnsupportedAngleOk'), warn: false }
           : ar === 'install_required'
           ? { text: t('utility.arInstallShort'), warn: false }
           : { text: t('utility.needsCameraAr'), warn: false };

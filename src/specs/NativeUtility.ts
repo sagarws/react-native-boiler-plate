@@ -9,7 +9,7 @@ import { TurboModuleRegistry } from 'react-native';
  * only: on iOS (and under Jest) the module is absent and `get` returns null.
  *
  * Events (DeviceEventEmitter): `UtilityCompass` {heading, accuracy},
- * `UtilityToneEnded` {reason}.
+ * `UtilityToneEnded` {reason}, `UtilityTilt` {x, y, z} (unit gravity vector).
  */
 export interface Spec extends TurboModule {
   // ── Compass ──
@@ -76,6 +76,30 @@ export interface Spec extends TurboModule {
    * `camera_permission` / `ar_failed`.
    */
   measure(mode: string, unit: string, labelsJson: string): Promise<string>;
+
+  // ── Angle (trigonometric) measure ──
+  /**
+   * Opens the sighting camera. [labelsJson] holds the translated texts and
+   * `steps` (one instruction per point to aim at). Resolves a JSON array of
+   * {elevation, azimuth|null} (degrees), or '' when closed. Rejects
+   * `camera_permission` / `camera_failed` / `no_sensor`.
+   */
+  sightAngles(labelsJson: string): Promise<string>;
+
+  // ── Bubble level ──
+  /** 'gravity' | 'accelerometer' | 'none'. */
+  getTiltSupport(): Promise<string>;
+  startTilt(): void;
+  stopTilt(): void;
+
+  // ── Countdown timer ──
+  /** Arms the "time's up" alarm. Resolves 'exact' | 'inexact'. */
+  scheduleTimerAlarm(atMs: number, title: string, body: string): Promise<string>;
+  /** Cancels the alarm and clears a shown alert. */
+  cancelTimerAlarm(): void;
+  canScheduleExactAlarms(): Promise<boolean>;
+  /** Opens the system setting that allows exact alarms (Android 12+). */
+  openExactAlarmSettings(): void;
 }
 
 export default TurboModuleRegistry.get<Spec>('Utility');
