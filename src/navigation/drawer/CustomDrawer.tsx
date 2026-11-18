@@ -26,6 +26,7 @@ type DrawerTarget =
   | 'ManageLife'
   | 'FollowUp'
   | 'Utility'
+  | 'NetworkInspector'
   | 'Settings'
   | 'Appearance'
   | 'About';
@@ -40,6 +41,7 @@ const ITEMS: readonly {
     | 'life'
     | 'followUp'
     | 'utility'
+    | 'network'
     | 'settings'
     | 'appearance'
     | 'about';
@@ -50,6 +52,7 @@ const ITEMS: readonly {
   { screen: ROUTES.FILE_MANAGEMENT, icon: 'folder', label: 'files' },
   { screen: ROUTES.FOLLOW_UP, icon: 'users', label: 'followUp' },
   { screen: ROUTES.UTILITY, icon: 'wrench', label: 'utility' },
+  { screen: ROUTES.NETWORK_INSPECTOR, icon: 'globe', label: 'network' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
   { screen: ROUTES.APPEARANCE, icon: 'palette', label: 'appearance' },
   { screen: ROUTES.ABOUT, icon: 'shieldCheck', label: 'about' },

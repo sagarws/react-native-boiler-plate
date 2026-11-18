@@ -187,6 +187,9 @@ dependencies {
     // AR Measure. "AR Optional" in the manifest: installs everywhere, and
     // the tool explains when a phone doesn't support ARCore.
     implementation("com.google.ar:core:1.57.0")
+    // Network Inspector: document-start capture script, scoped by Chromium to
+    // the allowed origins (same version react-native-webview builds against).
+    implementation("androidx.webkit:webkit:1.14.0")
 
     // JVM unit tests for the pure OCR text assembly (src/test).
     testImplementation("junit:junit:4.13.2")

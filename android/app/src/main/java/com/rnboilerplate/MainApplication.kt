@@ -8,6 +8,7 @@ import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.rnboilerplate.expense.ExpensePackage
 import com.rnboilerplate.followup.FollowUpPackage
+import com.rnboilerplate.netinspector.NetInspectorPackage
 import com.rnboilerplate.recorder.RecorderPackage
 import com.rnboilerplate.screenocr.ScreenOcrPackage
 import com.rnboilerplate.utility.UtilityPackage
@@ -25,6 +26,7 @@ class MainApplication : Application(), ReactApplication {
           add(UtilityPackage())
           add(RecorderPackage())
           add(ExpensePackage())
+          add(NetInspectorPackage())
         },
     )
   }

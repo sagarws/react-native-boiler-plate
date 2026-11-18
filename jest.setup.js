@@ -113,3 +113,21 @@ jest.mock('@react-native-documents/picker', () => ({
   errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },
   isErrorWithCode: error => Boolean(error && typeof error.code === 'string'),
 }));
+
+// Network Inspector's in-app browser. Renders a plain View; the imperative
+// methods are spies so screens can be driven without a real WebView.
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const WebView = React.forwardRef((props, ref) => {
+    React.useImperativeHandle(ref, () => ({
+      goBack: jest.fn(),
+      goForward: jest.fn(),
+      reload: jest.fn(),
+      stopLoading: jest.fn(),
+      injectJavaScript: jest.fn(),
+    }));
+    return React.createElement(View, { testID: props.testID });
+  });
+  return { __esModule: true, default: WebView, WebView };
+});

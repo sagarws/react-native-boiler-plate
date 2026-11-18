@@ -16,6 +16,12 @@ import {
   TaskFormScreen,
 } from '@/features/life';
 import {
+  NetworkBrowserScreen,
+  NetworkCallDetailScreen,
+  NetworkCallsScreen,
+  NetworkInspectorScreen,
+} from '@/features/network';
+import {
   AboutScreen,
   AppearanceScreen,
   SettingsScreen,
@@ -110,6 +116,22 @@ export default function MainNavigator() {
         <Stack.Screen
           name={ROUTES.UTILITY_RECORDING}
           component={RecordingDetailScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.NETWORK_INSPECTOR}
+          component={NetworkInspectorScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.NETWORK_BROWSER}
+          component={NetworkBrowserScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.NETWORK_CALLS}
+          component={NetworkCallsScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.NETWORK_CALL}
+          component={NetworkCallDetailScreen}
         />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />

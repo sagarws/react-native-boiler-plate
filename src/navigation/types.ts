@@ -72,6 +72,12 @@ export type MainStackParamList = {
       }
     | undefined;
   UtilityRecording: { recordingId: string };
+  /** Network Inspector: capture toggle, domains, privacy settings. */
+  NetworkInspector: undefined;
+  /** In-app browser with network capture; `url` is an http(s) address. */
+  NetworkBrowser: { url: string };
+  NetworkCalls: undefined;
+  NetworkCall: { callId: string };
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
   Settings:
     | { tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' }

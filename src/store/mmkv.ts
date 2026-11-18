@@ -2,6 +2,12 @@ import { MMKV } from 'react-native-mmkv';
 
 export const storage = new MMKV({ id: 'app.default' });
 
+/**
+ * Network Inspector's captured requests/responses: their own file, so large
+ * bodies don't bloat the main store and "Clear all" can't touch other data.
+ */
+export const networkStorage = new MMKV({ id: 'app.networkInspector' });
+
 /** Every MMKV key the app uses, in one place so two features can't collide. */
 export const StorageKeys = {
   Language: 'app.language',
@@ -49,4 +55,10 @@ export const StorageKeys = {
   ExpenseCategories: 'expense.categories',
   /** Expense Tracker: monthly budget and the payment awaiting confirmation. */
   ExpenseSettings: 'expense.settings',
+  /** Network Inspector: capture toggle, session, domains, limits (main store). */
+  NetworkSettings: 'network.settings',
+  /** Network Inspector (networkStorage): ordered call summaries, newest first. */
+  NetworkIndex: 'network.index',
+  /** Network Inspector (networkStorage): prefix + record id → full record. */
+  NetworkRecordPrefix: 'network.record.',
 } as const;

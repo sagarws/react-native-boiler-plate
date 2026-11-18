@@ -37,7 +37,8 @@ src/services/realtime/
 src/store/mmkv.ts     every storage key, in one place
 src/specs/            TurboModule codegen specs — each imported only by its owner's services/
                       (NativeScreenOcr → capture, NativeFollowUp → followup,
-                      NativeUtility + NativeRecorder → utility, NativeExpense → expense)
+                      NativeUtility + NativeRecorder → utility, NativeExpense → expense,
+                      NativeNetInspector → network)
 src/features/
   expense/            Expense Tracker + Scan QR & Pay (UPI intents) — the start screen;
                       docs/EXPENSE_TRACKER.md
@@ -49,6 +50,9 @@ src/features/
   followup/           Follow Up CRM (contacts, follow-ups, reminders) — docs/FOLLOW_UP.md
   utility/            Utility tools (scanner, documents, compass, AR measure, water eject,
                       screen recorder) — docs/UTILITY.md, docs/SCREEN_RECORDER.md
+  network/            Network Inspector: in-app browser (WebView) that records the
+                      API calls of allowed sites; list, detail, cURL, JSON export —
+                      docs/NETWORK_INSPECTOR.md
   auth/  session/     boilerplate login (disabled)
 src/navigation/  src/i18n/  src/theme/  src/types/
 src/shared/           assets/ components/ hooks/ utils/ — cross-feature only
