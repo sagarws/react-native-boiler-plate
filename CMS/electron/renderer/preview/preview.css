@@ -1,0 +1,21 @@
+/*
+ * The stylesheet chain for the ported design system.
+ *
+ * TEMPORARY, AND ONLY FOR P1. Loaded by the preview screen alone, so the app
+ * the operator actually uses still renders from index.css and styles/theme.css
+ * exactly as it did before. Nothing in the old UI can be broken by work that
+ * has not replaced it yet, and the two can be compared side by side. At P2 this
+ * moves to the renderer's entry and the old chain starts coming out.
+ *
+ * ORDER MATTERS:
+ *   fonts   declares "Public Sans" before anything asks for it
+ *   vuexy   Monitor's globals.css — the Tailwind layers, its theme bridge to
+ *           MUI's CSS variables, and the base rules MUI expects
+ *   icons   the generated Tabler subset
+ */
+@import '../styles/fonts.css';
+@import '../styles/vuexy.css';
+@import '../styles/icons.css';
+/* Dragging, and the room macOS needs for its window buttons. Not part of the
+   port: Monitor is a web page and has no opinion about either. */
+@import '../styles/window.css';

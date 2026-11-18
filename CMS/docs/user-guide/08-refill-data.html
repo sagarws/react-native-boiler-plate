@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refill data &amp; status change — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html" class="active">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Refill data &amp; status change</h1>
+<p class="lead">Refill Data fills in the missing details a claim needs before it can be filed; Status Change asks the marketplace where an already-filed ticket now stands.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+  <li><a href="#difference">Refill Data and Status Change — the difference</a></li>
+  <li><a href="#manual-status">How to run Status Change from Manage Claims</a></li>
+  <li><a href="#progress">The progress window and its results</a></li>
+  <li><a href="#refill">Refill Data — what it fills</a></li>
+  <li><a href="#scheduled-refill">The scheduled Refill Data task</a></li>
+  <li><a href="#scheduled-status">The scheduled Status change task</a></li>
+  <li><a href="#order">How the tasks fit together</a></li>
+  <li><a href="#problems">Common problems</a></li>
+</ol></div>
+
+<h2 id="difference">Refill Data and Status Change — the difference</h2>
+<div class="table-wrap"><table>
+  <tr><th></th><th>Refill Data</th><th>Status Change</th></tr>
+  <tr><td>Question it asks</td><td>"What are the missing details for this return?"</td><td>"Where does this filed ticket stand now, and what was paid?"</td></tr>
+  <tr><td>Which claims</td><td>Pending claims (not yet filed)</td><td>Claims that are already filed (have a ticket)</td></tr>
+  <tr><td>What it changes</td><td>Fills <b>empty</b> fields only — values already there are kept</td><td>Updates the claim status (and amount paid)</td></tr>
+  <tr><td>How you run it</td><td>Automatically, as a scheduled task</td><td>From the <span class="ui">Status Change</span> button on Manage Claims, or automatically as a scheduled task</td></tr>
+</table></div>
+<div class="callout tip"><b class="t">Tip</b>If a claim on the Pending tab has a greyed-out tick box with a message like <b>POB ID missing</b>, <b>Sub-order number missing</b> or <b>No … account on this claim</b>, that is exactly what Refill Data is for. After the next Refill Data run, the claim can usually be filed.</div>
+
+<h2 id="manual-status">How to run Status Change from Manage Claims</h2>
+<p>The <span class="ui">Status Change</span> button is in the toolbar of <a href="07-manage-claims.html">Manage Claims</a> on the <b>Ajio, Myntra, Meesho, Snapdeal, Flipkart, Delhivery</b> and <b>Nykaa</b> tabs. It is not offered on Tata CliQ, Xbees, Amazon or Other.</p>
+<ol class="steps">
+  <li>Open <span class="ui">Manage Claims</span> and click the platform tab.</li>
+  <li>Choose a status tab and date range that show the filed claims you want to check (for example <span class="ui">In Review</span>).</li>
+  <li>Click <span class="ui">Status Change</span>. The button turns dark and now reads <span class="ui">Cancel status change</span>. Tick boxes appear on the rows.</li>
+  <li>Tick the claims to check. Only claims that have a <b>Return AWB</b> and are <b>not Pending</b> can be ticked (a Pending claim has no ticket to ask about). The box in the heading ticks every eligible row on the page.</li>
+  <li>Click <span class="ui">Run Status Change (N)</span>. It is greyed out until you tick at least one claim.</li>
+  <li>The app checks <b>every login on that marketplace</b> first (it asks each account in turn which one holds the ticket). If any login needs attention, the <a href="07-manage-claims.html#gate">Update logins first</a> window opens and nothing is started — re-capture the logins and press the button again.</li>
+  <li>The <span class="ui">Refilling claim data</span> window opens and shows progress (see below).</li>
+  <li>At the end you see a message such as <b>Status updated on 12 claims, 30 already had what the marketplace says, 2 not found on any account, 1 failed</b>. The table reloads.</li>
+</ol>
+<p>To leave without running anything, click <span class="ui">Cancel status change</span> or <span class="ui">Cancel</span>.</p>
+<div class="callout warn"><b class="t">Note</b>"Already had what the marketplace says" is a good result — the ticket simply has not moved. A message shown in red means nothing was updated and some claims were not found or failed.</div>
+
+<h2 id="progress">The progress window and its results</h2>
+<p>The <span class="ui">Refilling claim data</span> window shows <b>N of M to go — Claim status</b>, a progress bar, and the AWB being asked about (<b>Asking about …</b>). You can click <span class="ui">Hide</span> at any time — the run keeps going. When it ends the button reads <span class="ui">Close</span> and the line says <b>Every claim answered.</b> or <b>N of M came back with no answer — see below.</b></p>
+<div class="table-wrap"><table>
+  <tr><th>Box / row label</th><th>Meaning</th><th>What to do</th></tr>
+  <tr><td><span class="chip green">Filled</span></td><td>Something was written to the claim (for example a new status).</td><td>Nothing.</td></tr>
+  <tr><td><span class="chip grey">Unchanged</span></td><td>The marketplace was asked and the claim already matched.</td><td>Nothing.</td></tr>
+  <tr><td><span class="chip amber">Not found</span></td><td>No login on this marketplace has this AWB, so nothing could be asked.</td><td>Check the AWB and the Username on the claim. The account may be missing on this computer.</td></tr>
+  <tr><td><span class="chip red">Failed</span></td><td>The marketplace call or the save broke. The message beside the AWB says why.</td><td>Read the message. Often a login issue — re-capture it on the <a href="03-login-sessions.html">Login</a> page and try again.</td></tr>
+</table></div>
+<p>Below the four boxes, the latest AWBs are listed with their result and message (hover to read a long message).</p>
+
+<h2 id="refill">Refill Data — what it fills</h2>
+<p>Refill Data asks each marketplace for the details a claim is missing. It <b>only fills empty fields</b>; anything already on the claim is kept. What it can fill depends on the marketplace:</p>
+<div class="table-wrap"><table>
+  <tr><th>Marketplace</th><th>Fields it can fill</th></tr>
+  <tr><td>Ajio</td><td>Account, Forward AWB, Seller SKU, POB ID</td></tr>
+  <tr><td>Myntra</td><td>Account, Forward AWB</td></tr>
+  <tr><td>Meesho</td><td>Account, Sub-order number</td></tr>
+  <tr><td>Snapdeal</td><td>Account, Sub-order number</td></tr>
+  <tr><td>Flipkart</td><td>Account</td></tr>
+  <tr><td>Delhivery</td><td>Account</td></tr>
+  <tr><td>Tata CliQ</td><td>Account, Forward AWB</td></tr>
+  <tr><td>Xbees</td><td>Account</td></tr>
+  <tr><td>Nykaa</td><td>Nothing (Nykaa only has a claim status — see Status change)</td></tr>
+</table></div>
+<div class="table-wrap"><table>
+  <tr><th>Field</th><th>Meaning</th></tr>
+  <tr><td>Account</td><td>Which marketplace login holds this AWB (the <b>Username</b> column).</td></tr>
+  <tr><td>Forward AWB</td><td>The outbound shipment this return came from.</td></tr>
+  <tr><td>Sub-order number</td><td>What the claim form is searched by.</td></tr>
+  <tr><td>Seller SKU</td><td>The seller's own code for the article returned.</td></tr>
+  <tr><td>POB ID</td><td>The place of business the return belongs to.</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Note</b>In normal use, Refill Data runs as a <b>scheduled task</b> — there is no Refill Data button on Manage Claims for operators. To fix a single AJIO SKU yourself, use the refresh icon in the Seller SKU cell (see <a href="07-manage-claims.html#sku">Choosing the seller SKU</a>).</div>
+
+<h2 id="scheduled-refill">The scheduled Refill Data task</h2>
+<p>In <span class="ui">Settings</span> the task is called <b>Refill Data</b>, with the description: <i>Asks each marketplace for the blanks on claims that are waiting to be filed — the account, the POB ID, the sub-order number, the forward AWB. The claim status is its own task, below.</i> By default it runs every day at <b>23:00</b>. To change the time or switch it off, see <a href="10-scheduled-automations.html">Scheduled automations</a>.</p>
+<p>What it does each time it runs:</p>
+<ol>
+  <li>Reads every <b>Pending</b> claim from TrackVid, for all marketplaces.</li>
+  <li>Skips marketplaces with nothing to fill (Nykaa), and claims with no Return AWB.</li>
+  <li>Skips claims it has already asked about <b>3 times</b> without success — the AWB is probably wrong, and asking again would not help. These are counted separately so you know why fewer claims were checked.</li>
+  <li>Skips a marketplace where no login has a live session (it shows as skipped rather than opening sign-in windows in the night). <b>AJIO is the exception</b>: its answers come from this computer's AJIO report backup, which needs no sign-in.</li>
+  <li>Goes marketplace by marketplace, asking about each claim and filling the empty fields.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>For AJIO, Refill Data can only fill what the local backup holds. Keep the <b>AJIO report sync</b> task switched on (it runs at 10:00 by default) so the backup is up to date.</div>
+<p>While it runs, the <span class="ui">Scheduled automations</span> window (opened with the button beside the <span class="ui">Automations</span> switch at the top of the app — tooltip <b>What is running, queued and scheduled</b>) lists every marketplace it will reach — waiting, running, done or skipped — with the number checked and changed. The finished run appears on <a href="09-background-process.html">Background Process</a>.</p>
+
+<h2 id="scheduled-status">The scheduled Status change task</h2>
+<p>In <span class="ui">Settings</span> the task is called <b>Status change</b>: <i>Asks where each already-filed ticket now stands, and what was paid. Skips Pending, Failed to Proceed, Approved and Rejected — those have nothing filed yet, or cannot move.</i> By default it runs every day at <b>13:00</b>.</p>
+<ul>
+  <li>It asks about claims that have a ticket number and a Return AWB, on every marketplace that reports a status (not Tata CliQ or Xbees).</li>
+  <li>Claims it has checked within the last few days are left alone and shown as <b>up to date</b>, so each run only asks about claims that are due.</li>
+  <li>There is no 3-try limit here — "still In Review" is a real answer, and the next day's answer may be different.</li>
+</ul>
+
+<h2 id="order">How the tasks fit together</h2>
+<p>When several tasks are due at once they run in this order, because each one prepares the next:</p>
+<ol>
+  <li><b>Login update</b> — re-captures expired logins, since everything below signs in.</li>
+  <li><b>AJIO report sync</b> (and Snapdeal / Flipkart report sync) — refreshes the local backups Refill Data reads.</li>
+  <li><b>Refill Data</b> — fills the blanks that stop claims from being filed.</li>
+  <li><b>Auto claim</b> — files the Pending claims that are now ready.</li>
+  <li><b>Status change</b> — last, so tickets filed in this pass are included.</li>
+</ol>
+<p>Only one automation uses the browser at a time; if two are due together, one waits for the other.</p>
+<div class="callout danger"><b class="t">Important</b>Switching off the <span class="ui">Automations</span> switch at the top of the app stops these tasks. A running Refill Data or Status change finishes the marketplace it is on and does not start the next one. Nothing scheduled runs until you switch Automations back on.</div>
+
+<h2 id="problems">Common problems</h2>
+<div class="table-wrap"><table>
+  <tr><th>Problem</th><th>Fix</th></tr>
+  <tr><td>The <span class="ui">Status Change</span> button is not shown</td><td>The platform does not report a claim status (Tata CliQ, Xbees, Amazon, Other).</td></tr>
+  <tr><td>I cannot tick a claim after pressing Status Change</td><td>It is Pending (no ticket yet) or has no Return AWB.</td></tr>
+  <tr><td>"Update logins first" opens every time</td><td>Re-capture the listed logins. Accounts marked <span class="chip grey">Optional</span> need an OTP and can be left; the run continues without them.</td></tr>
+  <tr><td>Many claims show <b>Not found</b></td><td>The AWB is not on any login on this computer. Check that all the company's marketplace logins are added and signed in.</td></tr>
+  <tr><td>A Pending claim still has a blank POB ID / sub-order / account after several nights</td><td>Refill Data stops asking after 3 tries. Check the AWB is correct, or import the master data that carries the missing value.</td></tr>
+  <tr><td>Refill Data did nothing for a marketplace</td><td>No live login for it at run time — re-capture on the <a href="03-login-sessions.html">Login</a> page. Also check Automations is switched on.</td></tr>
+</table></div>
+
+<div class="pager">
+  <a href="07-manage-claims.html"><span>Previous</span>7. Manage claims</a>
+  <a href="09-background-process.html"><span>Next</span>9. Background process</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

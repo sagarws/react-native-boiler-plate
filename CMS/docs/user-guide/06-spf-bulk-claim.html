@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SPF bulk claim (AJIO) — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html" class="active">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>SPF bulk claim (AJIO)</h1>
+<p class="lead">Raise many AJIO SPF claims at once — for returns that never reached you (NDR) or returns AJIO says were delivered but you never got (DDR) — straight from a spreadsheet.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+  <li><a href="#what">What this tool does</a></li>
+  <li><a href="#open">Where to find it</a></li>
+  <li><a href="#types">The two claim types: NDR and DDR</a></li>
+  <li><a href="#files">The spreadsheet you upload</a></li>
+  <li><a href="#quick">How to file every claimable row (quick way)</a></li>
+  <li><a href="#selected">How to choose rows first (Selected Proceed)</a></li>
+  <li><a href="#buckets">Why some rows are skipped</a></li>
+  <li><a href="#progress">Watching the progress</a></li>
+  <li><a href="#stop">Closing the window, stopping, and quitting the app</a></li>
+  <li><a href="#after">After the run: results, report and history</a></li>
+  <li><a href="#messages">Messages you may see</a></li>
+</ol></div>
+
+<h2 id="what">What this tool does</h2>
+<p>On screen this tool is called <span class="ui">NDR/DDR Bulk Claim</span>. You upload one spreadsheet per claim type. The app reads every row (Return AWB, SKU and POB ID), works out which of your AJIO logins owns each return, signs in <b>once per AJIO account</b>, and files the claims one after another on this computer.</p>
+<ul>
+  <li>The run happens in the background. You can close or minimise the window and keep working.</li>
+  <li>Each run is saved as a job, so you can open its results later from <a href="09-background-process.html">Background Process</a>.</li>
+  <li>An Excel report of the results is written as the run goes.</li>
+</ul>
+
+<h2 id="open">Where to find it</h2>
+<ol class="steps">
+  <li>Open <span class="ui">Manage Claims</span> from the side menu.</li>
+  <li>Click the <span class="ui">Ajio</span> platform tab. (The button is only shown on the Ajio tab.)</li>
+  <li>In the toolbar at the top, click <span class="ui">NDR/DDR Bulk Claim</span>. The <span class="ui">NDR/DDR Bulk Claim</span> window opens.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>If a run is already going, opening the window shows its progress instead of a blank form. You can also reopen the window from the <span class="ui">Background work</span> panel in the bottom-right corner (see <a href="#progress">Watching the progress</a>).</div>
+
+<h2 id="types">The two claim types: NDR and DDR</h2>
+<p>The window has two upload slots. <b>The slot you put a file in decides which claim is raised</b> for every row in that file — the spreadsheet itself does not say it.</p>
+<div class="table-wrap"><table>
+  <tr><th>Slot (as shown on screen)</th><th>What it says under the title</th><th>Use it when</th></tr>
+  <tr><td><span class="ui">NDR — Not Delivered Returns</span></td><td>The return never arrived. Asks AJIO to trace it, then pay out under SPF if it is lost.</td><td>The return shipment never reached your warehouse.</td></tr>
+  <tr><td><span class="ui">DDR — Delivery Disputes Returns</span></td><td>AJIO says it was delivered and you never received it. Asks for the POD.</td><td>AJIO shows the return as delivered, but you did not receive it.</td></tr>
+</table></div>
+<p>You can fill <b>one slot or both</b>. A week with only NDR returns is normal — leave the DDR slot empty.</p>
+<div class="callout warn"><b class="t">Note</b>Do not put the same file in both slots by mistake. A row in the NDR slot is filed as NDR; the same row in the DDR slot would be filed as DDR as well.</div>
+
+<h2 id="files">The spreadsheet you upload</h2>
+<p>You can upload <b>AJIO's own return report as it is</b>, or fill in the app's template. Files must be Excel (<b>.xlsx</b> or <b>.xls</b>).</p>
+<p>Each row needs:</p>
+<div class="table-wrap"><table>
+  <tr><th>Column</th><th>Needed?</th><th>Why</th></tr>
+  <tr><td>Return AWB</td><td>Yes</td><td>The return you are claiming for. A sheet with no return numbers is refused.</td></tr>
+  <tr><td>POB ID</td><td>Yes</td><td>AJIO finds a return under its POB, and the app uses the POB to pick which AJIO login files it. A sheet with no <b>POB ID</b> column is refused at upload.</td></tr>
+  <tr><td>SKU (template: <b>Client SKU ID / EAN</b>)</td><td>Yes</td><td>Which article on the return is being claimed.</td></tr>
+  <tr><td>RT Number</td><td>Optional</td><td>AJIO's return order number. Speeds up the search when present.</td></tr>
+  <tr><td>Ticket No</td><td>Optional</td><td>If this already holds a ticket, the row is treated as <b>Already claimed</b> and skipped.</td></tr>
+</table></div>
+
+<h3>How to download the template</h3>
+<ol class="steps">
+  <li>In the <span class="ui">NDR/DDR Bulk Claim</span> window, click <span class="ui">Download template</span> (bottom-left).</li>
+  <li>Choose where to save it. The suggested name is <b>ajio-bulk-claim-template.xlsx</b> in your Downloads folder.</li>
+  <li>You will see the message <b>Template saved</b>. Open the file and fill in the columns <b>RT Number</b>, <b>Return AWB</b>, <b>Client SKU ID / EAN</b> and <b>POB ID</b>.</li>
+</ol>
+
+<h3>How to upload a file</h3>
+<ol class="steps">
+  <li>Next to the slot you want (NDR or DDR), click <span class="ui">Upload</span>.</li>
+  <li>Pick your spreadsheet in the file window.</li>
+  <li>The slot turns <span class="chip green">green</span> and shows the file name and the number of rows read, for example <b>returns.xlsx · 120 rows</b>.</li>
+  <li>To use a different file, click <span class="ui">Replace</span>. To empty the slot, click the <b>×</b> button next to it.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>Closing the file window without choosing a file does nothing and shows no error.</div>
+
+<h2 id="quick">How to file every claimable row (quick way)</h2>
+<p>Use this when you want the app to file every row it can.</p>
+<ol class="steps">
+  <li>Make sure the <span class="ui">Selected Proceed</span> switch at the top of the window is <b>off</b>.</li>
+  <li>Upload your file(s) into the NDR and/or DDR slot.</li>
+  <li>Click <span class="ui">Submit (1)</span> or <span class="ui">Submit (2)</span> — the number is how many files you uploaded. The button is greyed out until at least one file is uploaded.</li>
+  <li>The app sorts the rows and starts filing. A message such as <b>Filing 85 claims</b> appears, and a progress card appears in the window.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>If nothing in the files can be filed, you will see <b>Nothing in those files is claimable — see the breakdown</b>. Read the skipped counts in the card to see why (see <a href="#buckets">Why some rows are skipped</a>).</div>
+
+<h2 id="selected">How to choose rows first (Selected Proceed)</h2>
+<p>Turn on <span class="ui">Selected Proceed</span> when you want to see every row before anything is filed and tick only the ones you want — for example, to file a long sheet in parts.</p>
+<ol class="steps">
+  <li>Turn on the <span class="ui">Selected Proceed</span> switch at the top of the window. The main button changes from <span class="ui">Submit</span> to <span class="ui">Select</span>.</li>
+  <li>Upload your file(s).</li>
+  <li>Click <span class="ui">Select</span>. Nothing is filed yet. The <span class="ui">Select claims to file</span> window opens, showing how many rows were read from the sheets.</li>
+  <li>Check the counts at the top: <b>Claimable</b> (in green) and any skipped groups.</li>
+  <li>Tick or untick rows. All claimable rows start <b>ticked</b>.</li>
+  <li>Click <span class="ui">Submit (N)</span>, where N is the number of ticked rows. Only the ticked rows are filed. Click <span class="ui">Back</span> to return without filing.</li>
+</ol>
+
+<h3>The review table</h3>
+<div class="table-wrap"><table>
+  <tr><th>Column</th><th>Meaning</th></tr>
+  <tr><td>(tick box)</td><td>Tick to file this row. Rows that cannot be filed have a greyed-out box.</td></tr>
+  <tr><td>#</td><td>Row number. Claimable rows are listed first, so rows 1 to N are exactly the rows that can be filed.</td></tr>
+  <tr><td>Return AWB</td><td>The return number from the sheet.</td></tr>
+  <tr><td>SKU</td><td>The article from the sheet.</td></tr>
+  <tr><td>Claim type</td><td>NDR or DDR — from the slot the file was uploaded in.</td></tr>
+  <tr><td>POB ID</td><td>The POB from the sheet.</td></tr>
+  <tr><td>AJIO login</td><td>The AJIO account that will file this row. Empty when it will not be filed.</td></tr>
+  <tr><td>Result</td><td><span class="chip green">Claimable</span> if it will be filed; otherwise the reason it will be skipped (hover to read the full text).</td></tr>
+</table></div>
+
+<h3>Ticking many rows at once</h3>
+<ul>
+  <li><b>A range:</b> type numbers in <span class="ui">Rows</span> <b>From</b> … <span class="ui">to</span> <b>To</b> and click <span class="ui">Select range</span>. This <i>replaces</i> the current ticks. A line such as <b>Rows 22–45: 18 claimable selected</b> confirms what happened.</li>
+  <li><b>The last few:</b> type a number in <span class="ui">Last</span> and click <span class="ui">Select last</span> — for example, the last 30 claimable rows.</li>
+  <li><span class="ui">All</span> ticks every claimable row. <span class="ui">Clear</span> unticks everything.</li>
+  <li>The box in the table header ticks or unticks every claimable row.</li>
+</ul>
+<p>The footer always shows <b>N of M claimable selected</b>. <span class="ui">Submit</span> is greyed out when nothing is ticked.</p>
+<div class="callout tip"><b class="t">Tip</b>The sheets are read again when you press Submit. If a row stopped being claimable in between, it is not filed.</div>
+
+<h2 id="buckets">Why some rows are skipped</h2>
+<p>Before anything is filed, the app sorts each row. Rows in these groups are <b>not filed</b>. The counts appear in the review window and in the progress card, so you can fix the sheet and run again.</p>
+<div class="table-wrap"><table>
+  <tr><th>Label on screen</th><th>What it means</th><th>How to fix</th></tr>
+  <tr><td>POB not on any AJIO login here</td><td>None of the AJIO logins on this computer lists the row's POB. The row's message reads: <b>No AJIO login on this machine holds POB … — run "Sync POBs" in Monitor, then retry</b>.</td><td>Ask your admin to run <b>Sync POBs</b> in TrackVid Monitor, or add the missing AJIO login. Then run again.</td></tr>
+  <tr><td>No POB ID</td><td>The row's POB ID cell is empty.</td><td>Fill in the POB ID in the sheet.</td></tr>
+  <tr><td>Already claimed</td><td>The sheet's <b>Ticket No</b> column already holds a ticket for this row.</td><td>Nothing — it is already claimed.</td></tr>
+  <tr><td>Unknown claim type</td><td>The claim type is neither NDR nor DDR.</td><td>Upload the file into the correct NDR or DDR slot.</td></tr>
+  <tr><td>Not selected</td><td>Claimable, but you left it unticked in Selected Proceed.</td><td>Run again and tick it.</td></tr>
+</table></div>
+
+<h2 id="progress">Watching the progress</h2>
+<h3>Inside the window</h3>
+<p>Once a run starts, a card appears under the upload slots:</p>
+<ul>
+  <li>The heading reads <b>Filing X of Y</b> while running, <b>Finished</b> when done, or <b>Stopped</b> if the run ended early. The AJIO accounts in use are listed on the right.</li>
+  <li><b>Job ID</b> — the job's number (you can select and copy it). If it also says <b>not recorded in TrackVid</b>, the run still files but will not appear in History.</li>
+  <li>A progress bar.</li>
+  <li>The tally:
+    <ul>
+      <li><span class="chip green">N filed</span> — claims raised successfully.</li>
+      <li><span class="chip red">N failed</span> — claims that could not be filed.</li>
+      <li><span class="chip grey">N not claimable</span> — AJIO said the return cannot be claimed.</li>
+      <li><span class="chip amber">N held (submit disabled)</span> — only appears when final submission is switched off for testing; nothing was actually sent to AJIO for these.</li>
+    </ul>
+  </li>
+  <li>Below a line: the skipped groups (see <a href="#buckets">above</a>).</li>
+  <li>An error box in red if the run stopped with an error.</li>
+  <li><span class="ui">Show report</span> — opens the folder holding the Excel results file.</li>
+</ul>
+<p>While a run is going, the upload buttons and the <span class="ui">Selected Proceed</span> switch are locked, and the main button shows <span class="ui">Running…</span>. Only one bulk claim can run at a time.</p>
+
+<h3>In the corner panel</h3>
+<p>The <span class="ui">Background work</span> panel in the bottom-right corner shows a row called <b>NDR/DDR bulk claim · Ajio</b> while the run is going, with the accounts, <b>X of Y</b>, a progress bar, and counts of <b>successful</b>, <b>failed</b> and <b>remaining</b>.</p>
+<ul>
+  <li>Click the panel title to collapse or expand it.</li>
+  <li>Click the arrows button (<b>Show the tally and failed AWBs</b>) to make it larger.</li>
+  <li>Click the open-window button (<b>Reopen this job's window</b>) on the row to bring the NDR/DDR Bulk Claim window back.</li>
+</ul>
+<p>When the run ends, a message appears wherever you are in the app, and is kept in the notification centre:</p>
+<ul>
+  <li><b>NDR/DDR bulk claim finished — Job xxxxxxxx: N successful, N failed, N skipped</b> (shown in red if anything failed, green if nothing failed).</li>
+  <li><b>NDR/DDR bulk claim stopped — Job xxxxxxxx: …reason…</b> if it ended early.</li>
+</ul>
+
+<h2 id="stop">Closing the window, stopping, and quitting the app</h2>
+<ul>
+  <li><b>Closing the window does not stop the run.</b> While a run is going, the close button, <span class="ui">Run in the background</span> and the minimise button all just hide the window. Filing carries on.</li>
+  <li><b>There is no Stop button in this window.</b> To stop a run, switch off the <span class="ui">Automations</span> switch at the top of the app. The AJIO account currently being filed finishes, and the remaining accounts are not started. The run then shows <b>Stopped</b> with the message <b>Stopped — Automations were switched off before every account was filed</b>. Switch Automations back on afterwards, or nothing else will run in the background.</li>
+  <li><b>Quitting the app while it runs:</b> you will be asked <span class="ui">Close TrackVid CMS?</span>. Choose <span class="ui">Keep running</span> (recommended), <span class="ui">View Background Process</span>, or <span class="ui">Quit anyway</span>.</li>
+</ul>
+<div class="callout danger"><b class="t">Important</b>Do not quit the app in the middle of a bulk run unless you must. A claim that was being filed may already exist on AJIO without the app recording it, and a later run could file it again. If the computer sleeps or the app is closed, the job may show as <b>STALE</b> in History.</div>
+
+<h2 id="after">After the run: results, report and history</h2>
+<p>Each row of the sheet ends with one of these results (in the report and in History):</p>
+<div class="table-wrap"><table>
+  <tr><th>Result</th><th>Meaning</th><th>What to do</th></tr>
+  <tr><td><span class="chip green">Success</span></td><td>The claim was raised. A ticket number is recorded.</td><td>Nothing.</td></tr>
+  <tr><td><span class="chip red">Failed</span></td><td>The claim could not be raised. The reason is recorded (for example <b>Login failed: …</b> when the AJIO account could not sign in).</td><td>Read the reason, fix it (for example re-capture the login on the <a href="03-login-sessions.html">Login</a> page), then upload just those rows again.</td></tr>
+  <tr><td><span class="chip red">Help Center Failed</span></td><td>A ticket was created, but the last step of filing did not finish.</td><td>Check the ticket on AJIO before trying again, so you do not raise it twice.</td></tr>
+  <tr><td><span class="chip grey">Not Claimable</span></td><td>AJIO said this return cannot be claimed. The reason is recorded.</td><td>Usually nothing — read the reason.</td></tr>
+  <tr><td><span class="chip grey">Skipped</span></td><td>Left out before filing (see <a href="#buckets">skipped groups</a>).</td><td>Fix the sheet and run again.</td></tr>
+  <tr><td><span class="chip amber">Dry Run</span></td><td>Held — submission was switched off.</td><td>Ask your admin.</td></tr>
+  <tr><td><span class="chip amber">Pending</span></td><td>Not reached (for example the run stopped first).</td><td>Run those rows again.</td></tr>
+</table></div>
+
+<h3>How to open the Excel report</h3>
+<ol class="steps">
+  <li>Open the <span class="ui">NDR/DDR Bulk Claim</span> window.</li>
+  <li>In the progress card, click <span class="ui">Show report</span>. The folder opens with the results file selected. The file is updated after every claim, so you can open it during a run too.</li>
+</ol>
+
+<h3>How to see past runs</h3>
+<ol class="steps">
+  <li>In the <span class="ui">NDR/DDR Bulk Claim</span> window, click <span class="ui">History</span> (available at any time).</li>
+  <li>The window closes and the <span class="ui">Background Process</span> page opens with your bulk claim jobs — counts, the AWBs that were not filed, and a downloadable report. See <a href="09-background-process.html">Background process</a>.</li>
+</ol>
+
+<h2 id="messages">Messages you may see</h2>
+<div class="table-wrap"><table>
+  <tr><th>Message</th><th>Meaning / fix</th></tr>
+  <tr><td>That sheet has no "POB ID" column…</td><td>Add a <b>POB ID</b> column. Download the template to see the columns.</td></tr>
+  <tr><td>That sheet has no return numbers in it…</td><td>The Return AWB column is missing or empty. Compare with the template.</td></tr>
+  <tr><td>Those files hold no return numbers</td><td>The files have no usable rows.</td></tr>
+  <tr><td>Upload at least one file</td><td>Upload a file into NDR or DDR first.</td></tr>
+  <tr><td>Select at least one claim to file</td><td>In Selected Proceed, tick at least one row.</td></tr>
+  <tr><td>A bulk claim is already running</td><td>Wait for the current run to finish (watch it in the corner panel).</td></tr>
+  <tr><td>Automations are switched off — switch them on to start a bulk claim.</td><td>Turn on the <span class="ui">Automations</span> switch at the top of the app.</td></tr>
+  <tr><td>Sync this company before running a bulk claim</td><td>The company details have not been loaded on this computer yet. Contact your admin or TrackVid support.</td></tr>
+  <tr><td>Filing continues, but TrackVid did not record this job — it will not appear in History</td><td>Claims are still filed. Use <span class="ui">Show report</span> to see results for this run.</td></tr>
+  <tr><td>There is no report yet</td><td>No run has written a report on this computer yet.</td></tr>
+</table></div>
+
+<div class="pager">
+  <a href="05-bulk-claim.html"><span>Previous</span>5. Bulk claim</a>
+  <a href="07-manage-claims.html"><span>Next</span>7. Manage claims</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

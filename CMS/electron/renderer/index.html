@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'"
+    />
+    <title>TrackVid CMS</title>
+    <!--
+      THE BOOT LOADER, and why it lives here rather than in React.
+
+      The window is shown as soon as this file has loaded, but the app is one
+      dynamic import (main.tsx) — MUI, the theme and every page — and nothing
+      paints until all of it has arrived. In development Vite compiles that
+      graph on first open, which is many seconds of an empty window that reads
+      as a hang. This markup needs no script at all, so it is on screen from the
+      first frame; React's first render replaces everything inside #root, so it
+      goes away with no code to remove it.
+
+      No hex: `GrayText` is the platform's own muted text colour and follows the
+      light or dark appearance on Windows and macOS, and the background is left
+      to the window's, which main paints in the stored theme's colour.
+    -->
+    <style>
+      .boot-loader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        color: GrayText;
+        font: 13px system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      .boot-loader__spinner {
+        inline-size: 24px;
+        block-size: 24px;
+        border: 2px solid currentColor;
+        border-block-start-color: transparent;
+        border-radius: 50%;
+        opacity: 0.8;
+        animation: boot-loader-spin 0.8s linear infinite;
+      }
+      @keyframes boot-loader-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-loader__spinner {
+          animation-duration: 2.4s;
+        }
+      }
+    </style>
+  </head>
+  <!-- The body is painted by MUI's CssBaseline now, not by a utility class:
+         two stylesheets painting it is a flash of the wrong colour on launch. -->
+    <body class="antialiased">
+    <div id="root">
+      <div class="boot-loader" role="status" aria-live="polite">
+        <div class="boot-loader__spinner" aria-hidden="true"></div>
+        <span>Starting TrackVid CMS…</span>
+      </div>
+    </div>
+    <script type="module" src="/main.tsx"></script>
+  </body>
+</html>

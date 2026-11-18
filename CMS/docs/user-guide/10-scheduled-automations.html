@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scheduled automations — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html" class="active">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Scheduled automations</h1>
+<p class="lead">The app can do routine work by itself at set times — refresh marketplace logins, download reports, fill missing claim details, file ready claims and check claim status — so nobody has to press a button for it.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+<li><a href="#overview">How scheduled automations work</a></li>
+<li><a href="#tasks">The tasks, in run order</a></li>
+<li><a href="#master-switch">The Automations switch (sidebar)</a></li>
+<li><a href="#schedule-card">The schedule in Settings</a></li>
+<li><a href="#set-time">How to set or change a task's time</a></li>
+<li><a href="#on-off">How to turn a task on or off</a></li>
+<li><a href="#run-now">How to run a task now</a></li>
+<li><a href="#history">How to see a task's history</a></li>
+<li><a href="#failures">When a task fails — retries and Skip this run</a></li>
+<li><a href="#reset">How to reset the schedule</a></li>
+<li><a href="#task-details">What each task shows under its row</a></li>
+<li><a href="#dialog">The "Scheduled automations" dialog</a></li>
+<li><a href="#skip-platform">How to skip one marketplace during a run</a></li>
+<li><a href="#login-pause">"Automations paused" — when logins need fixing</a></li>
+<li><a href="#admin">Settings controlled by the TrackVid team</a></li>
+</ol></div>
+
+<h2 id="overview">How scheduled automations work</h2>
+<p>Each scheduled task has an on/off switch and a schedule. When its time comes, the app starts it on its own — no one needs to be at the computer.</p>
+<ul>
+<li><b>The app must be open.</b> Nothing runs while the app is closed. If a time was missed while the app was closed (or the computer was asleep), the missed run happens <b>once</b> the next time the app is open.</li>
+<li><b>All times are IST</b> (Indian Standard Time), whatever clock the computer uses.</li>
+<li><b>Tasks run one at a time</b>, never two together. If two tasks are due at the same moment, they run in a fixed order (see the next section). The others wait in a queue.</li>
+<li><b>A task also waits if the browser is busy</b> — for example while a bulk claim you started is still running. It starts as soon as the browser is free.</li>
+<li><b>A task that has never run on this computer runs straight away</b> the first time the schedule checks, whatever its time says.</li>
+<li><b>After the app has been closed</b>, the <span class="ui">Login update</span> runs first, before anything else that was missed, so the other tasks have working logins.</li>
+<li>Every run is recorded. You can see it in the task's <span class="ui">History</span>, in the <span class="ui">Run history</span> tab, and on the <a href="09-background-process.html">Background Process</a> page.</li>
+</ul>
+<div class="callout tip"><b class="t">Tip</b>The schedule is switched on, with the default times, on a new installation. You do not need to set anything up to get started — just keep the app open.</div>
+
+<h2 id="tasks">The tasks, in run order</h2>
+<p>When more than one task is due, they always run in this order. The order matters: logins come first because every other task signs in to the marketplace, and the reports and blank details come before claim filing so that claims are ready to file.</p>
+<div class="table-wrap"><table>
+<tr><th>Order</th><th>Task (on-screen name)</th><th>What it does</th><th>Default schedule</th></tr>
+<tr><td>1</td><td><span class="ui">Login update</span></td><td>Signs in again to marketplace accounts whose saved login has expired, is about to expire, was refused by the marketplace, or was never captured on this computer. Each account gets a limited time; if one hangs, the task moves on to the next account. Accounts that need a person (for example, automatic sign-in is off, or a one-time code is needed) are reported, not waited for.</td><td>Every hour</td></tr>
+<tr><td>2</td><td><span class="ui">AJIO report sync</span></td><td>Reads the last few days of AJIO's <b>Forward</b> and <b>Return</b> reports, for every AJIO account, into a backup on this computer. This keeps the data available even after AJIO's report window has moved on, and Refill Data uses it.</td><td>At 10:00</td></tr>
+<tr><td>3</td><td><span class="ui">Snapdeal report sync</span></td><td>Collects Snapdeal return reports that have finished building, then requests the last few days again. Snapdeal takes some minutes to build a report, so a report requested today is often collected on the next run — this is normal. If the company has no Snapdeal account, it finishes with "No Snapdeal account — nothing to sync".</td><td>At 11:00</td></tr>
+<tr><td>4</td><td><span class="ui">Flipkart report sync</span></td><td>Collects Flipkart <b>Orders</b> and <b>Returns</b> reports that have finished building, then requests the days since each was last stored. It keeps only what Create Claim needs (order item, SKU and the AWB numbers). Flipkart can take about half an hour to build a report, so it is often collected on the next run. With no Flipkart account it finishes with "No Flipkart account — nothing to sync".</td><td>At 12:00</td></tr>
+<tr><td>5</td><td><span class="ui">Refill Data</span></td><td>For claims that are waiting to be filed (Pending), asks each marketplace for the missing details — the account, POB ID, sub-order number, forward AWB. Only empty fields are filled. A claim that has been asked about 3 times without an answer is left out of later runs ("past the limit"). Marketplaces with no working login are skipped.</td><td>At 23:00</td></tr>
+<tr><td>6</td><td><span class="ui">Auto claim</span></td><td>Files the Pending claims that are ready to file. It uses the same rules as the Manage Claims page, so it never files a claim the page would not let you tick, and it can never raise a second ticket for the same return. Claims for an account with no working login are skipped (not counted as a failed attempt) and file on a later run once the login is fixed.</td><td>Every 2 hours</td></tr>
+<tr><td>7</td><td><span class="ui">Status change</span></td><td>For claims that already have a ticket, asks the marketplace where each ticket stands now and what was paid. It skips Pending, Failed to Proceed, Approved and Rejected claims. A claim checked recently is not checked again until its waiting period has passed.</td><td>At 13:00</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Note</b>Auto claim files <b>real claims</b> on the marketplace. If you do not want claims filed automatically on this computer, turn Auto claim <span class="ui">Off</span>.</div>
+<p>The schedule only decides <b>when</b> a task starts. Each task does exactly the same work as the matching button elsewhere in the app (for example, Refill Data on the Manage Claims page).</p>
+
+<h2 id="master-switch">The Automations switch (sidebar)</h2>
+<p>At the bottom of the left sidebar, above the version number, is the <span class="ui">Automations</span> switch. It is the on/off switch for <b>all</b> background work, on every screen.</p>
+<div class="table-wrap"><table>
+<tr><th>Text under the switch</th><th>Meaning</th></tr>
+<tr><td><span class="ui">Idle</span></td><td>Automations are on, and nothing is running at this moment.</td></tr>
+<tr><td><span class="ui">Running 1</span> / <span class="ui">Running 1 · 2 queued</span></td><td>A task is running (with a spinning icon). "queued" is the number of tasks waiting their turn.</td></tr>
+<tr><td><span class="ui">Stopping…</span></td><td>You switched it off while a task was running. The task finishes the step it is on (for example, the claim in hand) and then stops.</td></tr>
+<tr><td><span class="ui">Off</span></td><td>Nothing runs in the background.</td></tr>
+</table></div>
+
+<h3>How to stop all automations</h3>
+<ol class="steps">
+<li>Find the <span class="ui">Automations</span> switch at the bottom of the sidebar.</li>
+<li>Turn it off. A message appears: "Automations off — nothing runs in the background until you switch it back on." If something was running, it says "Automations off — what is running stops after the step it is on."</li>
+</ol>
+<p>Switching off also stops the master-import schedule and other background processes. It stays off even after you close and reopen the app. Your task switches and times are kept.</p>
+
+<h3>How to start them again</h3>
+<ol class="steps">
+<li>Turn the <span class="ui">Automations</span> switch on.</li>
+<li>The message "Automations on — catching up on anything that was missed." appears.</li>
+<li>The app now runs <b>every task that is switched on, once, straight away</b>, starting with the Login update and then in the usual order, one at a time. Tasks you have switched off are not run.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>Because turning the switch on runs every enabled task (including Auto claim), only switch it on when you are happy for that work to happen now.</div>
+
+<p>The eye button beside the switch (tooltip "What is running, queued and scheduled") opens the <a href="#dialog">Scheduled automations</a> dialog.</p>
+
+<h2 id="schedule-card">The schedule in Settings</h2>
+<p>Open <span class="ui">Settings</span> from the sidebar. The first card on the page lists every scheduled task, one row each, in run order. At the top right of the card is the <span class="ui">Reset</span> button. While another job has the browser, a small amber note "<i>(job name)</i> is using the browser" appears beside it.</p>
+<p>Each row shows:</p>
+<div class="table-wrap"><table>
+<tr><th>Part of the row</th><th>What it tells you</th></tr>
+<tr><td>Task name, with a <span class="ui">Running</span> badge</td><td>The badge appears only while the task is running.</td></tr>
+<tr><td>Last-run line</td><td>One of:
+<br>"Last completed <i>date/time</i> · <i>summary</i>" — the last run finished.
+<br><span class="chip red">Last run failed — <i>reason</i></span> — the last run failed.
+<br>"Running since <i>date/time</i>" — running now.
+<br><span class="chip amber">Started <i>date/time</i> and did not finish</span> — the app was closed or Automations were switched off during the run. It will be run again.
+<br>"Has not run on this machine yet".
+<br>When the task is on, the line ends with "· next in 25 min", "· next in 3 h", "· next due now" or a date.</td></tr>
+<tr><td>Red warning</td><td><span class="chip red">Failed 3 times in a row — it keeps retrying, but something needs fixing or skipping.</span> Shown when a task has failed more than once in a row.</td></tr>
+<tr><td>Schedule button (calendar icon)</td><td>Shows the current schedule, for example <span class="ui">Every hour</span>, <span class="ui">Every 2 hours</span>, <span class="ui">Every 15 min</span>, <span class="ui">At 10:00</span>, <span class="ui">At 09:00, 18:00</span> or <span class="ui">Not set</span>. Click it to change the schedule.</td></tr>
+<tr><td>Switch (<span class="ui">On</span> / <span class="ui">Off</span>)</td><td>Whether this task runs on its schedule.</td></tr>
+<tr><td><span class="ui">Run now</span></td><td>Starts the task immediately.</td></tr>
+<tr><td><span class="ui">Skip this run</span></td><td>Appears only when the last run failed.</td></tr>
+<tr><td><span class="ui">History</span></td><td>Every run of this task on this computer.</td></tr>
+<tr><td>Details below the row</td><td>Live status chips for that task — see <a href="#task-details">What each task shows under its row</a>.</td></tr>
+</table></div>
+
+<h2 id="set-time">How to set or change a task's time</h2>
+<ol class="steps">
+<li>Go to <span class="ui">Settings</span>.</li>
+<li>On the task's row, click the schedule button (it shows the current setting, such as <span class="ui">At 10:00</span>). The <span class="ui">Set cron — <i>task name</i></span> window opens. It reminds you: "Times are IST. The app has to be open for a run to happen, and a window it missed is picked up the next time it opens."</li>
+<li>Under <span class="ui">How should this run?</span> choose one:
+  <ul>
+  <li><span class="ui">Rotate</span> — "Every so often, round the clock".</li>
+  <li><span class="ui">Fixed time</span> — "At the times you choose".</li>
+  </ul></li>
+<li>For <span class="ui">Rotate</span>: in <span class="ui">Run every</span>, enter hours and minutes. For example <b>00:15</b> means every 15 minutes, <b>02:00</b> means every 2 hours. The gap is counted from the end of the last run.</li>
+<li>For <span class="ui">Fixed time</span>: in <span class="ui">Run at</span>, enter a time (24-hour, IST). To run more than once a day, click <span class="ui">Add another time</span> and enter the next time. Use the bin icon to remove a time (the last one cannot be removed).</li>
+<li>Click <span class="ui">Save cron</span>. To leave without changing anything, click <span class="ui">Cancel</span>.</li>
+<li>Check that the row's switch is <span class="ui">On</span>. If it is <span class="ui">Off</span>, turn it on.</li>
+</ol>
+<p>If something is wrong, an amber message appears and <span class="ui">Save cron</span> stays greyed out:</p>
+<div class="table-wrap"><table>
+<tr><th>Message</th><th>What to do</th></tr>
+<tr><td>Enter how often this should run</td><td>Enter a time greater than 00:00 in <span class="ui">Run every</span>.</td></tr>
+<tr><td>Five minutes is the shortest interval — anything less never finishes before it is due again</td><td>Use 00:05 or more.</td></tr>
+<tr><td>A day is the longest interval — use a fixed time instead</td><td>Choose <span class="ui">Fixed time</span> instead.</td></tr>
+<tr><td>Add at least one time</td><td>Enter a time under <span class="ui">Run at</span>.</td></tr>
+<tr><td>Enter each time as HH:mm, for example 02:00</td><td>Fill in every time box completely.</td></tr>
+<tr><td>The same time is listed twice</td><td>Change or remove the duplicate time.</td></tr>
+</table></div>
+<div class="callout tip"><b class="t">Tip</b>Do not put two tasks on exactly the same minute. They cannot run together anyway — the second just waits for the first.</div>
+
+<h2 id="on-off">How to turn a task on or off</h2>
+<ol class="steps">
+<li>Go to <span class="ui">Settings</span>.</li>
+<li>Click the switch on the task's row. It shows <span class="ui">On</span> or <span class="ui">Off</span>.</li>
+<li>If you turn on a task that has no schedule yet, the <span class="ui">Set cron</span> window opens first so you can choose one.</li>
+</ol>
+<p>A task that is <span class="ui">Off</span> never runs on its schedule, and is not run when the Automations switch is turned on. Its history is kept.</p>
+<div class="callout warn"><b class="t">Note</b>The task switch is different from the <span class="ui">Automations</span> switch in the sidebar. The task switch decides <b>which</b> tasks this computer does. The Automations switch is a "stop everything for now" switch that remembers which tasks were on.</div>
+
+<h2 id="run-now">How to run a task now</h2>
+<ol class="steps">
+<li>Go to <span class="ui">Settings</span>.</li>
+<li>Click <span class="ui">Run now</span> on the task's row. A message "<i>task name</i> started" appears.</li>
+<li>Watch the row: the <span class="ui">Running</span> badge and the details under the row update as the task works.</li>
+<li>When it ends, a message shows the result, for example "Auto claim — <i>summary</i>", or an error in red.</li>
+</ol>
+<p>Run now does exactly what the schedule would do. It runs only that one task (not the tasks after it). It still waits its turn if another task is running.</p>
+<div class="table-wrap"><table>
+<tr><th>If Run now is refused with…</th><th>Why</th></tr>
+<tr><td>Automations are switched off — switch them on to run this.</td><td>The sidebar <span class="ui">Automations</span> switch is off. Turn it on (remember this also starts all enabled tasks).</td></tr>
+<tr><td><i>(job)</i> is using the browser — try again when it ends</td><td>Another job, such as a bulk claim, has the browser. Wait for it to finish.</td></tr>
+<tr><td><i>(task)</i> is already running</td><td>That task is already going or already waiting. Do not press again.</td></tr>
+</table></div>
+<p>The <span class="ui">Run now</span> button is greyed out while the task is running, or while another Run now you pressed is still going.</p>
+
+<h2 id="history">How to see a task's history</h2>
+<ol class="steps">
+<li>Go to <span class="ui">Settings</span>.</li>
+<li>Click <span class="ui">History</span> on the task's row. The <span class="ui">History — <i>task name</i></span> window opens: "Every run on this machine, newest first."</li>
+<li>Read the table, then click <span class="ui">Close</span>.</li>
+</ol>
+<p>While loading it shows "Reading the history…". If the task has never run: "This has not run on this machine yet."</p>
+<div class="table-wrap"><table>
+<tr><th>Column</th><th>Meaning</th></tr>
+<tr><td>Status</td><td>How the run ended, then what started it: <span class="ui">Schedule</span> (its time came), <span class="ui">Toggle on</span> (the Automations switch was turned on) or <span class="ui">Run now</span> (someone pressed the button).</td></tr>
+<tr><td>Started / Completed</td><td>Start and end time. Completed shows "running" while it is going, or "did not finish" if the app was closed or Automations switched off during it.</td></tr>
+<tr><td>Took</td><td>How long it ran, for example "3m 12s".</td></tr>
+<tr><td>Done</td><td>Items that succeeded out of the total, for example "18/20".</td></tr>
+<tr><td>Platforms</td><td>Result per marketplace, for example "ajio 4/5 · meesho 2/2". Hover to see more detail.</td></tr>
+<tr><td>Detail</td><td>The run's summary, or the error if it failed. Hover to read the full text.</td></tr>
+</table></div>
+<p>Status colours:</p>
+<div class="table-wrap"><table>
+<tr><th>Status</th><th>Meaning</th></tr>
+<tr><td><span class="chip green">Completed</span></td><td>Finished with no failures.</td></tr>
+<tr><td><span class="chip amber">Completed with errors</span></td><td>Finished, but some items failed.</td></tr>
+<tr><td><span class="chip amber">Incomplete</span></td><td>Did not finish — the app was closed or Automations switched off. It will be run again.</td></tr>
+<tr><td><span class="chip red">Failed</span></td><td>The run failed. It is retried automatically.</td></tr>
+<tr><td><span class="chip grey">Skipped</span></td><td>Someone pressed Skip, so this run was passed over.</td></tr>
+<tr><td>Running</td><td>Going now.</td></tr>
+</table></div>
+
+<h2 id="failures">When a task fails — retries and Skip this run</h2>
+<p>When a task fails, the app does <b>not</b> give up:</p>
+<ul>
+<li>The tasks after it in the order still run.</li>
+<li>The failed task is tried again automatically at the app's next routine check (at least every 30 minutes), until it succeeds. There is no limit on retries.</li>
+<li>After more than one failure in a row, the row shows the red "Failed <i>N</i> times in a row" warning.</li>
+</ul>
+<p>Some failures cannot fix themselves — for example a login that needs a person. Fix the cause (often on the <a href="03-login-sessions.html">Login</a> page), or stop the retries with <span class="ui">Skip this run</span>.</p>
+
+<h3>How to skip a failed run</h3>
+<ol class="steps">
+<li>Go to <span class="ui">Settings</span>. The <span class="ui">Skip this run</span> button appears only on a row whose last run failed, and is greyed out while the task is running.</li>
+<li>Click <span class="ui">Skip this run</span>. A confirmation window "Skip this run?" opens.</li>
+<li>Click <span class="ui">Skip this run</span> again to confirm.</li>
+<li>A message says "<i>task name</i> skipped — the tasks after it can run now".</li>
+</ol>
+<p>Skipping records the failed run as passed over. The work that run would have done does <b>not</b> happen, the app stops retrying it, and the task runs normally again at its next scheduled time.</p>
+
+<h2 id="reset">How to reset the schedule</h2>
+<ol class="steps">
+<li>Go to <span class="ui">Settings</span>.</li>
+<li>Click <span class="ui">Reset</span> at the top right of the schedule card. The window "Reset the schedule?" opens.</li>
+<li>Read the warning, then click <span class="ui">Reset</span> to confirm, or cancel.</li>
+<li>The message "Schedule reset — every automation back on, at its default time" appears.</li>
+</ol>
+<p>Reset turns <b>every</b> task back on, at the default times shown in <a href="#tasks">the task table</a>. The history of past runs is kept.</p>
+<div class="callout danger"><b class="t">Important</b>Reset also switches Auto claim back on, which files real claims. If you had turned Auto claim off on purpose, turn it off again after a reset.</div>
+
+<h2 id="task-details">What each task shows under its row</h2>
+<p>Under several rows in Settings there are small coloured chips. In general: <span class="chip red">red</span> = work still to do, <span class="chip green">green</span> = done, <span class="chip amber">amber</span> = needs attention or skipped, <span class="chip grey">grey</span> = information only. A chip with a heavier outline or a spinning icon is the one being worked on right now. Hover over a chip to see more detail.</p>
+
+<h3>Login update</h3>
+<p>A summary line, a <span class="ui">Check now</span> button and one chip per account that needs attention.</p>
+<ul>
+<li>Summary examples: "3 of 5 still to update — working through them now", "All 5 logins were updated", or, when nothing is outstanding, "Every saved login is inside its expiry date — press Check now for the marketplace's own answer". While loading: "Reading the accounts…".</li>
+<li><span class="chip red">Marketplace · username · Expired</span> — still to update. The tag says why: <span class="ui">Expired</span> (the saved login has run out), <span class="ui">Expiring</span> (it runs out shortly), <span class="ui">Rejected</span> (the marketplace refused it, whatever its expiry date says) or <span class="ui">No login</span> (never signed in on this computer). A person icon means automatic sign-in is off for that platform, so a person must sign in.</li>
+<li>Highlighted, pulsing chip with "Signing in…" — the account being signed in right now.</li>
+<li><span class="chip green">Marketplace · username</span> — updated. It stays on the list in green so you can see what was done.</li>
+</ul>
+<p><b>How to check logins with the marketplace:</b> click <span class="ui">Check now</span>. The app asks each marketplace whether each saved login really still works (expiry dates are only an estimate). The chips update with the answer. The button is greyed out while the Login update is running.</p>
+
+<h3>AJIO report sync</h3>
+<p>Two chips, <b>Forward</b> and <b>Return</b>:</p>
+<ul>
+<li><span class="chip grey">Forward · 2 hours ago · data to <i>date</i></span> — last synced, and the latest date the backup covers.</li>
+<li><span class="chip amber">Return · never synced</span> — nothing has been synced on this computer yet.</li>
+</ul>
+
+<h3>Snapdeal report sync</h3>
+<ul>
+<li><span class="chip grey">Return · 1 day ago · data to <i>date</i></span> — when rows last arrived, and the date covered. <span class="chip amber">Return · nothing collected yet</span> if nothing has arrived.</li>
+<li><span class="chip grey">3 waiting at Snapdeal</span> — reports requested that Snapdeal is still building. This is normal, not an error; the next run collects them.</li>
+</ul>
+
+<h3>Flipkart report sync</h3>
+<ul>
+<li><span class="chip grey">Orders · 1,240 rows · data to <i>date</i> · <i>time ago</i></span> and the same for <b>Returns</b>. <span class="chip amber">nothing collected yet</span> if none have arrived.</li>
+<li><span class="chip grey">2 waiting at Flipkart</span> — reports still being built. Normal.</li>
+</ul>
+
+<h3>Refill Data</h3>
+<p>Between runs, one chip per marketplace:</p>
+<ul>
+<li><span class="chip red">Myntra 12 to refill</span> — claims with blanks still to ask about.</li>
+<li><span class="chip green">Ajio nothing to refill</span> or <span class="chip green">Ajio 8 filled</span> — nothing waiting.</li>
+<li>"· 5 past the limit" — claims already asked about 3 times without an answer; they are no longer asked. A small <span class="ui">Reset</span> button appears on that chip.</li>
+<li>"asking now" with a spinning icon — this marketplace is being asked right now.</li>
+</ul>
+<p><b>How to let "past the limit" claims be asked again:</b></p>
+<ol class="steps">
+<li>Click <span class="ui">Reset</span> on the marketplace's chip. It changes to <span class="ui">Reset 5?</span> showing how many claims.</li>
+<li>Click it again to confirm.</li>
+<li>A message says "<i>Marketplace</i>: 5 row(s) back in the refill — they are asked again on the next run."</li>
+</ol>
+<p>While Refill Data runs, a progress line appears: "Running the <b>Blanks</b> pass", then "Finished the Blanks pass" (with "· it had nothing to ask" if there was nothing to do). Each marketplace shows <span class="ui">waiting</span>, a spinner while running, a tick when done, or <span class="ui">skipped</span>, with counts such as "40/120 checked · 6 changed · 3 skipped". A green "<i>N</i> up to date" badge means those claims were answered recently and were not asked again — that is work already done, not a problem.</p>
+
+<h3>Auto claim</h3>
+<p>A summary line and one row per marketplace showing <b>Total</b>, <b>Success</b> and <b>Failed</b>.</p>
+<ul>
+<li>Summary examples: "2 of 3 marketplaces still to file — working through them now", "All 3 marketplaces are done", "4 claim(s) skipped — re-capture the login and they file on the next run". It may end with "· 7 not yet fileable".</li>
+<li>If nothing is ready: "Nothing ready to file — 7 Pending claims still waiting on a missing account, POB ID or sub-order number." (Refill Data fills these.)</li>
+<li><span class="chip red">Red row</span> — claims still to file, or some failed (extra text such as "2 left" or "1 no ticket id"). The <a href="09-background-process.html">Background Process</a> page has the reasons.</li>
+<li><span class="chip amber">Amber row with a key icon</span> — "skipped — no login": the account has no working login, so nothing was attempted. Re-capture the login on the Login page; the claims file on the next run.</li>
+<li><span class="chip green">Green row</span> — every claim this run had for that marketplace is filed.</li>
+</ul>
+
+<h3>Status change</h3>
+<p>Between runs, one chip per marketplace:</p>
+<ul>
+<li><span class="chip red">Ajio 14 due · 30 up to date</span> — tickets due to be checked on the next run.</li>
+<li><span class="chip green">Myntra nothing due</span> — all checked recently.</li>
+<li>"Counting filed tickets…" while loading; "No filed ticket to check yet." if there are none.</li>
+</ul>
+<p>While it runs, the same progress display as Refill Data appears, for the <b>Claim status</b> pass.</p>
+
+<h2 id="dialog">The "Scheduled automations" dialog</h2>
+<p>Click the eye button beside the <span class="ui">Automations</span> switch in the sidebar. The <span class="ui">Scheduled automations</span> window opens. The line under the title says:</p>
+<ul>
+<li>"Switched on. Tasks run one at a time, in the order below."</li>
+<li>"Switched off. Nothing will run until you switch it back on."</li>
+<li>"Switched off. The task still running will stop after the step it is on."</li>
+</ul>
+<p>The expand button at the top right makes the window fill the screen (useful for reading the Run history table); click it again to shrink it. The window has four tabs.</p>
+
+<h3>Current view</h3>
+<p>Tasks grouped into four sections:</p>
+<div class="table-wrap"><table>
+<tr><th>Section</th><th>What it shows</th><th>When empty</th></tr>
+<tr><td><span class="ui">Running now</span></td><td>The running task, "Started — see Jobs for progress", a <span class="chip green">Running</span> badge and a <span class="ui">Skip</span> button.</td><td>Nothing is running.</td></tr>
+<tr><td><span class="ui">Queued</span></td><td>Tasks that are due and waiting — "Waiting for the task ahead of it", <span class="chip amber">Queued</span> badge.</td><td>Nothing is waiting to start.</td></tr>
+<tr><td><span class="ui">Scheduled</span></td><td>Tasks that are on, with their schedule and next run, for example "Every hour · next in 40 minutes".</td><td>No task is switched on.</td></tr>
+<tr><td><span class="ui">Switched off</span></td><td>Tasks turned off, with a <span class="chip grey">Off</span> badge.</td><td>Every task is switched on.</td></tr>
+</table></div>
+<p>Each task also shows its last result ("Last run — <i>summary</i>", "Last run failed — <i>reason</i>" in red, or "Has not run on this machine yet") and the date/time it last ran. If another job has the browser, a note says "<i>(job)</i> has the browser right now. A due task waits rather than competing for it."</p>
+<p><b>How to stop the running task early:</b> click <span class="ui">Skip</span> next to it. The message "Skipping — it will stop after the step it is on" appears. Only this run is stopped; the next task in the queue starts, and the skipped task runs again at its next scheduled time. ("Jobs" here means the <a href="09-background-process.html">Background Process</a> page.)</p>
+
+<h3>Platforms</h3>
+<p>The same tasks, shown per marketplace, in run order: <span class="ui">Login update</span>, <span class="ui">AJIO report sync</span>, <span class="ui">Snapdeal report sync</span>, <span class="ui">Flipkart report sync</span>, <span class="ui">Refill Data</span>, <span class="ui">Auto claim</span>, <span class="ui">Status change</span>. A green <span class="ui">Running</span> badge marks the section running now. The report, Refill Data, Auto claim and Status change sections show the same chips as in Settings (see <a href="#task-details">above</a>).</p>
+<p>The <span class="ui">Login update</span> section is a board with one box per marketplace:</p>
+<div class="table-wrap"><table>
+<tr><th>Colour</th><th>Meaning</th></tr>
+<tr><td><span class="chip red">Red</span></td><td>A login to fix — "2 to update · 3 good". The accounts are listed with their state and what the last run said about them.</td></tr>
+<tr><td><span class="chip amber">Amber</span></td><td>Logins the run skips, and why: "Skipped — unverified login" (the marketplace refused the password — verify it on the Login page) or "Skipped — manual sign-in" (automatic sign-in is off for this platform, or this build cannot sign in to it without a one-time code).</td></tr>
+<tr><td><span class="chip green">Green</span></td><td>All logins good.</td></tr>
+<tr><td><span class="chip grey">Grey</span></td><td>"no login configured" — nothing to do.</td></tr>
+<tr><td>Outlined, spinning</td><td>"signing in <i>username</i>" — being signed in now, with a <span class="ui">Skip</span> button.</td></tr>
+</table></div>
+<p>While loading: "Reading the logins…". With no marketplaces: "No marketplace is configured for this company yet."</p>
+
+<h3>Automation log</h3>
+<p>A live, line-by-line log of what the scheduler does — checking, starting, finishing, waiting, skipping — newest first, with the time on the right and a date heading where the day changes. Each line has an icon:</p>
+<div class="table-wrap"><table>
+<tr><th>Icon colour</th><th>Meaning</th></tr>
+<tr><td>Play icon</td><td>A task started.</td></tr>
+<tr><td><span class="chip green">Green tick</span></td><td>Finished successfully.</td></tr>
+<tr><td><span class="chip amber">Amber triangle</span></td><td>Finished, partly failed.</td></tr>
+<tr><td><span class="chip red">Red cross / red no-entry</span></td><td>Failed, or could not start.</td></tr>
+<tr><td><span class="chip amber">Amber clock</span></td><td>Waiting (for example, for the browser).</td></tr>
+<tr><td><span class="chip grey">Grey skip / info</span></td><td>Skipped, or general information.</td></tr>
+</table></div>
+<p>The log covers <b>this session only</b> — it starts empty each time the app is opened. Use <span class="ui">Run history</span> for older runs. Click <span class="ui">Clear</span> to empty the log. When empty: "Nothing yet. Lines appear as the scheduler checks, starts and finishes tasks."</p>
+
+<h3>Run history</h3>
+<p>Every run of every task on this computer, newest first ("<i>N</i> runs on this machine, newest first."). It is the same table as a task's <a href="#history">History</a> window, with an extra <b>Task</b> column. When nothing has run: "Nothing has run on this machine yet. A row appears here each time a task starts."</p>
+
+<h2 id="skip-platform">How to skip one marketplace during a run</h2>
+<p>If one marketplace is slow or keeps refusing during a run, you can skip just that marketplace and let the task carry on with the rest.</p>
+<ol class="steps">
+<li>While the task is running, find the marketplace being worked on. It has a small <span class="ui">Skip</span> button. This appears on the Login update board (Platforms tab), on the Auto claim row, and on the Refill Data / Status change progress chips.</li>
+<li>Click <span class="ui">Skip</span>. It changes to <span class="ui">Skipping</span>, and a message says "<i>Marketplace</i> will be passed over after the row in hand."</li>
+</ol>
+<p>The item in hand is finished first, so nothing is left half-done. The marketplace is included again on the next run.</p>
+
+<h2 id="login-pause">"Automations paused" — when logins need fixing</h2>
+<p>Every task after Login update needs working marketplace logins. If the Login update cannot fix every login, the app may pause all automations by itself, so it does not waste the night on logins the marketplace will refuse. A red box appears above the Automations switch:</p>
+<ul>
+<li><b>Automations paused</b>, followed by which logins need attention (or "Logins need re-capturing.").</li>
+<li>A button: <span class="ui">Re-capture on the Login page</span>.</li>
+</ul>
+<ol class="steps">
+<li>Click <span class="ui">Re-capture on the Login page</span>.</li>
+<li>Sign in again for the accounts named (see <a href="03-login-sessions.html">Login</a>).</li>
+<li>Automations start again by themselves once the logins are fixed — you do not need to touch the switch.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>A login the marketplace refused because of a wrong password is not retried by the Login update and does not hold this pause. Verify it on the Login page.</div>
+<div class="callout warn"><b class="t">Note</b>If <b>you</b> switched Automations off, fixing logins does not switch them back on. Only you can.</div>
+
+<h2 id="admin">Settings controlled by the TrackVid team</h2>
+<p>Some settings that change how automations behave are <b>not in this app</b>. They are set by the TrackVid admin team for your company, and the app follows them automatically. If you need one changed, contact the TrackVid team.</p>
+<div class="table-wrap"><table>
+<tr><th>Setting</th><th>What it controls</th></tr>
+<tr><td>Desktop execution</td><td>Which marketplaces and automations (claims, master import) run on <b>this computer</b>. If a marketplace is not set to run here, it is handled by the TrackVid server instead and this app will not automate it.</td></tr>
+<tr><td>API-based automation</td><td>For a marketplace that runs here, whether claims are filed through the marketplace's direct connection or by driving a browser.</td></tr>
+<tr><td>Master import sync time</td><td>The time each day the master import runs. This is separate from the schedule in Settings and has no time box in this app.</td></tr>
+<tr><td>Auto-login</td><td>Whether the app may sign in to a marketplace by itself. When it is off, the Login update skips that platform's accounts ("Skipped — manual sign-in") and a person must sign in on the Login page.</td></tr>
+</table></div>
+
+<div class="pager">
+  <a href="09-background-process.html"><span>Previous</span>9. Background process</a>
+  <a href="11-settings.html"><span>Next</span>11. Settings &amp; profile</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

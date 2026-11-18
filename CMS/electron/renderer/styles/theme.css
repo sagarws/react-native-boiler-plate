@@ -1,0 +1,833 @@
+/*
+ * ===========================================================================
+ * THE DESIGN TOKENS. Every visual constant in the app is written HERE.
+ * ===========================================================================
+ *
+ * Colour, font family, font size, line height, letter spacing, font weight,
+ * spacing step, radius, border width, shadow, z-index, motion duration and
+ * easing. If a value is visual and it is not in this file, that is a bug —
+ * `npm run verify:tokens` is what will enforce it.
+ *
+ * WHY ONE FILE. The app had ~1,450 literal values spread across 57 components:
+ * 802 neutral utilities, 294 hand-picked type sizes, 209 radii, 128 arbitrary
+ * bracket values and a dozen inline hex codes. Re-theming meant finding all of
+ * them, and the ones that were missed are the reason a warning banner once
+ * rendered as a near-white slab on the dark theme.
+ *
+ * THREE LAYERS, and the middle one is the one components write:
+ *
+ *   L1 PRIMITIVES   raw ramps — neutral, brand, and one per status hue.
+ *                   Never written by a component. They exist so L2 has
+ *                   something to point at and so a palette can be DERIVED
+ *                   (Settings → Appearance) rather than hand-typed.
+ *
+ *   L2 SEMANTIC     what a component writes: bg-surface, text-muted,
+ *                   border-subtle, ring-focus, bg-danger-surface. Named for
+ *                   the ROLE, never the colour — so a theme can flip a surface
+ *                   from white to near-black without a single call site
+ *                   changing.
+ *
+ *   L3 SCALE        Tailwind v4's own variables, redefined here. This is the
+ *                   cheap half of the migration: every existing `text-xs`,
+ *                   `rounded-md` and `gap-2` becomes token-driven for free,
+ *                   because Tailwind compiles them to `var(--text-xs)` and
+ *                   friends already.
+ *
+ * HOW A THEME WORKS. Tailwind v4 compiles every utility to a `var(--…)`
+ * reference, so a theme is nothing more than a block that redefines those
+ * variables under a `[data-theme]` selector. `@theme` below IS the Day theme —
+ * it needs no block of its own — and Night overrides what differs. Both land
+ * on <html> at equal specificity, so source order decides and Night wins by
+ * being written last.
+ */
+
+@theme {
+  /* =======================================================================
+   * L1 — PRIMITIVES
+   * =====================================================================*/
+
+  /*
+   * NEUTRAL: every surface, every border, every piece of text.
+   *
+   * These deliberately shadow Tailwind's own `neutral` ramp, which nothing in
+   * this app uses. 0 is the lightest (a card on Day) and 950 the darkest; the
+   * ramp INVERTS wholesale on Night, which is what lets one utility mean the
+   * same thing in both themes.
+   *
+   * The values are the TrackVid web app's own (src/theme/tokens.ts), as hex
+   * rather than an oklch approximation: #0088A3 is the thing being matched,
+   * and a converted-and-rounded version of it is a slightly different colour
+   * sitting next to the real one in a screenshot.
+   */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f9fcfe;
+  --color-neutral-100: #f3f9fc;
+  --color-neutral-200: #d8e7f0;
+  --color-neutral-300: #bcd6e4;
+  --color-neutral-400: #a4c9db;
+  --color-neutral-500: #84a6b6;
+  --color-neutral-600: #466574;
+  --color-neutral-700: #395563;
+  --color-neutral-800: #27404d;
+  --color-neutral-900: #092531;
+  --color-neutral-950: #071f2a;
+
+  /*
+   * BRAND. 500/600 are the product teal; 700 is its hover. The 50/100 tints
+   * are deliberately translucent rather than solid — they sit on whatever
+   * surface is behind them, so one value works on a card and on a table row.
+   */
+  --color-brand-50: #e5f9ff;
+  --color-brand-100: #d1f4ff;
+  --color-brand-200: #b3ecff;
+  --color-brand-300: #5cd8ff;
+  --color-brand-400: #3f8fae;
+  --color-brand-500: #006c8f;
+  --color-brand-600: #005e7c;
+  --color-brand-700: #005774;
+  --color-brand-800: #00506a;
+  --color-brand-900: #004860;
+
+  /*
+   * STATUS HUES.
+   *
+   * One ramp per meaning, not per colour: `success` is what a theme retints,
+   * `emerald` is not. Four steps carry the roles L2 exposes — 100 is the tint
+   * behind a badge, 200 its ring, 500 the saturated fill, 700 the text on the
+   * tint — and the rest exist so a derived palette has room to move.
+   *
+   * Night does not reuse these: a tint that reads as a pale wash on white is a
+   * near-white slab on near-black. Its four roles are stated outright in the
+   * Night block.
+   */
+  --color-success-50: oklch(0.97 0.03 155);
+  --color-success-100: oklch(0.95 0.05 155);
+  --color-success-200: oklch(0.85 0.09 155);
+  --color-success-300: oklch(0.76 0.12 155);
+  --color-success-400: oklch(0.69 0.14 155);
+  --color-success-500: oklch(0.62 0.15 155);
+  --color-success-600: oklch(0.53 0.14 155);
+  --color-success-700: oklch(0.45 0.13 155);
+  --color-success-800: oklch(0.37 0.1 155);
+  --color-success-900: oklch(0.29 0.05 155);
+
+  --color-warning-50: oklch(0.98 0.03 85);
+  --color-warning-100: oklch(0.96 0.05 85);
+  --color-warning-200: oklch(0.87 0.11 85);
+  --color-warning-300: oklch(0.81 0.13 80);
+  --color-warning-400: oklch(0.76 0.14 78);
+  --color-warning-500: oklch(0.72 0.15 75);
+  --color-warning-600: oklch(0.6 0.13 72);
+  --color-warning-700: oklch(0.47 0.12 70);
+  --color-warning-800: oklch(0.38 0.09 78);
+  --color-warning-900: oklch(0.3 0.05 85);
+
+  --color-danger-50: oklch(0.97 0.02 25);
+  --color-danger-100: oklch(0.95 0.04 25);
+  --color-danger-200: oklch(0.85 0.09 25);
+  --color-danger-300: oklch(0.76 0.14 25);
+  --color-danger-400: oklch(0.67 0.18 25);
+  --color-danger-500: oklch(0.58 0.21 25);
+  --color-danger-600: oklch(0.55 0.2 25);
+  --color-danger-700: oklch(0.51 0.19 25);
+  --color-danger-800: oklch(0.4 0.13 25);
+  --color-danger-900: oklch(0.3 0.06 25);
+
+  /*
+   * INFO. New, and nothing renders it yet — the app has never had a token for
+   * "this is a note, not a problem", so those messages borrowed the warning
+   * colours and read as something to act on. Added here so the redesign has
+   * one to reach for; a blue far enough from the brand teal to not read as a
+   * link.
+   */
+  --color-info-50: oklch(0.97 0.02 250);
+  --color-info-100: oklch(0.94 0.04 250);
+  --color-info-200: oklch(0.86 0.08 250);
+  --color-info-300: oklch(0.77 0.12 250);
+  --color-info-400: oklch(0.68 0.16 250);
+  --color-info-500: oklch(0.6 0.18 250);
+  --color-info-600: oklch(0.53 0.18 250);
+  --color-info-700: oklch(0.46 0.16 250);
+  --color-info-800: oklch(0.37 0.12 250);
+  --color-info-900: oklch(0.29 0.06 250);
+
+  /*
+   * CODE. Developer mode renders the stored company document with its JSON
+   * syntax highlighted, and those three colours were the app's only remaining
+   * non-themed utilities (`text-rose-600`, `text-violet-600`, `text-sky-700`),
+   * which meant the document was unreadable on Night. Named for what they
+   * mark, not for their hue.
+   */
+  --color-code-string: oklch(0.55 0.19 15);
+  --color-code-number: oklch(0.52 0.22 300);
+  --color-code-key: oklch(0.5 0.13 240);
+
+  /* =======================================================================
+   * L1 BRIDGE — Tailwind's `slate` ramp, from our neutrals.
+   *
+   * 802 utilities still say `bg-white` / `text-slate-600` / `border-slate-200`
+   * and will until P2 migrates them onto the semantic names below. Pointing
+   * the ramp they compile against at our own primitives means those call sites
+   * keep rendering exactly what they render today, keep theming correctly, and
+   * can be migrated a component at a time instead of in one unreviewable sweep.
+   *
+   * DELETE THIS BLOCK when the last slate utility is gone. Until then it is
+   * load-bearing, not legacy.
+   * =====================================================================*/
+  --color-white: var(--color-neutral-0);
+  --color-slate-50: var(--color-neutral-50);
+  --color-slate-100: var(--color-neutral-100);
+  --color-slate-200: var(--color-neutral-200);
+  --color-slate-300: var(--color-neutral-300);
+  --color-slate-400: var(--color-neutral-400);
+  --color-slate-500: var(--color-neutral-500);
+  --color-slate-600: var(--color-neutral-600);
+  --color-slate-700: var(--color-neutral-700);
+  --color-slate-800: var(--color-neutral-800);
+  --color-slate-900: var(--color-neutral-900);
+  --color-slate-950: var(--color-neutral-950);
+
+  /* =======================================================================
+   * L2 — SEMANTIC ALIASES. This is the vocabulary components write.
+   * =====================================================================*/
+
+  /* SURFACES, lightest to deepest. `canvas` is the page behind everything;
+     `surface` is a card; `surface-raised` is a thing floating ABOVE a card
+     (menu, popover, modal); `surface-sunken` is an inset — a table header, a
+     code well.
+
+     TWO HOVER FILLS, because the app genuinely has two: a row or list item
+     lifts by one step, and a compact control — an icon button, a toggle —
+     needs two to read at 28px. `surface-active` is also what an open toggle
+     sits on, which is the same weight and the same intent. */
+  --color-canvas: var(--color-neutral-100);
+  --color-surface: var(--color-neutral-0);
+  --color-surface-raised: var(--color-neutral-0);
+  --color-surface-hover: var(--color-neutral-50);
+  --color-surface-active: var(--color-neutral-200);
+  --color-surface-sunken: var(--color-neutral-50);
+
+  /*
+   * INVERTED. A small dark chip that stays dark in both themes — the tooltip
+   * today, any dark popover later. It cannot be built from the neutral ramp,
+   * which inverts: `bg-slate-900 text-white` reads as dark-on-light on Day and
+   * light-on-dark on Night, so the same tooltip changes polarity with the
+   * theme. Same reasoning as the sidebar, which owns its tokens for the same
+   * reason.
+   */
+  --color-surface-inverted: #092531;
+  --color-surface-inverted-border: #2a4450;
+  --color-on-inverted: #ffffff;
+
+  /*
+   * TEXT. Six weights, which is what the screens actually use, plus two that
+   * sit on a coloured ground.
+   *
+   * `primary` is a title or the one value a row is about; `body` is dense
+   * content, and table cells are on it because they are the most-read text in
+   * the app and must not be lightened; `secondary` supports; `muted` labels
+   * and captions; `faint` is a resting icon or a placeholder, quiet until it
+   * is hovered; `disabled` is a STATE rather than a level of emphasis.
+   *
+   * `inverse` is text on dark CHROME; `on-accent` is text on a saturated fill.
+   * They are separate because one follows the theme and the other must not.
+   */
+  --color-primary: var(--color-neutral-900);
+  --color-body: var(--color-neutral-800);
+  --color-secondary: var(--color-neutral-700);
+  --color-muted: var(--color-neutral-600);
+  --color-faint: var(--color-neutral-500);
+  --color-disabled: var(--color-neutral-400);
+  --color-inverse: #ffffff;
+  --color-on-accent: #ffffff;
+
+  /*
+   * BORDERS, four weights, lightest first. `hairline` separates sections
+   * INSIDE a card and rows inside a table; `subtle` is the card's own ring;
+   * `strong` outlines a control the operator can act on; `emphasis` is the
+   * heaviest and is reserved for a control that is asking for attention.
+   *
+   * `emphasis` and `faint` are the same value on purpose — neutral-400 is both
+   * the quietest ink and the loudest line. Two names because a call site means
+   * one or the other, never both.
+   */
+  --color-hairline: var(--color-neutral-300);
+  --color-subtle: var(--color-neutral-400);
+  --color-strong: var(--color-neutral-500);
+  --color-emphasis: var(--color-neutral-600);
+
+  /* FOCUS. One colour, everywhere, at one width — see §49 of the design guide.
+     A focus ring that varies by component is a focus ring nobody trusts. */
+  --color-focus: var(--color-brand-600);
+
+  /* ACCENT — the one colour that means "this is the action". */
+  --color-accent: var(--color-brand-600);
+  --color-accent-hover: var(--color-brand-700);
+  --color-accent-active: var(--color-brand-700);
+  --color-accent-soft: var(--color-brand-50);
+
+  /* CHROME. The sidebar is a dark slab in BOTH themes, so it owns its own
+     tokens rather than borrowing the neutral ramp — which inverts, and would
+     turn the slab white on Night. Same reasoning for the modal backdrop. */
+  --color-sidebar: #daf1fe;
+  /* The CURRENT item is a light chip, the same one on both themes: "where am
+     I" should not change shape when the mode does. Its label needs its own
+     token — `sidebar-strong` is near-white on Night and would vanish on it. */
+  --color-sidebar-active: #ebebeb;
+  --color-sidebar-active-fg: #171717;
+  /* Hover keeps the old lift, so the two states stay distinguishable — a hover
+     that borrowed the chip would look like a second selected item. */
+  --color-sidebar-hover: #bce6fd;
+  --color-sidebar-fg: #466574;
+  --color-sidebar-muted: #8199a5;
+  --color-sidebar-strong: #172126;
+  --color-overlay: #75787a;
+
+  /*
+   * STATUS, four roles each. The roles exist so a theme can flip the surface
+   * and the text together without any call site changing:
+   *
+   *   -surface  the tint behind a badge or an alert
+   *   -border   its ring
+   *   -fg       text and icons ON that tint
+   *   -solid    a saturated fill — a toast, a count badge — which always
+   *             carries `text-on-accent`, never `text-white` (that one is a
+   *             SURFACE token and is near-black on Night).
+   */
+  --color-success-surface: #defced;
+  --color-success-border: #99eac2;
+  --color-success-fg: #177245;
+  --color-success-solid: #1c8a53;
+
+  --color-warning-surface: #fceede;
+  --color-warning-border: #e9c49a;
+  --color-warning-fg: #714818;
+  --color-warning-solid: #d2852d;
+
+  --color-danger-surface: #fcdee0;
+  --color-danger-border: #ec979e;
+  --color-danger-fg: #75151c;
+  --color-danger-solid: #d92d3a;
+
+  --color-info-surface: #dbf9ff;
+  --color-info-border: #85ebff;
+  --color-info-fg: #00738a;
+  --color-info-solid: #0088a3;
+
+  /* =======================================================================
+   * L3 — SCALE. Tailwind v4's own variables, restated here so this file owns
+   * them. Every value matches the framework default EXCEPT where a comment
+   * says otherwise, so the 1,300 utilities already written keep their exact
+   * rendering.
+   * =====================================================================*/
+
+  /* System stacks only — no downloaded fonts, so the app works offline and
+     looks native on both Windows and macOS. */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI Variable Text', 'Segoe UI', system-ui,
+    sans-serif;
+  /* Tailwind's own stack, restated rather than replaced: 19 call sites render
+     ids and JSON in it today, and swapping a family under them is a visual
+     change dressed up as a token migration. */
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+
+  /*
+   * TYPE SCALE.
+   *
+   * `2xs` is ours and is the one addition: 69 call sites had reached for
+   * `text-[11px]` because the scale stopped at 12px, and a size that common is
+   * a step in the scale rather than an exception to it. Deliberately NO
+   * line-height pair — `text-[11px]` sets font-size only, and pairing one here
+   * would silently reflow every chip and table caption using it.
+   */
+  --text-2xs: 11px;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: calc(1 / 0.75);
+  --text-sm: 0.875rem;
+  --text-sm--line-height: calc(1.25 / 0.875);
+  --text-base: 1rem;
+  --text-base--line-height: calc(1.5 / 1);
+  --text-lg: 1.125rem;
+  --text-lg--line-height: calc(1.75 / 1.125);
+  --text-xl: 1.25rem;
+  --text-xl--line-height: calc(1.75 / 1.25);
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: calc(2 / 1.5);
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: calc(2.25 / 1.875);
+
+  --leading-tight: 1.25;
+  --leading-snug: 1.375;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.625;
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --tracking-tight: -0.015em;
+  --tracking-normal: 0em;
+  --tracking-wide: 0.025em;
+
+  /* SPACING. One step; every `gap-2`, `px-3`, `py-1.5` is a multiple of it. */
+  --spacing: 0.25rem;
+
+  /*
+   * RADIUS — four steps and a pill, per §9 of the design guide. Pills are for
+   * status badges, tags and compact filters; they are not a default.
+   */
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 1rem;
+
+  /*
+   * FLOATING PANEL — the most a panel pinned to the window may take up.
+   *
+   * The Background work panel sits `fixed` on the bottom-right with a 1rem
+   * inset, and its height is whatever its jobs come to. On a short window a
+   * maximised run with a dozen failed AWBs came to more than there was room
+   * for: the overflow was clipped at the window's edge, taking the panel's own
+   * rounded corner with it and cutting the last failures in half — the part it
+   * had been opened to read.
+   *
+   * The viewport, less that inset top and bottom. A constant here rather than
+   * in the component because it is the same decision for any panel pinned to
+   * the window, and the next one must not pick its own number.
+   */
+  --size-floating-panel: calc(100vh - 2rem);
+
+  /*
+   * SHADOW — a hierarchy, not decoration (§10). `xs` is a hairline used to
+   * separate a sticky header from what scrolls under it, and is ours: five
+   * call sites had it as an arbitrary value. The rest are the framework's,
+   * restated.
+   */
+  --shadow-xs: 0 1px 0 0 rgb(0 0 0 / 0.06);
+  --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  --shadow-2xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+
+  /* MOTION (§52). Short and purposeful; nothing decorative. */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/*
+ * Values that are not part of a Tailwind namespace, so they live on :root
+ * rather than in @theme. They are referenced by name from the base layer and
+ * from components; they generate no utilities of their own.
+ */
+:root {
+  /* BORDER WIDTHS. */
+  --border-width-hairline: 1px;
+  --border-width-emphasis: 2px;
+
+  /* FOCUS RING. One width and one offset, so every focusable thing in the app
+     draws the same ring — see --color-focus above. */
+  --focus-ring-width: 2px;
+  --focus-ring-offset: 2px;
+
+  /* MOTION DURATIONS, in the two lengths this app actually uses. */
+  --duration-instant: 150ms;
+  --duration-moderate: 300ms;
+
+  /*
+   * Z-INDEX, as a ladder rather than a set of numbers picked under pressure.
+   * Anything that floats declares its rung here and nowhere else.
+   */
+  --z-base: 0;
+  --z-sticky: 10;
+  --z-dropdown: 20;
+  --z-overlay: 30;
+  --z-modal: 40;
+  --z-toast: 50;
+  --z-tooltip: 60;
+
+  /*
+   * CONTAINER. The width every page's content sits in.
+   *
+   * Four pages each picked their own once — two at 768px and two at 1152px —
+   * so on a 1900px window the settings column used a third of the screen while
+   * the dashboard beside it used two thirds. 1664px uses the space a desktop
+   * tool is given without letting a table stretch to an unreadable width on an
+   * ultrawide. Prose inside cards keeps its own `max-w-prose`: a wide PAGE is
+   * right, a wide LINE OF TEXT is not.
+   */
+  --container-page: 104rem;
+
+  /* DIALOG WIDTHS. Five steps, replacing the one-off `w-[min(…)]` values that
+     had every modal choosing its own. Each clamps to the viewport so a narrow
+     window never gets a dialog wider than itself. */
+  --dialog-xs: min(24rem, calc(100vw - 2rem));
+  --dialog-sm: min(28rem, calc(100vw - 2rem));
+  --dialog-md: min(32rem, calc(100vw - 4rem));
+  --dialog-lg: min(42rem, calc(100vw - 4rem));
+
+  /* A dialog the operator has expanded: the window, less a margin so the
+     backdrop still reads as a backdrop and the dialog as a dialog. */
+  --dialog-full: calc(100vw - 3rem);
+
+  /* How wide a free-text cell may grow before it wraps. Without a cap a long
+     marketplace error stretches one column across the table and pushes every
+     other one off the edge. */
+  --cell-detail-max: 32rem;
+
+  /* How tall a scrolling list inside a dialog may grow before it scrolls.
+     Bounded so a machine that has written hundreds of log lines, or a task
+     list with long last-run detail, cannot push the dialog past the window. */
+  --dialog-scroll-max: 26rem;
+  --dialog-xl: min(78rem, calc(100vw - 3rem));
+
+  /* How tall a dialog may get, and how much of that its scrolling body takes.
+     Viewport-relative because the constraint is the window, not the content. */
+  --dialog-height: 90vh;
+  --dialog-body-height: 60vh;
+  --dialog-body-height-xl: 72vh;
+}
+
+/*
+ * An expanded dialog re-points the scroll cap at the window.
+ *
+ * The panels inside ask for `--dialog-scroll-max` and know nothing about being
+ * expanded — which is the point: one class on a wrapper changes what that
+ * means, and every list inside grows with it. Without this, expanding gives a
+ * full-width dialog with a 26rem list marooned at the top of it.
+ */
+.dialog-expanded {
+  --dialog-scroll-max: calc(100vh - 18rem);
+}
+
+/*
+ * ===========================================================================
+ * THEMES
+ * ===========================================================================
+ * Day is `@theme` above and needs no block of its own beyond declaring its
+ * colour scheme. Night restates only what differs.
+ *
+ * `color-scheme` is what the BROWSER paints with — scrollbars, the calendar
+ * glyph inside `input[type=date]`, spinner arrows, autofill. None of those are
+ * ours to style, and without this they stay in light mode: a white scrollbar
+ * down the side of a dark table, and a light calendar icon on a dark field.
+ * One declaration per theme fixes every native control at once.
+ */
+
+[data-theme='trackvid'] {
+  color-scheme: light;
+}
+
+/*
+ * ALSO MATCHES THE NEW SHELL'S DARK MODE, for as long as both systems are live.
+ *
+ * Monitor's theme marks dark with `data-dark` on <html>; this one used
+ * `data-theme`. Without the second selector an operator who switches the new
+ * shell to dark would watch the shell go dark around screens that stayed light,
+ * because nothing sets `data-theme` any more. Goes with the rest of this file
+ * when the last screen is migrated.
+ */
+[data-theme='trackvid-dark'],
+:root[data-dark] :is(.legacy-ui, .legacy-tokens) {
+  color-scheme: dark;
+
+  /*
+   * The neutral ramp INVERTS. 0 is the card surface and 950 the brightest
+   * text, which is what keeps `bg-surface` and `text-primary` meaning the same
+   * thing in both themes without a single call site knowing which is active.
+   */
+  --color-neutral-0: #121b2e;
+  --color-neutral-50: #17233b;
+  --color-neutral-100: #0b1220;
+  --color-neutral-200: #202f49;
+  --color-neutral-300: #2b3e5e;
+  --color-neutral-400: #31466a;
+  --color-neutral-500: #697a94;
+  --color-neutral-600: #8fa2b8;
+  --color-neutral-700: #b6c3d1;
+  --color-neutral-800: #d4dde6;
+  --color-neutral-900: #eaf1f7;
+  --color-neutral-950: #eff5f9;
+
+  /* The brand teal lightens as it goes up on a dark ground, where the Day
+     ramp darkens — a hover that gets darker on near-black reads as disabled. */
+  --color-brand-50: #103541;
+  --color-brand-100: #164656;
+  --color-brand-200: #1c5a6e;
+  --color-brand-300: #2985a3;
+  --color-brand-400: #3f8fae;
+  --color-brand-500: #3f8fae;
+  --color-brand-600: #5cb8d6;
+  --color-brand-700: #92c9df;
+  --color-brand-800: #add4e5;
+  --color-brand-900: #c4dfec;
+
+  /*
+   * The label ON the accent flips with the tone.
+   *
+   * `--color-on-accent` is declared once, in @theme, which was right while the
+   * accent was a deep teal in both themes: white read on it either way. Night's
+   * accent is now a LIGHT blue — it has to be, or a primary button disappears
+   * into a near-black page — and white on it is about 2:1. So the one token
+   * that is "the readable end of this palette" has to be stated per tone.
+   */
+  --color-on-accent: #121b2e;
+
+  /* Chrome. The slab is a shade deeper than the page, not lighter: on Night
+     the sidebar is the quietest surface, not the loudest. */
+  --color-sidebar: #0e1828;
+  --color-sidebar-active: #ebebeb;
+  --color-sidebar-active-fg: #171717;
+  --color-sidebar-hover: #16263f;
+  --color-sidebar-fg: #8fa2b8;
+  --color-sidebar-muted: #7e8fa3;
+  --color-sidebar-strong: #eff2f5;
+  --color-overlay: #070c17;
+
+  /* `inverse` is text on dark chrome, and the chrome is still dark here — so
+     it stays light rather than following the inverted ramp. */
+  --color-inverse: #e8edf7;
+
+  /*
+   * STATUS on a dark ground: a dim tinted surface with a bright foreground.
+   * Stated outright rather than derived from the ramps above, because the
+   * relationship is not a reflection — the Day tint is a pale wash of the hue
+   * and its Night counterpart is a dark one, and the foreground has to cross
+   * to the other end of the ramp to stay legible on it.
+   */
+  --color-success-surface: #054224;
+  --color-success-border: #236b47;
+  --color-success-fg: #94dcb8;
+  --color-success-solid: #3fbf7f;
+
+  --color-warning-surface: #422c05;
+  --color-warning-border: #7b5614;
+  --color-warning-fg: #ebc684;
+  --color-warning-solid: #e0a53d;
+
+  --color-danger-surface: #420a05;
+  --color-danger-border: #791e16;
+  --color-danger-fg: #e98e86;
+  --color-danger-solid: #e26a5f;
+
+  --color-info-surface: #051d42;
+  --color-info-border: #0d3b82;
+  --color-info-fg: #7dabf2;
+  --color-info-solid: #6a9ff0;
+
+  /* JSON highlighting, lifted for a dark ground. */
+  --color-code-string: oklch(0.78 0.14 15);
+  --color-code-number: oklch(0.76 0.16 300);
+  --color-code-key: oklch(0.76 0.1 240);
+}
+
+/*
+ * ===========================================================================
+ * THE OLD NAMES, POINTED AT MUI — everywhere, not just in the legacy scope.
+ * ===========================================================================
+ *
+ * WHY THIS EXISTS. styles/legacy.css does this inside `.legacy-ui`, for screens
+ * that have not been migrated. But a MIGRATED screen is outside that scope, and
+ * any old utility left in one — `text-muted` on a settings card, `bg-surface`
+ * on a panel — would resolve to the value `@theme` above gives it: the outgoing
+ * palette's light-mode colour, which does not follow the operator's mode and is
+ * not the colour anything else on the screen is using.
+ *
+ * Rewriting some two hundred class names across the remaining cards would be a
+ * large diff over code that is being replaced anyway. Re-pointing the names is
+ * one block, and it makes every screen right at once.
+ *
+ * WHAT IS DELIBERATELY ABSENT: `--color-primary`, `--color-secondary`, the
+ * radius scale and the shadow ladder. Those NAMES mean something different in
+ * Monitor's system — the brand rather than the ink, MUI's shape tokens rather
+ * than a fixed scale — and Monitor's meaning has to win at `:root`. They are
+ * given back to the outgoing screens in legacy.css, scoped.
+ *
+ * GOES WITH THIS FILE at P5, when the last old screen is migrated.
+ */
+:root {
+  --color-neutral-0: var(--mui-palette-background-paper);
+  --color-neutral-50: var(--mui-palette-action-hover);
+  --color-neutral-100: var(--mui-palette-background-default);
+  --color-neutral-200: var(--mui-palette-divider);
+  --color-neutral-300: var(--mui-palette-divider);
+  --color-neutral-400: var(--mui-palette-divider);
+  --color-neutral-500: var(--mui-palette-text-disabled);
+  --color-neutral-600: var(--mui-palette-text-secondary);
+  --color-neutral-700: var(--mui-palette-text-secondary);
+  --color-neutral-800: var(--mui-palette-text-primary);
+  --color-neutral-900: var(--mui-palette-text-primary);
+  --color-neutral-950: var(--mui-palette-text-primary);
+
+  --color-white: var(--mui-palette-background-paper);
+  --color-slate-50: var(--mui-palette-action-hover);
+  --color-slate-100: var(--mui-palette-background-default);
+  --color-slate-200: var(--mui-palette-divider);
+  --color-slate-300: var(--mui-palette-divider);
+  --color-slate-400: var(--mui-palette-divider);
+  --color-slate-500: var(--mui-palette-text-disabled);
+  --color-slate-600: var(--mui-palette-text-secondary);
+  --color-slate-700: var(--mui-palette-text-secondary);
+  --color-slate-800: var(--mui-palette-text-primary);
+  --color-slate-900: var(--mui-palette-text-primary);
+  --color-slate-950: var(--mui-palette-text-primary);
+
+  --color-brand-50: var(--mui-palette-primary-lighterOpacity);
+  --color-brand-100: var(--mui-palette-primary-lightOpacity);
+  --color-brand-200: var(--mui-palette-primary-mainOpacity);
+  --color-brand-300: var(--mui-palette-primary-light);
+  --color-brand-400: var(--mui-palette-primary-light);
+  --color-brand-500: var(--mui-palette-primary-main);
+  --color-brand-600: var(--mui-palette-primary-main);
+  --color-brand-700: var(--mui-palette-primary-dark);
+  --color-brand-800: var(--mui-palette-primary-dark);
+  --color-brand-900: var(--mui-palette-primary-dark);
+
+  --color-canvas: var(--mui-palette-background-default);
+  --color-surface: var(--mui-palette-background-paper);
+  --color-surface-raised: var(--mui-palette-background-paper);
+  --color-surface-hover: var(--mui-palette-action-hover);
+  --color-surface-active: var(--mui-palette-action-selected);
+  --color-surface-sunken: var(--mui-palette-action-hover);
+  --color-surface-inverted: var(--mui-palette-text-primary);
+  --color-surface-inverted-border: var(--mui-palette-divider);
+  --color-on-inverted: var(--mui-palette-background-paper);
+
+  --color-body: var(--mui-palette-text-primary);
+  --color-muted: var(--mui-palette-text-secondary);
+  --color-faint: var(--mui-palette-text-disabled);
+  --color-disabled: var(--mui-palette-text-disabled);
+  --color-inverse: var(--mui-palette-common-white);
+  --color-on-accent: var(--mui-palette-primary-contrastText);
+
+  --color-hairline: var(--mui-palette-divider);
+  --color-subtle: var(--mui-palette-divider);
+  --color-strong: var(--mui-palette-divider);
+  --color-emphasis: var(--mui-palette-text-disabled);
+  --color-focus: var(--mui-palette-primary-main);
+  --color-track: var(--mui-palette-action-selected);
+
+  --color-accent: var(--mui-palette-primary-main);
+  --color-accent-hover: var(--mui-palette-primary-dark);
+  --color-accent-active: var(--mui-palette-primary-dark);
+  --color-accent-soft: var(--mui-palette-primary-lightOpacity);
+
+  --color-link: var(--mui-palette-primary-main);
+  --color-link-hover: var(--mui-palette-primary-dark);
+  --color-plate: var(--mui-palette-background-paper);
+
+  --color-sidebar: var(--mui-palette-background-paper);
+  --color-sidebar-active: #ebebeb;
+  --color-sidebar-active-fg: #171717;
+  --color-sidebar-hover: var(--mui-palette-action-selected);
+  --color-sidebar-fg: var(--mui-palette-text-secondary);
+  --color-sidebar-muted: var(--mui-palette-text-disabled);
+  --color-sidebar-strong: var(--mui-palette-text-primary);
+  --color-overlay: var(--mui-palette-common-black);
+
+  --color-success-surface: var(--mui-palette-success-lightOpacity);
+  --color-success-border: var(--mui-palette-success-mainOpacity);
+  --color-success-fg: var(--mui-palette-success-main);
+  --color-success-solid: var(--mui-palette-success-main);
+
+  --color-warning-surface: var(--mui-palette-warning-lightOpacity);
+  --color-warning-border: var(--mui-palette-warning-mainOpacity);
+  --color-warning-fg: var(--mui-palette-warning-main);
+  --color-warning-solid: var(--mui-palette-warning-main);
+
+  --color-danger-surface: var(--mui-palette-error-lightOpacity);
+  --color-danger-border: var(--mui-palette-error-mainOpacity);
+  --color-danger-fg: var(--mui-palette-error-main);
+  --color-danger-solid: var(--mui-palette-error-main);
+
+  --color-info-surface: var(--mui-palette-info-lightOpacity);
+  --color-info-border: var(--mui-palette-info-mainOpacity);
+  --color-info-fg: var(--mui-palette-info-main);
+  --color-info-solid: var(--mui-palette-info-main);
+
+  --color-code-string: var(--mui-palette-success-main);
+  --color-code-number: var(--mui-palette-warning-main);
+  --color-code-key: var(--mui-palette-info-main);
+}
+
+/*
+ * TRACKVID'S OWN TEAL, for the sign-in screen's brand panel.
+ *
+ * WHY THIS IS NOT `--color-brand-*`. That ramp is re-pointed further up this
+ * file at `--mui-palette-primary-*` — so "brand" now means whatever ACCENT the
+ * operator has chosen in Settings, which ships as a near-black. Painting the
+ * sign-in panel with it produced a grey slab where the product's teal should
+ * be, and would have turned pink the moment somebody picked a pink primary.
+ *
+ * The accent is a preference. This is the logo. They are different things and
+ * they need different names, which is the whole reason these five exist.
+ *
+ * The values are the wordmark's own: `#0088A3` and `#86CFD1` are the gradient
+ * stops inside assets/logo-name.svg, and the tints below are that hue carried
+ * up to a ground pale enough for the teal-and-navy artwork to sit on — which is
+ * the register the old photographic hero had.
+ *
+ * Declared HERE because styles/theme.css is the one file allowed to hold visual
+ * constants (scripts/verify-tokens.cjs), and a brand colour is exactly that.
+ */
+:root {
+  --login-brand-from: #f2fbfd;
+  --login-brand-via: #ddf1f6;
+  --login-brand-to: #c2e5ee;
+  --login-brand-ink: #06323e;
+  --login-brand-ink-soft: #0088a3;
+  --login-brand-chip: rgb(255 255 255 / 0.6);
+  --login-brand-chip-edge: rgb(0 136 163 / 0.18);
+}
+
+/*
+ * On the dark scheme the panel is the deep end of the same hue, and the ink
+ * flips to the pale end — the logo's own `#86CFD1`. Same selector the rest of
+ * this file's dark block uses.
+ */
+[data-theme='trackvid-dark'],
+:root[data-dark],
+:root[data-dark] :is(.legacy-ui, .legacy-tokens) {
+  --login-brand-from: #04242d;
+  --login-brand-via: #06323e;
+  --login-brand-to: #094b5b;
+  --login-brand-ink: #e6f6f9;
+  --login-brand-ink-soft: #86cfd1;
+  --login-brand-chip: rgb(134 207 209 / 0.1);
+  --login-brand-chip-edge: rgb(134 207 209 / 0.22);
+}
+
+/*
+ * CLAIM-OUTCOME CHART COLOURS — the Dashboard's stacked bars and their legend.
+ *
+ * Status colours (good / waiting / bad), in the stack order
+ * Approved · Pending · In review · Rejected, so red never touches amber and
+ * green never touches red. VALIDATED, not eyeballed: the dataviz validator
+ * passes this order on lightness, chroma, CVD separation (worst deutan 9.8,
+ * tritan 26.4 in light) and 3:1 contrast against the surface.
+ *
+ * NOT the theme's `warning.main` (#F5A623): as a mark on white it is 1.97:1
+ * and falls out of the lightness band. The dark set is its own steps, checked
+ * against the dark surface (worst pair 6.7 protan — legal because every
+ * segment also has a 2px gap, a legend entry and a tooltip), not a flip.
+ */
+:root {
+  --chart-approved: #45a557;
+  --chart-pending: #ab570a;
+  --chart-review: #0070f3;
+  --chart-rejected: #ee0000;
+}
+
+:root[data-dark] {
+  --chart-approved: #45a557;
+  --chart-pending: #c98118;
+  --chart-review: #4094f6;
+  --chart-rejected: #f24040;
+}
+

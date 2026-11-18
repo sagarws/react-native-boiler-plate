@@ -1,0 +1,220 @@
+appId: com.trackvid.cms
+productName: TrackVid CMS
+copyright: Copyright © 2026 TrackVid
+
+directories:
+  buildResources: build
+  output: release/${version}
+
+files:
+  - out/**
+  - package.json
+  - '!**/*.map'
+  # THE LOCALLY COMPILED robotjs BINARY MUST NOT SHIP.
+  #
+  # @jitsi/robotjs loads through node-gyp-build, which looks in `build/Release`
+  # BEFORE `prebuilds/` (node-gyp-build/index.js:34). `npm install` on a Mac
+  # leaves a Mach-O binary there — so a Windows installer built here carried the
+  # macOS one, the loader preferred it, loading failed, and Myntra's sign-in
+  # reported "no robotjs build is installed" with the correct win32-x64 prebuild
+  # sitting beside it unused.
+  #
+  # Excluded rather than rebuilt: the package already ships a prebuild for every
+  # platform and arch, so the right one is chosen on the machine that runs it —
+  # which is also the only way to get a Windows binary out of a Mac build.
+  - '!node_modules/@jitsi/robotjs/build/**'
+
+  # THE CORE'S PROSE MUST NOT SHIP.
+  #
+  # @trackvid/automation-core is a `dependency`, so electron-builder copies it
+  # into the asar — a previous build's archive carries 425 of its files. Its
+  # JavaScript has to be there; it is what runs every marketplace flow. Its
+  # DOCUMENTATION does not, and it is the most valuable thing in the package:
+  # FLIPKART_API.md and MEESHO_API.md describe the reverse-engineered APIs in
+  # plain English, which is a shorter read than the code implementing them.
+  # CLAUDE.md lays out the whole five-repo architecture. Error_Case/ is a
+  # quarantine of captured failure dumps.
+  #
+  # None of it is require()d, so excluding it costs nothing at runtime and
+  # removes what an unpacked asar otherwise gives away for free. This narrows
+  # the gap; it does not close it — the core's SOURCE still ships readable. See
+  # the note at the top of scripts/obfuscate.cjs for why, and what closing it
+  # would take.
+  - '!node_modules/@trackvid/automation-core/**/*.md'
+  - '!node_modules/@trackvid/automation-core/Error_Case/**'
+  - '!node_modules/@trackvid/automation-core/tsconfig*.json'
+
+# ONE native module: @jitsi/robotjs, and it is used through its own prebuilds
+# rather than a rebuild — see the exclusion above and the asarUnpack below.
+# Anything else native still needs the full review in the docs (§11).
+asar: true
+npmRebuild: false
+
+# ffmpeg and ffprobe, which shrink an oversized claim video under a
+# marketplace's upload cap — Meesho refuses anything over 25MB, and a phone
+# passes that in under a minute.
+#
+# They must be UNPACKED. Everything else here is JavaScript, which Electron
+# reads happily out of the asar archive; a BINARY has to be a real file on disk
+# before the operating system will execute it. Left packed, the path exists as
+# far as Node's patched fs is concerned and every spawn fails with ENOENT.
+# electron/main/services/mediaTools.service.ts maps the packed path to the
+# unpacked one at startup.
+#
+# A WARNING FOR CROSS-BUILDS: both packages fetch only the binary for the
+# platform they were INSTALLED on. Running `build:win` on a Mac therefore
+# packages a macOS ffmpeg, and compression silently does nothing on the
+# installed app — claims still file, and an oversized video is still refused.
+# Build each platform on that platform (or in CI), or install the target's
+# binaries first with npm's --os / --cpu flags.
+asarUnpack:
+  - node_modules/ffmpeg-static/**
+  - node_modules/@ffprobe-installer/**
+  # Same reason as the two above: a .node binary has to be a real file on disk
+  # before the OS will load it, and Myntra's sign-in is the one flow that needs
+  # an OS-level mouse click.
+  - node_modules/@jitsi/robotjs/**
+  # selenium-manager finds the browser driver for every script-based flow.
+  # Electron's smart unpack catches the Windows .exe but not the extensionless
+  # macOS binary; listing it covers both. seleniumManager.service points
+  # selenium-webdriver at the unpacked copy.
+  - node_modules/selenium-webdriver/bin/**
+
+win:
+  # Target name only, with no arch list: an explicit `arch:` here OVERRIDES the
+  # --x64 / --arm64 CLI flags, which silently made every `build:win:x64` also
+  # package ARM64. Listing the name alone lets the flag decide.
+  #
+  # Every build:win:* script passes an arch explicitly, because with no flag
+  # electron-builder defaults to the HOST architecture - on an Apple Silicon Mac
+  # that would quietly produce an ARM64 Windows installer.
+  target:
+    - nsis
+  # A ready-made .ico (16–256 px, generated from build/icon.png). Left to
+  # itself electron-builder converts the 1024 px PNG with a WebAssembly tool
+  # that fails with "could not allocate memory" on a machine short of RAM.
+  icon: build/icon.ico
+  # NO VERSION IN THE NAME, and no spaces.
+  #
+  # The version is decided by `version:` inside latest.yml — the file name plays
+  # no part in it — so a stable name means each release overwrites one object
+  # rather than leaving a folder of installers nobody prunes. It also spares
+  # every URL the %20 that "TrackVid CMS-…" needs.
+  #
+  # ${arch} STAYS: electron-updater picks the ARM64 asset from the x64 one by
+  # matching that token in the file name, so dropping it would hand an x64
+  # installer to an ARM64 machine.
+  artifactName: TrackVid-CMS-${arch}-setup.${ext}
+
+nsis:
+  # One-click, and it has to stay that way for updates to be silent.
+  #
+  # An assisted installer (oneClick: false) shows the full wizard on EVERY
+  # update - the "who should this be installed for?" page, then a prompt to
+  # close the running app, which races the app's own shutdown and fails with
+  # "TrackVid CMS cannot be closed". A one-click installer takes no options,
+  # terminates the running instance itself, swaps the files and relaunches.
+  #
+  # The cost is that the first install offers no directory choice. That is the
+  # trade every self-updating Electron app makes, and it is why
+  # allowToChangeInstallationDirectory is absent here: it cannot be combined
+  # with oneClick.
+  oneClick: true
+  # Per-user install into %LOCALAPPDATA%. Load-bearing for auto-update: a
+  # per-machine install needs elevation, so every update would raise a UAC
+  # prompt and a silent background update becomes impossible.
+  perMachine: false
+  # Relaunch once the swap is done, so an update looks like a restart.
+  runAfterFinish: true
+  # customInit waits for the old process (and its Electron helpers) to release
+  # the install directory before the previous uninstaller runs. See the file.
+  include: build/installer.nsh
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  # A per-user install avoids requiring administrator rights.
+  shortcutName: TrackVid CMS
+
+mac:
+  category: public.app-category.productivity
+  # A REAL .icns, not the PNG electron-builder would convert for us.
+  #
+  # It converts into a temp `.icon-icns/` inside the output directory, and that
+  # directory does not survive the first architecture's pass: a two-arch mac
+  # build packaged arm64, cleaned up, then died on
+  # `ENOENT ... .icon-icns/icon.icns` while packaging x64 — taking the DMG it
+  # had already built down with it. Shipping the converted file removes the
+  # conversion, and with it the thing that was being cleaned up.
+  icon: build/icon.icns
+  target:
+    # DMG is what a human downloads; ZIP is what the updater consumes. A
+    # DMG-only mac build produces a latest-mac.yml the updater cannot install.
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+    - target: zip
+      arch:
+        - x64
+        - arm64
+  # Same reasoning as the Windows name above.
+  artifactName: TrackVid-CMS-${arch}.${ext}
+  # Hardened runtime + entitlements are prerequisites for notarisation.
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  # The two strings macOS shows in its own permission dialog the first time
+  # Create Claim opens the camera. They are NOT optional: an app that asks for a
+  # device without a usage description is terminated by the OS, not refused —
+  # the window simply disappears, with nothing in the app's own log.
+  extendInfo:
+    NSCameraUsageDescription: >-
+      TrackVid CMS records the return being opened and photographs the parcel,
+      as evidence attached to a marketplace claim.
+    NSMicrophoneUsageDescription: >-
+      TrackVid CMS records audio alongside the return-opening video attached to
+      a marketplace claim.
+
+dmg:
+  artifactName: TrackVid-CMS-${arch}.${ext}
+
+# Where the updater looks for latest.yml. `generic` rather than `github` so the
+# feed can live on a private host; electron-builder writes latest.yml,
+# latest-mac.yml and the .blockmap files into the release directory, and all of
+# them must be uploaded together with the installers.
+#
+# The ${arch} token in every artifactName above is load-bearing: electron-updater
+# picks the ARM64 vs x64 asset by matching that token in the file name.
+publish:
+  provider: generic
+  # The SAME host the app talks to: one address, set once in .env. It is baked
+  # into app-update.yml here and is permanent for every copy shipped from this
+  # build, which is why scripts/package.cjs refuses to package a value that is
+  # http or points at localhost.
+  url: ${env.MAIN_VITE_API_BASE_URL}
+  channel: latest
+
+# Credentials are never stored here. electron-builder reads them from the
+# environment, and BOTH STEPS SWITCH THEMSELVES ON when it finds them:
+#
+#   Signing        CSC_LINK (a .p12 path or its base64) + CSC_KEY_PASSWORD, or
+#                  CSC_NAME to pick an identity already in the keychain.
+#                  WIN_CSC_LINK / WIN_CSC_KEY_PASSWORD override for Windows.
+#
+#   Notarisation   any ONE complete set:
+#                    APPLE_API_KEY + APPLE_API_KEY_ID + APPLE_API_ISSUER
+#                    APPLE_ID + APPLE_APP_SPECIFIC_PASSWORD + APPLE_TEAM_ID
+#                    APPLE_KEYCHAIN + APPLE_KEYCHAIN_PROFILE
+#                  The first is Apple's recommendation and does not put an
+#                  account password in the environment.
+#
+# THERE IS NO `notarize: true` TO SET, and setting one would be a mistake: in
+# electron-builder 26 `mac.notarize` means "whether to DISABLE the integration",
+# so it is already on and only the credentials decide whether it runs. Forcing
+# it would turn a working unsigned developer build into a failing one.
+#
+# Because both steps are silent when the credentials are absent, an unsigned
+# release looks exactly like a signed one from the build log. scripts/
+# signingPlan.cjs prints what will happen on every packaging run, and
+# `npm run release:mac` / `release:win` pass --require-signing so a release
+# refuses rather than shipping something Gatekeeper will reject.

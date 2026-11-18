@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Create claim — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html" class="active">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Create claim</h1>
+<p class="lead">File one claim at a time for a returned order — pick the marketplace, choose what went wrong, attach the return video and photos, and save it (or save it and send it to the marketplace straight away).</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+  <li><a href="#what">What this page is for</a></li>
+  <li><a href="#layout">The screen at a glance</a></li>
+  <li><a href="#before">Before you start</a></li>
+  <li><a href="#toolbar">The buttons along the top</a></li>
+  <li><a href="#platform">Choosing the marketplace and the claim type</a></li>
+  <li><a href="#walkthrough">How to create a claim (step by step)</a></li>
+  <li><a href="#auto">What the app fills in for you</a></li>
+  <li><a href="#account">The account username box</a></li>
+  <li><a href="#videos">Return and forward videos</a></li>
+  <li><a href="#images">Adding photos: upload, capture, view, delete</a></li>
+  <li><a href="#camera">Camera access, capturing photos and recording video</a></li>
+  <li><a href="#sides">Product side images (AJIO, Nykaa, Shopify and your own platforms)</a></li>
+  <li><a href="#rearrange">Rearrange Images</a></li>
+  <li><a href="#save">Save, Create Ticket and Reset</a></li>
+  <li><a href="#edit">Editing a claim you already filed</a></li>
+  <li><a href="#marketplaces">Marketplace by marketplace</a></li>
+  <li><a href="#errors">Red messages under fields</a></li>
+  <li><a href="#messages">Pop-up messages you may see</a></li>
+</ol></div>
+
+<h2 id="what">What this page is for</h2>
+<p>Open <span class="ui">Create claim</span> from the side menu. The page title reads <span class="ui">Create SPF Claim</span>. Use it when a return came back damaged, wrong, incomplete or not at all, and you want to raise a claim with the marketplace.</p>
+<ul>
+  <li>Each claim is for <b>one return AWB</b> on <b>one marketplace</b>.</li>
+  <li>The form changes depending on the marketplace you pick. Every marketplace asks for slightly different details and photos — see <a href="#marketplaces">Marketplace by marketplace</a>.</li>
+  <li>A saved claim appears in <a href="07-manage-claims.html">Manage Claims</a>.</li>
+  <li>To raise many claims at once from an Increff QC report, use <a href="05-bulk-claim.html">Bulk claim</a>. For AJIO NDR/DDR claims from a spreadsheet, use <a href="06-spf-bulk-claim.html">SPF bulk claim</a>.</li>
+</ul>
+
+<h2 id="layout">The screen at a glance</h2>
+<div class="table-wrap"><table>
+  <tr><th>Area</th><th>What is in it</th></tr>
+  <tr><td>Top bar</td><td>The page title, and the buttons <span class="ui">API</span>/<span class="ui">Report</span> (AJIO only), the <span class="ui">Feed</span> box, <span class="ui">Bulk Claim</span> (only if your company has it), <span class="ui">Reset</span>, <span class="ui">Save</span> and <span class="ui">Create Ticket</span>.</td></tr>
+  <tr><td>Left side (wider)</td><td><span class="ui">E-commerce Platform</span>, the claim type boxes, any extra boxes the marketplace needs, the account username, the AWB numbers, SKU, remark, and the return and forward videos.</td></tr>
+  <tr><td>Right side (separated by a thin line)</td><td>The photos and documents the marketplace needs — for example Return Product Image, Shipping Label, packing or evidence photos, POD proof.</td></tr>
+</table></div>
+<p>A <b>red star (*)</b> next to a field name means the claim cannot be saved without it. On a narrow window the right side moves below the left side.</p>
+
+<h2 id="before">Before you start</h2>
+<ul>
+  <li><b>Sign in to the marketplace accounts</b> you file under (see <a href="03-login-sessions.html">Login</a>). The account boxes on this page list the accounts saved for your company.</li>
+  <li><b>Pick the right feed.</b> Videos and photos you upload are stored under the feed shown in the <span class="ui">Feed</span> box. The app remembers the feed you used last time.</li>
+  <li><b>Have the return video ready.</b> Every claim needs a return video — either one already recorded in TrackVid (found automatically from the AWB), a file you upload, a recording you make now, or a link you paste.</li>
+  <li><b>Optional: a camera.</b> With a webcam connected you can take photos and record videos directly from this page.</li>
+</ul>
+
+<h2 id="toolbar">The buttons along the top</h2>
+<div class="table-wrap"><table>
+  <tr><th>Button / box</th><th>When you see it</th><th>What it does</th></tr>
+  <tr><td><span class="ui">API</span> / <span class="ui">Report</span></td><td>Only when the platform is AJIO</td><td>Chooses where the <b>Return Order Number</b> lookup reads from. <span class="ui">Report</span> (the default) reads this computer's copy of the AJIO return report — instant, no sign-in needed, but only as new as the last sync. <span class="ui">API</span> asks AJIO live — always current, but slower and needs a signed-in AJIO account. Hover over it to see a reminder. Switching it re-runs the lookup for the number already typed.</td></tr>
+  <tr><td><span class="ui">Feed</span></td><td>Always</td><td>The feed your uploads are stored under. Filled in automatically with the feed you used last (or the first one).</td></tr>
+  <tr><td><span class="ui">Bulk Claim</span></td><td>Only if your company has Increff bulk claim turned on</td><td>Opens the Bulk Claim window. See <a href="05-bulk-claim.html">Bulk claim</a>.</td></tr>
+  <tr><td><span class="ui">Reset</span></td><td>Always</td><td>Empties the whole form so you can start again. The platform stays selected.</td></tr>
+  <tr><td><span class="ui">Save</span></td><td>Always (shows <span class="ui">Update Claim</span> when editing)</td><td>Saves the claim. It is <b>not</b> sent to the marketplace yet — it waits in Manage Claims as not started.</td></tr>
+  <tr><td><span class="ui">Create Ticket</span></td><td>Only for marketplaces the app can file automatically, and only for a new claim</td><td>Saves the claim <b>and</b> starts filing it on the marketplace straight away.</td></tr>
+</table></div>
+<div class="callout tip"><b class="t">Tip</b>When <span class="ui">Create Ticket</span> is shown, it is the dark (main) button and <span class="ui">Save</span> turns light. While a save is in progress both buttons show a small spinning circle and cannot be clicked twice.</div>
+
+<h2 id="platform">Choosing the marketplace and the claim type</h2>
+<h3>E-commerce Platform</h3>
+<p>The <span class="ui">E-commerce Platform</span> list shows only the marketplaces your company has set up (each with its logo or a coloured dot). Your company may also have its own platforms (for example a D2C website); these appear with a coloured dot and use the same layout as AJIO.</p>
+<div class="callout danger"><b class="t">Important</b>Changing the platform on a <b>new</b> claim empties the whole form — AWB, videos and photos — because they belong to a different order. Choose the platform first, then fill in the rest.</div>
+
+<h3>The claim type boxes</h3>
+<p>Most marketplaces ask one question: <span class="ui">Type Of Claim</span>. Some ask two, one after the other: first a main reason, then a more exact reason. The second box stays greyed out and reads, for example, <b>Select Issue Area first</b> until you answer the first.</p>
+<div class="table-wrap"><table>
+  <tr><th>Marketplace</th><th>First box</th><th>Second box</th></tr>
+  <tr><td>Most marketplaces (when two boxes are configured)</td><td><span class="ui">Issue Area of Affected Item</span></td><td><span class="ui">Type Of Claim</span></td></tr>
+  <tr><td>Amazon</td><td><span class="ui">Type Of Claim</span></td><td><span class="ui">Claim Sub-Reason</span></td></tr>
+  <tr><td>Tata CliQ</td><td><span class="ui">Reason Of QC Failure</span></td><td><span class="ui">Sub Reason Of Failure</span></td></tr>
+  <tr><td>Xbees</td><td><span class="ui">Dispute Reason</span></td><td><span class="ui">Dispute Sub reason</span></td></tr>
+</table></div>
+<ul>
+  <li>The claim types listed are the ones enabled for your company in its e-commerce settings. If none are enabled, all of them are shown.</li>
+  <li>Choosing a claim type <b>fills the Remark box</b> with that claim type's standard description. You can change the text.</li>
+  <li>Changing the first box clears the second box and the remark, so you must pick again.</li>
+  <li>For claim types about a <b>partially received article</b>, an extra box <span class="ui">Cost of Missing Article</span> appears at the top of the left side (on most marketplaces).</li>
+</ul>
+
+<h3>Extra boxes some marketplaces add next to the claim type</h3>
+<div class="table-wrap"><table>
+  <tr><th>Marketplace</th><th>Box</th><th>Choices</th></tr>
+  <tr><td>Amazon</td><td><span class="ui">Select Fulfillment Channel</span></td><td>Easy Ship/ Self Ship/ Seller Flex · Fee related disputes</td></tr>
+  <tr><td>Flipkart</td><td><span class="ui">Claim Area</span></td><td>Issue(s) with a received return packet · Did not receive a return packet</td></tr>
+  <tr><td>Delhivery</td><td><span class="ui">Domestic</span></td><td>EXPRESS · SURFACE</td></tr>
+  <tr><td>Delhivery</td><td><span class="ui">Shipment Issue</span></td><td>Fixed to <b>Damage / Missing / Mismatch</b> (greyed out — shown so you can see what is filed)</td></tr>
+  <tr><td>Delhivery</td><td><span class="ui">Select a subcategory</span></td><td>Damage in delivered/returned shipment · Missing shipment delivered/returned · Mismatch in delivered/returned shipment</td></tr>
+</table></div>
+
+<h2 id="walkthrough">How to create a claim (step by step)</h2>
+<p>This is the general flow. The exact fields differ per marketplace — check its section under <a href="#marketplaces">Marketplace by marketplace</a>.</p>
+<ol class="steps">
+  <li>Click <span class="ui">Create claim</span> in the side menu.</li>
+  <li>Check the <span class="ui">Feed</span> box at the top right shows the correct feed.</li>
+  <li>In <span class="ui">E-commerce Platform</span>, pick the marketplace.</li>
+  <li>Fill in any extra top boxes the marketplace shows (for example <span class="ui">Claim Area</span> or <span class="ui">Select Fulfillment Channel</span>).</li>
+  <li>Choose the claim type (and the second, more exact reason if asked).</li>
+  <li>Check the <b>account username</b> box. If your company has only one account for this marketplace it is already selected.</li>
+  <li>Type the <span class="ui">Return AWB Number</span>. Wait a moment: the app looks up the return video, the forward AWB and other details and fills what it finds (see <a href="#auto">What the app fills in for you</a>).</li>
+  <li>Fill in or check the remaining left-side boxes (Forward AWB, SKU, order numbers, remark).</li>
+  <li>Make sure the <span class="ui">Upload Return Video</span> box has a video or a link.</li>
+  <li>On the right side, add every photo with a red star. Use <span class="ui">Rearrange Images</span> if photos from the video landed in the wrong boxes.</li>
+  <li>Click <span class="ui">Save</span> to keep the claim for later, or <span class="ui">Create Ticket</span> to save and file it now.</li>
+  <li>A green message such as <b>CMS created successfully</b> appears and the form empties, ready for the next claim. If something is missing, the field turns red with a message under it — fix it and click again.</li>
+</ol>
+
+<h2 id="auto">What the app fills in for you</h2>
+<p>When you type an AWB, the app waits until you stop typing (under a second) and then looks it up. You do not need to press Enter.</p>
+<ul>
+  <li><b>Return video</b> — if the return was recorded in TrackVid, the video is placed in the return video box and you see <b>Video found</b>. If nothing was recorded you see <b>Video not found</b>; upload a file, record one, or paste a link instead.</li>
+  <li><b>Photos from the video</b> — screenshots taken from the recorded video are placed in the photo boxes on the right automatically. You can move them with <a href="#rearrange">Rearrange Images</a>.</li>
+  <li><b>Forward AWB, customer order number, SKU</b> — copied from your company's imported order data when available. A box you have already typed in is never overwritten.</li>
+  <li><b>Account</b> — on AJIO, Meesho, Myntra and Snapdeal the matching seller account is chosen for you when the order data knows it, unless you have already picked one.</li>
+  <li>Marketplace-specific lookups (AJIO return order number, Myntra, Flipkart and Snapdeal report lookups, Meesho order data) are described in each marketplace's section.</li>
+</ul>
+<div class="callout tip"><b class="t">Tip</b>If you pick an AWB from a suggestion that shows extra text in brackets, for example <b>1234567890 (Brand)</b>, the app removes the bracket part when saving.</div>
+
+<h2 id="account">The account username box</h2>
+<p>Each marketplace form has a box named after it, for example <span class="ui">AJIO Account Username</span>, <span class="ui">Myntra Account Username</span>, <span class="ui">Flipkart Account Username</span>. It decides which of your seller logins the claim is filed under.</p>
+<ul>
+  <li>The list shows the accounts saved for your company for that marketplace. The placeholder reads <b>Select account</b>.</li>
+  <li>If there is only <b>one</b> account, it is selected automatically — and the app uses it when saving even if the box was somehow left empty.</li>
+  <li>An empty list usually means no login has been saved for that marketplace. Add one first (see <a href="03-login-sessions.html">Login</a>).</li>
+</ul>
+
+<h2 id="videos">Return and forward videos</h2>
+<p>The left side has two video boxes side by side:</p>
+<div class="table-wrap"><table>
+  <tr><th>Box</th><th>Needed?</th><th>Ways to fill it</th></tr>
+  <tr><td><span class="ui">Upload Return Video</span></td><td>Yes (red star)</td><td>Found automatically from the AWB, <span class="ui">Upload</span> a video file, <span class="ui">Record</span> with your camera, or type a link in <b>Return Video Link</b> under <b>or paste link</b>.</td></tr>
+  <tr><td><span class="ui">Upload Forward Video</span></td><td>No</td><td>Same ways, link box is <b>Forward Video Link</b>.</td></tr>
+</table></div>
+<ul>
+  <li>The link box is only shown while the video box is empty.</li>
+  <li>Once a video is in the box you can play it in place. Click the eye button to watch it larger, or the red bin button in the corner to remove it.</li>
+  <li>If no return video or link is given, saving shows <b>*Return Video is required</b> next to the box title.</li>
+</ul>
+
+<h2 id="images">Adding photos: upload, capture, view, delete</h2>
+<p>Every photo box works the same way:</p>
+<ul>
+  <li><b>Empty box with a camera connected:</b> it is split into two halves — <span class="ui">Upload</span> (pick a file from your computer) and <span class="ui">Capture</span> (take a photo with your camera).</li>
+  <li><b>Empty box without a camera:</b> click anywhere on it to pick a file.</li>
+  <li><b>While uploading:</b> a spinning circle shows in the box.</li>
+  <li><b>When filled:</b> the photo shows as a preview. Click the round <b>eye</b> button in the middle to see it full size. Click the small <span class="chip red">red bin</span> in the top-right corner to remove it.</li>
+</ul>
+<div class="table-wrap"><table>
+  <tr><th>Box type</th><th>Files accepted</th></tr>
+  <tr><td>Product photos (for example Return Product Image)</td><td>JPG, JPEG, PNG</td></tr>
+  <tr><td>POD Proof, Additional Field file</td><td>PDF, JPG, JPEG, PNG (upload only — no camera)</td></tr>
+  <tr><td>Videos</td><td>Any video file</td></tr>
+</table></div>
+<p>Some marketplaces have size limits per photo (for example <b>3MB each</b> for packing and evidence photos, <b>5MB</b> for a shipping label). A photo that is too big is refused with <b>Each image must be less than 3MB</b> (or the limit for that box).</p>
+
+<h2 id="camera">Camera access, capturing photos and recording video</h2>
+<h3>The camera permission window</h3>
+<p>The first time you open the page without camera access, a window appears:</p>
+<div class="table-wrap"><table>
+  <tr><th>Window title</th><th>What it means</th><th>What to do</th></tr>
+  <tr><td><span class="ui">Enable Camera Access</span></td><td>The app has not been allowed to use the camera yet.</td><td>Click <span class="ui">Allow Camera</span>, or <span class="ui">Skip for now</span> to keep using file uploads only.</td></tr>
+  <tr><td><span class="ui">Enable Camera Access</span> with <b>Camera access is currently blocked.</b></td><td>Camera use was refused earlier.</td><td>Allow camera access for the TrackVid app in your computer's privacy settings (Windows: Settings → Privacy &amp; security → Camera; macOS: System Settings → Privacy &amp; Security → Camera), then restart the app.</td></tr>
+  <tr><td><span class="ui">No Camera Detected</span></td><td>No webcam was found.</td><td>Click <span class="ui">Skip for now</span> and upload files, or connect a camera and reopen the page.</td></tr>
+</table></div>
+<p>You can always create a claim without a camera — only the <span class="ui">Capture</span> and <span class="ui">Record</span> options are missing.</p>
+
+<h3>How to capture photos</h3>
+<ol class="steps">
+  <li>In a photo box, click <span class="ui">Capture</span>. A window opens with the live camera picture. Its title names the box, for example <b>Return Product Image</b> or <b>Side Images</b>.</li>
+  <li>Hold the item in front of the camera.</li>
+  <li>Click <span class="ui">Capture Screenshot</span> or press the <b>SPACE</b> key.</li>
+  <li>For a single-photo box, the photo is uploaded and placed in the box.</li>
+  <li>For product side images, you can take up to <b>9</b> photos in a row. The counter (for example <b>4/9</b>) shows how many. Click a thumbnail to preview it, its remove button to delete it, or <span class="ui">Clear</span> to delete them all. Click <span class="ui">Save</span> to put them in the grid.</li>
+  <li>Close the window with the <b>×</b> in the top-right corner when done.</li>
+</ol>
+
+<h3>How to record a video</h3>
+<ol class="steps">
+  <li>In a video box, click <span class="ui">Record</span>. The <span class="ui">Record Video</span> window opens with the live camera.</li>
+  <li>Click <span class="ui">Start Recording</span>. A <span class="chip red">REC</span> sign and a timer appear.</li>
+  <li>Use <span class="ui">Pause</span> and <span class="ui">Resume</span> if you need a break (the window shows <span class="chip amber">Paused</span>).</li>
+  <li>Click <span class="ui">Stop</span>. The recording plays back for you to check.</li>
+  <li>Click <span class="ui">Save Video</span> to upload it into the box (you see <b>Uploading…</b>), or <span class="ui">Retry</span> to record again. <span class="ui">Cancel</span> closes without saving.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>If the window shows a red message such as <b>Unable to access webcam</b>, <b>Camera stream not available</b> or <b>Upload failed</b>, close it, check the camera is not being used by another program, and try again — or upload a file instead.</div>
+
+<h2 id="sides">Product side images (AJIO, Nykaa, Shopify and your own platforms)</h2>
+<p>On these platforms the right side holds:</p>
+<div class="table-wrap"><table>
+  <tr><th>Box</th><th>Needed?</th><th>Notes</th></tr>
+  <tr><td><span class="ui">Return Product Image</span></td><td>Yes</td><td>The returned item as received.</td></tr>
+  <tr><td><span class="ui">Forward Sent Product Image</span></td><td>No</td><td>The item as you shipped it.</td></tr>
+  <tr><td><span class="ui">Product Side Images</span></td><td>Yes — <b>Min 3 · Max 9</b></td><td>Photos of the item from different sides. On saving, they are joined into one PDF and attached to the claim.</td></tr>
+  <tr><td><span class="ui">POD Proof</span></td><td>No</td><td>Proof of delivery, as PDF or JPEG.</td></tr>
+  <tr><td><span class="ui">Additional Field</span></td><td>No</td><td>A title (<b>Enter title</b>) plus a file (<span class="ui">Add File</span>). If you fill one, you must fill the other, or you get <b>*required</b>.</td></tr>
+</table></div>
+<h3>How to add product side images</h3>
+<ol class="steps">
+  <li>In <span class="ui">Product Side Images</span>, click <span class="ui">Upload</span>. A window opens.</li>
+  <li>Click the <span class="ui">Upload</span> area and choose up to 9 photos at once (<b>Max you can select 9 images</b>). Choosing more shows <b>You can only select up to 9 images.</b></li>
+  <li>Click <span class="ui">Save</span>. The photos appear in the grid. Or click <span class="ui">Capture</span> to take them with the camera (see above).</li>
+  <li>To add more, use the smaller Upload/Capture tile that stays at the end of the grid while there are fewer than 9.</li>
+  <li>Hover a photo to view it (eye button) or remove it.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>With fewer than 3 photos, saving stops with <b>Minimum three images required</b>; with more than 9, <b>Maximum nine images allowed</b>. If the PDF cannot be built or uploaded you see <b>Could not upload six-side images PDF — …</b> or <b>Six-side images upload failed</b>; check your internet connection and try again.</div>
+
+<h2 id="rearrange">Rearrange Images</h2>
+<p>When photos were filled in automatically (from the recorded video, or carried over while editing), a <span class="ui">Rearrange Images</span> button appears above the photo boxes. On some marketplaces the window also opens by itself after the AWB lookup.</p>
+<ol class="steps">
+  <li>Click <span class="ui">Rearrange Images</span>. A window opens (titled, for example, <b>Rearrange Product Screenshots</b>, <b>Rearrange Packing Images</b> or <b>Rearrange QC Images</b>).</li>
+  <li>The coloured dots at the top name each box: <span class="chip green">green</span> = the first box, <span class="chip grey">blue</span> = the middle boxes, <span class="chip red">red</span> = the last box. Each filled box shows its number in the same colour.</li>
+  <li>Drag a photo from <b>Available Images (drag to any slot)</b> onto a box that says <b>Drop here</b>, or drag one box onto another to swap them.</li>
+  <li>Click <span class="ui">Save</span> to apply, <span class="ui">Reset</span> to go back to how the window opened, or <span class="ui">Cancel</span> to close without changes.</li>
+</ol>
+
+<h2 id="save">Save, Create Ticket and Reset</h2>
+<h3>Save</h3>
+<p>Checks the form, uploads the side-image PDF if needed, and saves the claim. On success you see a green message (usually <b>CMS created successfully</b>) and the form empties, keeping the same platform. The claim waits in <a href="07-manage-claims.html">Manage Claims</a> until it is filed.</p>
+<h3>Create Ticket</h3>
+<p>Does everything <span class="ui">Save</span> does and then starts filing the claim on the marketplace. It is only shown for marketplaces the app can file automatically, and never while you are editing an existing claim.</p>
+<div class="callout danger"><b class="t">Important</b>If you see a blue message such as <b>Claim created. Auto claim not started.</b>, the claim <b>is saved</b> — only the automatic filing did not start. Do not enter the claim again; that would file it twice. Start it from <a href="07-manage-claims.html">Manage Claims</a> instead.</div>
+<h3>Reset</h3>
+<p>Empties every field, photo and video on the form. The platform stays the same. Nothing that was already saved is affected.</p>
+
+<h2 id="edit">Editing a claim you already filed</h2>
+<p>To change a saved claim in full (including its photos), open it from <a href="07-manage-claims.html">Manage Claims</a>:</p>
+<ol class="steps">
+  <li>In Manage Claims, click the <b>edit</b> (pencil) button on the claim's row. Its tooltip reads <b>Open this claim in the full form</b>. (It is greyed out with <b>This row has no AWB to look the claim up by</b> when the claim has no AWB.)</li>
+  <li>This page opens titled <span class="ui">Update SPF Claim</span>, with a back-arrow button next to the title. The claim's details, videos and photos are loaded, and you see <b>Existing claim loaded — Save will update this claim</b>.</li>
+  <li>Change what you need. The save button now reads <span class="ui">Update Claim</span>. <span class="ui">Create Ticket</span> is not shown.</li>
+  <li>Click <span class="ui">Update Claim</span>. You see <b>Claim updated successfully</b>, and the form stays open so you can keep editing.</li>
+  <li>Click the back arrow to return to Manage Claims.</li>
+</ol>
+<ul>
+  <li>On AJIO and Nykaa the stored side-image PDF shows as a <b>View PDF</b> tile marked <b>Stored</b>. It is kept unless you add new side photos. If you add only 1–2 new photos you see <b>Remove the new images to keep the existing PDF, or add at least 3 new images to replace it.</b></li>
+  <li>If you change the platform while editing, the AWB, forward AWB, customer order number, remark, videos and the main photos are kept. Marketplace-specific details are cleared, and the old photos are offered in <span class="ui">Rearrange Images</span> so you can place them again.</li>
+</ul>
+
+<h2 id="marketplaces">Marketplace by marketplace</h2>
+<p>Below, a red star (*) marks fields that must be filled. Every marketplace also needs the <b>E-commerce Platform</b>, the <b>claim type</b>, the <b>Return AWB Number</b> and a <b>return video</b>.</p>
+
+<h3 id="ajio">AJIO</h3>
+<div class="table-wrap"><table>
+  <tr><th>Field (left side)</th><th>Notes</th></tr>
+  <tr><td><span class="ui">AJIO Account Username</span></td><td>Chosen automatically from your order data when possible. Switches by itself if the return order is found under a different AJIO account (you are told).</td></tr>
+  <tr><td><span class="ui">Return Order Number</span></td><td>Optional. Type AJIO's return order number (for example <b>RT229843479</b>). The app looks it up and fills the Return AWB, Forward AWB, SKU (the EAN), POB ID and Customer Order Number. While it searches you see <b>Searching AJIO…</b>.</td></tr>
+  <tr><td><span class="ui">Return AWB Number</span> *</td><td>Fills the return video and photos.</td></tr>
+  <tr><td><span class="ui">Forward AWB</span></td><td>Optional.</td></tr>
+  <tr><td><span class="ui">Customer Order Number</span></td><td>Optional.</td></tr>
+  <tr><td><span class="ui">SKU</span></td><td>Type it, or it is filled from order data. It gets a red star when several SKUs match the AWB — then you must pick one.</td></tr>
+  <tr><td><span class="ui">POB ID</span></td><td>Optional here. Filled from order data. If several POB IDs match, it becomes a drop-down with a note such as <b>2 POB IDs match this AWB</b> — pick the right one, or <b>Not set</b>.</td></tr>
+  <tr><td><span class="ui">Remark</span></td><td>Pre-filled from the claim type.</td></tr>
+</table></div>
+<p>Right side: see <a href="#sides">Product side images</a>.</p>
+<h4>How to fill an AJIO claim from the return order number</h4>
+<ol class="steps">
+  <li>Choose the lookup source at the top: <span class="ui">Report</span> (fast, from this computer's AJIO report backup) or <span class="ui">API</span> (live from AJIO).</li>
+  <li>Make sure an <span class="ui">AJIO Account Username</span> is selected. If you type the number first, you see <b>Choose the AJIO account to look this up</b>, and the lookup starts as soon as you pick one.</li>
+  <li>Type the <span class="ui">Return Order Number</span> and wait.</li>
+  <li>If the return order has one article, the fields are filled and you see <b>Filled from AJIO return …</b>.</li>
+  <li>If it has several articles, the window <b>… has N lines</b> opens. Each line shows EAN, POB, Return AWB, Forward AWB, Jio code, Customer order and Status. Click the right one and press <span class="ui">Use this line</span>, or <span class="ui">Cancel</span> to leave the form unchanged.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>With <span class="ui">Report</span>, a number that is not in the backup gives <b>No record found for … The report backup covers [date] to [date] — sync the missing dates, or switch to API.</b> If there is no backup at all yet, it tells you to run the AJIO report sync or switch to API. With <span class="ui">API</span>, you may see <b>… was not found on any AJIO account in the last N days</b>.</div>
+<h4>The Select Seller SKU window</h4>
+<p>If the AWBs match more than one SKU in your order data, the window <b>Select Seller SKU for this AWB</b> opens before anything else. Pick the SKU this claim is for and click <span class="ui">OK</span>. A row with an empty box lets you type a new SKU — its round button becomes selectable once you type. <span class="ui">Cancel</span> closes it, but you must still choose a SKU before saving (click the SKU box to reopen it); otherwise you get <b>Please select a SKU</b>. This window cannot be closed by clicking outside it.</p>
+
+<h3 id="nykaa">Nykaa Fashion</h3>
+<p>Shown in the list as <b>Nykaa Fashion</b>. It uses the AJIO layout (without Return Order Number and POB ID), with three extra required boxes at the top of the left side:</p>
+<div class="table-wrap"><table>
+  <tr><th>Field</th><th>Notes</th></tr>
+  <tr><td><span class="ui">Vendor Code</span> *</td><td>Your Nykaa vendor code.</td></tr>
+  <tr><td><span class="ui">SKU ID</span> *</td><td>Nykaa's SKU ID.</td></tr>
+  <tr><td><span class="ui">Return Type</span> *</td><td>RTO, DTO or REPL.</td></tr>
+  <tr><td><span class="ui">Nykaa Account Username</span></td><td>Records which Nykaa account the claim belongs to. Nykaa claims are always filed under your company's verified Nykaa login.</td></tr>
+</table></div>
+<p>Then Return AWB Number *, Forward AWB, Customer Order Number, SKU, Remark and the videos. Right side: see <a href="#sides">Product side images</a> (Return Product Image * and 3–9 Product Side Images * are required).</p>
+
+<h3 id="shopify">Shopify and your company's own platforms</h3>
+<p>These use the AJIO layout without Return Order Number and POB ID. Shopify shows a <span class="ui">Shopify Account Username</span> box. The right side is the same as AJIO: Return Product Image * and 3–9 Product Side Images * are required.</p>
+
+<h3 id="meesho">Meesho</h3>
+<div class="table-wrap"><table>
+  <tr><th>Field (left side)</th><th>Notes</th></tr>
+  <tr><td><span class="ui">Logistics Partner Name</span> *</td><td>Only shown for the claim type <b>Return/RTO product not received but marked delivered - Need Proof of Delivery</b>. Choose Delhivery, Bluedart, Ecom, Xpressbees, Shadowfax or Valmo.</td></tr>
+  <tr><td><span class="ui">Description</span></td><td>The remark, pre-filled from the claim type.</td></tr>
+  <tr><td><span class="ui">Suborder Number</span> *</td><td>Filled from Meesho order data when the AWB is known.</td></tr>
+  <tr><td><span class="ui">State of The Packet</span> *</td><td>Intact or Tampered.</td></tr>
+  <tr><td><span class="ui">Packet ID</span> *</td><td>Not needed for the claim type <b>I have received an RTO in a non-barcoded package</b>.</td></tr>
+  <tr><td><span class="ui">Meesho Account Username</span></td><td>Chosen automatically when possible.</td></tr>
+  <tr><td><span class="ui">Return AWB Number</span> *, <span class="ui">Forward AWB Number</span></td><td>Typing either fills the other (and the suborder) from Meesho order data.</td></tr>
+</table></div>
+<div class="table-wrap"><table>
+  <tr><th>Photo (right side)</th><th>Needed?</th></tr>
+  <tr><td><span class="ui">Barcode Image</span></td><td>Yes, except for the non-barcoded RTO claim type</td></tr>
+  <tr><td><span class="ui">Received Product Image</span> *</td><td>Yes</td></tr>
+  <tr><td><span class="ui">Reverse Way Bill</span> *</td><td>Yes</td></tr>
+</table></div>
+
+<h3 id="myntra">Myntra</h3>
+<div class="table-wrap"><table>
+  <tr><th>Field (left side)</th><th>Notes</th></tr>
+  <tr><td><span class="ui">Disputed Amount</span> *</td><td>Only for the <b>partial return</b> claim type. Filled from the price Myntra reports when it is empty. Must be a positive number.</td></tr>
+  <tr><td><span class="ui">Physical Received SKU</span> *</td><td>Only for the <b>wrong return (own product)</b> claim type: the SKU you actually received.</td></tr>
+  <tr><td><span class="ui">Myntra Account Username</span></td><td>Filled automatically from the lookup if empty.</td></tr>
+  <tr><td><span class="ui">Return AWB Number</span> *</td><td>Typing it asks Myntra (<b>Searching Myntra…</b>) and fills the forward AWB, SKU and amount.</td></tr>
+  <tr><td><span class="ui">Forward AWB</span>, <span class="ui">SKU</span>, <span class="ui">Remark</span></td><td>Optional.</td></tr>
+  <tr><td><span class="ui">Damaged Product or Outer Packaging</span></td><td>Optional third video, <b>max 50MB</b>. <span class="ui">Upload Video</span> or paste a <b>Damaged Product Video Link</b>. <span class="ui">Remove video</span> clears it.</td></tr>
+</table></div>
+<div class="table-wrap"><table>
+  <tr><th>Photo (right side)</th><th>Rules</th></tr>
+  <tr><td><span class="ui">Shipping Label</span> *</td><td>1 image, max 5MB.</td></tr>
+  <tr><td><span class="ui">Product &amp; Outer Packing</span> *</td><td>Min 1, max 10, 3MB each. Drag photos to change their order.</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Note</b>Myntra lookup messages: <b>Fetched forward AWB, SKU, amount from Myntra account …</b> (success); <b>No Myntra account is saved for this company — add one under Login</b>; <b>Data not fetched — … not found on Myntra account …</b>; <b>Data not fetched from all N Myntra accounts — [reason]</b>. If nothing was fetched you can still fill the fields by hand.</div>
+
+<h3 id="snapdeal">Snapdeal</h3>
+<div class="table-wrap"><table>
+  <tr><th>Field (left side)</th><th>Notes</th></tr>
+  <tr><td><span class="ui">Snapdeal Account Username</span></td><td>Chosen automatically when possible.</td></tr>
+  <tr><td><span class="ui">Return AWB Number</span> *, <span class="ui">Forward AWB</span></td><td>Typing either one looks it up in the saved Snapdeal report and fills the other AWB, the sub-order and the SKU (<b>Filled … from the saved Snapdeal report</b>). If not found: <b>… is not in the saved Snapdeal report</b>.</td></tr>
+  <tr><td><span class="ui">Suborder Number</span>, <span class="ui">SKU</span>, <span class="ui">Remark</span></td><td>Optional.</td></tr>
+</table></div>
+<p>Right side — eight photo boxes. Four are required: <span class="ui">Outer Package Image 1</span> *, <span class="ui">Inner Package Image 1</span> *, <span class="ui">Product Image 1</span> *, <span class="ui">POD Image 1</span> *. The "2" boxes (Outer Package Image 2, Inner Package Image 2, Product Image 2, POD Image 2) are optional.</p>
+
+<h3 id="flipkart">Flipkart</h3>
+<div class="table-wrap"><table>
+  <tr><th>Field (left side)</th><th>Notes</th></tr>
+  <tr><td><span class="ui">Claim Area</span> * (top)</td><td>Issue(s) with a received return packet, or Did not receive a return packet.</td></tr>
+  <tr><td><span class="ui">Flipkart Account Username</span></td><td>Filled from the saved Flipkart report when empty.</td></tr>
+  <tr><td><span class="ui">Return AWB Number</span> *, <span class="ui">Forward AWB</span></td><td>Typing either looks it up in the saved Flipkart report and fills the other AWB, Sub Order ID, SKU and account (<b>Filled … from the saved Flipkart report</b>). If not found: <b>… is not in the saved Flipkart report</b>.</td></tr>
+  <tr><td><span class="ui">Sub Order ID</span>, <span class="ui">Remark</span></td><td>Optional.</td></tr>
+  <tr><td><span class="ui">SKU</span></td><td>Only shown once a SKU is known for the AWB.</td></tr>
+</table></div>
+<div class="table-wrap"><table>
+  <tr><th>Photo (right side)</th><th>Rules</th></tr>
+  <tr><td><span class="ui">Shipping Label</span> *</td><td>1 image, max 5MB.</td></tr>
+  <tr><td><span class="ui">Evidence of Issue</span> *</td><td><b>Min 3</b>, max 10, 3MB each. Drag to reorder.</td></tr>
+</table></div>
+
+<h3 id="amazon">Amazon</h3>
+<p>Top: <span class="ui">Select Fulfillment Channel</span> *, then <span class="ui">Type Of Claim</span> * and <span class="ui">Claim Sub-Reason</span> *. Left side: <span class="ui">Amazon Account Username</span>, Return AWB Number *, Forward AWB, SKU (shown when known), Remark, videos.</p>
+<div class="table-wrap"><table>
+  <tr><th>Photo (right side)</th><th>Rules</th></tr>
+  <tr><td><span class="ui">Photograph of the contents of the return</span> *</td><td>1 or 2 photos (max files allowed : 2), 5MB each.</td></tr>
+  <tr><td><span class="ui">Photograph of the returned package with the shipping label affixed</span> *</td><td>1 photo.</td></tr>
+  <tr><td><span class="ui">Serial number of the item</span></td><td>Optional, 1 photo.</td></tr>
+</table></div>
+
+<h3 id="tatacliq">Tata CliQ</h3>
+<p>Top: <span class="ui">Reason Of QC Failure</span> * and <span class="ui">Sub Reason Of Failure</span>. These follow Tata CliQ's own QC Fail form (for example Product Carrier Damage, Wrong Product, Used Product, Damaged Product, Damaged Box, Missing Box, Missing Accessories, Missing Product/Empty Box, Partial Product, Seal Open, Delivered but not received, Price Mismatch).</p>
+<ul>
+  <li>The sub-reason is <b>required only for Wrong Product</b> (Other brand delivered · Local product delivered · Same brand but different SKU delivered · Same brand but different size delivered). For reasons with only one option the second box is hidden and filled for you.</li>
+  <li>Left side: <span class="ui">Tata CliQ Account Username</span>, Return AWB Number *, Forward AWB, SKU (when known), Remark, videos.</li>
+</ul>
+<div class="table-wrap"><table>
+  <tr><th>QC Images (right side)</th><th>Needed?</th></tr>
+  <tr><td>Product Image *</td><td>Yes</td></tr>
+  <tr><td>IMEI No./Sr. No./Product Code *</td><td>Yes</td></tr>
+  <tr><td>Brand/Company marking *</td><td>Yes</td></tr>
+  <tr><td>Packing slip *</td><td>Yes</td></tr>
+  <tr><td>Additional Image 1, Additional Image 2</td><td>No</td></tr>
+</table></div>
+<p>Each slot takes one photo up to 3MB (click <span class="ui">Browse</span>). Drag one slot onto another to swap them. If slots are missing you see, for example, <b>*Product Image, Packing slip are required</b>.</p>
+<p>For most reasons, two link boxes appear: <span class="ui">Add Packaging Video URL</span> and <span class="ui">Add Unboxing Video URL</span>. They are not shown for Product Carrier Damage, Damaged Box, Missing Box, Seal Open, Delivered but not received and Price Mismatch. They are optional.</p>
+
+<h3 id="delhivery">Delhivery</h3>
+<p>Top: <span class="ui">Domestic</span> * (EXPRESS / SURFACE), the claim type box(es), <span class="ui">Shipment Issue</span> (fixed) and <span class="ui">Select a subcategory</span> *. Left side: <span class="ui">Delhivery Account Username</span>, Return AWB Number *, Forward AWB, SKU (when known), Remark, videos.</p>
+<div class="table-wrap"><table>
+  <tr><th>Photo (right side)</th><th>Rules</th></tr>
+  <tr><td><span class="ui">Shipping Label</span> *</td><td>1 image, max 5MB.</td></tr>
+  <tr><td><span class="ui">Evidence of Issue</span> *</td><td>Min 1, max 10, 3MB each. Drag to reorder.</td></tr>
+</table></div>
+
+<h3 id="xbees">Xbees</h3>
+<p>Top: <span class="ui">Dispute Reason</span> * and <span class="ui">Dispute Sub reason</span> *. Left side: <span class="ui">Dispute Amount</span> * (a positive number), <span class="ui">Xbees Account Username</span> (optional), Return AWB Number *, Forward AWB, SKU (when known), Remark, videos.</p>
+<p>Right side: <span class="ui">Upload package photos</span> * — exactly <b>four</b> photos, one per side of the box: <b>Top</b>, <b>Right</b>, <b>Bottom</b>, <b>Left</b>, 3MB each. No shipping label is needed.</p>
+
+<h2 id="errors">Red messages under fields</h2>
+<p>When you click <span class="ui">Save</span> or <span class="ui">Create Ticket</span>, missing or wrong fields turn red with one of these messages:</p>
+<div class="table-wrap"><table>
+  <tr><th>Message</th><th>What to do</th></tr>
+  <tr><td>*E-commerce platform is required</td><td>Pick a platform (wait for the list to load).</td></tr>
+  <tr><td>*AWB number is required</td><td>Type the Return AWB Number.</td></tr>
+  <tr><td>*Type of claim is required</td><td>Choose the claim type (and the first box, if there are two).</td></tr>
+  <tr><td>*Return Video is required</td><td>Add a return video or paste its link.</td></tr>
+  <tr><td>*Return product image required</td><td>Add the Return Product Image (AJIO, Nykaa, Shopify, own platforms).</td></tr>
+  <tr><td>Minimum three images required / Maximum nine images allowed</td><td>Product Side Images must be 3 to 9 photos.</td></tr>
+  <tr><td>Please select a SKU</td><td>Several SKUs match the AWB — click the SKU box and pick one.</td></tr>
+  <tr><td>*required</td><td>Additional Field: fill both the title and the file, or neither.</td></tr>
+  <tr><td>*Claim area is required</td><td>Flipkart: choose the Claim Area.</td></tr>
+  <tr><td>*Shipping label image is required / *Shipping label is required / *Shipping-label photograph is required</td><td>Add the shipping label photo.</td></tr>
+  <tr><td>*At least three packing images are required</td><td>Flipkart: add at least 3 Evidence of Issue photos.</td></tr>
+  <tr><td>*At least one evidence image is required</td><td>Delhivery: add at least 1 Evidence of Issue photo.</td></tr>
+  <tr><td>*At least one product &amp; outer packing image is required</td><td>Myntra: add a packing photo.</td></tr>
+  <tr><td>*Maximum ten … images allowed / *Maximum two photos allowed</td><td>Remove the extra photos.</td></tr>
+  <tr><td>*Domestic is required / *Subcategory is required</td><td>Delhivery: choose them at the top.</td></tr>
+  <tr><td>*Fulfillment channel is required</td><td>Amazon: choose the fulfillment channel.</td></tr>
+  <tr><td>*At least one photo of the return contents is required</td><td>Amazon: add a contents photo.</td></tr>
+  <tr><td>*QC failure reason is required</td><td>Tata CliQ: choose the Reason Of QC Failure.</td></tr>
+  <tr><td>Pick the sub-reason — Tata CliQ requires one for Wrong Product</td><td>Choose the Sub Reason Of Failure.</td></tr>
+  <tr><td>*All four package photos (Top, Right, Bottom, Left) are required</td><td>Xbees: fill all four sides.</td></tr>
+  <tr><td>*Dispute amount is required / *Dispute amount must be a positive number</td><td>Xbees: type an amount above 0.</td></tr>
+  <tr><td>*Disputed amount is required / must be a positive number</td><td>Myntra partial return: type the amount.</td></tr>
+  <tr><td>*Physical received SKU is required</td><td>Myntra wrong-return claim: type the SKU you received.</td></tr>
+  <tr><td>*Received product image is required / *Reverse waybill image is required / *Barcode image is required</td><td>Meesho: add the photo.</td></tr>
+  <tr><td>*Sub order number is required / *State of the packet is required / *PacketID is required / *Logistics partner name is required</td><td>Meesho: fill the field.</td></tr>
+  <tr><td>*Outer package image 1 is required (and Inner package image 1, Product image 1, POD proof 1)</td><td>Snapdeal: fill the four required photo boxes.</td></tr>
+  <tr><td>*Vendor Code is required / *SKU ID is required / *Return Type is required</td><td>Nykaa: fill the three boxes at the top.</td></tr>
+</table></div>
+
+<h2 id="messages">Pop-up messages you may see</h2>
+<p>Short messages appear briefly in the corner of the screen: <span class="chip green">green</span> = done, <span class="chip grey">blue</span> = information, <span class="chip red">red</span> = something went wrong.</p>
+<div class="table-wrap"><table>
+  <tr><th>Message</th><th>Meaning / what to do</th></tr>
+  <tr><td>CMS created successfully</td><td>The claim is saved.</td></tr>
+  <tr><td>Claim created. Auto claim not started.</td><td>Saved, but filing did not start. Do not re-enter it; start it from Manage Claims.</td></tr>
+  <tr><td>Claim updated successfully / Update failed</td><td>Result of <span class="ui">Update Claim</span>.</td></tr>
+  <tr><td>Video found / Video not found</td><td>Whether a recorded return video exists for the AWB. If not, upload, record or paste a link.</td></tr>
+  <tr><td>Existing claim loaded — Save will update this claim</td><td>You are editing a saved claim.</td></tr>
+  <tr><td>Each image must be less than 3MB (or 5MB)</td><td>The photo is too large. Take a smaller photo or compress it.</td></tr>
+  <tr><td>Image upload failed</td><td>Check the internet connection and try again.</td></tr>
+  <tr><td>Could not upload six-side images PDF — …</td><td>The side-image PDF could not be uploaded. Try again; check the connection.</td></tr>
+  <tr><td>Something went wrong! (or a message from the server)</td><td>The claim was not saved. Read the message, fix the field it mentions, and save again.</td></tr>
+  <tr><td>… belongs to … — switched to that account</td><td>AJIO: the return order was found under another AJIO account, so the form switched to it.</td></tr>
+</table></div>
+
+<div class="pager">
+  <a href="03-login-sessions.html"><span>Previous</span>3. Login (marketplace sign-ins)</a>
+  <a href="05-bulk-claim.html"><span>Next</span>5. Bulk claim</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

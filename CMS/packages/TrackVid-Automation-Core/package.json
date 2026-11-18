@@ -1,0 +1,88 @@
+{
+  "name": "@trackvid/automation-core",
+  "version": "0.2.0",
+  "description": "Shared platform automation utilities (login, sessions, API flows, TrackVid write-back) consumed by Automated-Scripts and Trackvid-CMS.",
+  "main": "index.js",
+  "types": "types/index.d.ts",
+  "type": "commonjs",
+  "license": "ISC",
+  "files": [
+    "index.js",
+    "common",
+    "platforms",
+    "types",
+    "README.md"
+  ],
+  "scripts": {
+    "barrels": "node scripts/generate-barrels.js",
+    "types": "rm -rf types && tsc -p tsconfig.build.json",
+    "build": "npm run barrels && npm run types",
+    "test": "node --test"
+  },
+  "peerDependencies": {
+    "@jitsi/robotjs": ">=0.6.0",
+    "axios": ">=1.8.0",
+    "dayjs": ">=1.11.0",
+    "dotenv": ">=16.0.0",
+    "form-data": ">=4.0.0",
+    "fs-extra": ">=11.0.0",
+    "imap": ">=0.8.19",
+    "mailparser": ">=3.6.0",
+    "mongodb": ">=6.0.0",
+    "pino": ">=10.0.0",
+    "pino-pretty": ">=13.0.0",
+    "puppeteer": ">=24.0.0",
+    "xlsx": ">=0.18.0"
+  },
+  "peerDependenciesMeta": {
+    "@jitsi/robotjs": {
+      "optional": true
+    },
+    "axios": {
+      "optional": true
+    },
+    "dayjs": {
+      "optional": true
+    },
+    "dotenv": {
+      "optional": true
+    },
+    "form-data": {
+      "optional": true
+    },
+    "fs-extra": {
+      "optional": true
+    },
+    "imap": {
+      "optional": true
+    },
+    "mailparser": {
+      "optional": true
+    },
+    "mongodb": {
+      "optional": true
+    },
+    "pino": {
+      "optional": true
+    },
+    "pino-pretty": {
+      "optional": true
+    },
+    "puppeteer": {
+      "optional": true
+    },
+    "xlsx": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "typescript": "^5.7.0"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "types/*"
+      ]
+    }
+  }
+}

@@ -1,0 +1,244 @@
+/*
+ * Table chrome: the parts that stay put while rows move under them.
+ *
+ * A pinned column and a sticky header are the same problem seen twice — an
+ * element that does not move, with content passing behind it — and they fail
+ * the same way when it is got wrong, by letting that content be read straight
+ * through. Both live here so the fix is stated once.
+ *
+ * WHY THIS EXISTS. Sessions needs ~1,500px and Claims ~1,900px of columns, and
+ * the content box on a 1300px window is under 1,000px. The table scrolls, which
+ * is right, but the card then shears whichever column happens to land on the
+ * edge — on Sessions that was "Action", so the Re-capture button an operator
+ * came to the screen to press was cut in half and reachable only by scrolling.
+ *
+ * A wider gutter cannot fix that. It makes the box NARROWER and shears sooner.
+ * So the column that carries the point of the screen is pinned instead: the
+ * action on Sessions, the claim's identity on Claims.
+ *
+ * OPACITY IS THE WHOLE TRICK. A sticky cell has rows sliding underneath it, so
+ * its background must be solid or the text underneath shows through. Every row
+ * tint in this app is deliberately TRANSLUCENT (`action-hover`,
+ * `primary-lightOpacity`), so a pinned cell cannot simply inherit one. It gets
+ * an opaque `background-paper` base, and the tint is re-applied on top as a
+ * `background-image` — which paints above `background-color` and so composites
+ * exactly as the same tint does over the card everywhere else.
+ */
+
+.pinned-end,
+.pinned-start {
+  /* The seam. A plain border would scroll away with the cell it is on. */
+  /* What the ported table already gives a checkbox cell, and what the pinned
+     column beside it is offset by. One value, so the two cannot disagree. */
+  --pinned-lead: 3.25rem;
+
+  /*
+   * The seam: a hairline, then a short falloff so the rows visibly pass BEHIND
+   * the pinned column rather than stopping at it.
+   *
+   * Both are `--mui-palette-divider`, which is the same line the table draws
+   * between its rows and follows the theme and the operator's palette. The
+   * first attempt used `rgb(var(--mui-palette-common-black-channel) / 0.16)`,
+   * copying a pattern from Monitor — this theme emits no `*-channel`
+   * variables at all, so the function was invalid, the whole declaration was
+   * dropped, and the seam silently did not exist.
+   *
+   * Physical directions, not logical: box-shadow has no logical form, and RTL
+   * was dropped from the port on purpose.
+   */
+  --pinned-seam-end: -1px 0 0 0 var(--mui-palette-divider),
+    -0.375rem 0 0.5rem -0.25rem var(--mui-palette-divider);
+  --pinned-seam-start: 1px 0 0 0 var(--mui-palette-divider),
+    0.375rem 0 0.5rem -0.25rem var(--mui-palette-divider);
+}
+
+/* Shared: what it means to be a pinned cell. */
+.pinned-end thead th:last-of-type,
+.pinned-end tbody td:last-of-type,
+.pinned-start thead th:first-of-type,
+.pinned-start tbody td:first-of-type,
+.pinned-start[data-has-select='true'] thead th:nth-of-type(2),
+.pinned-start[data-has-select='true'] tbody td:nth-of-type(2) {
+  position: sticky;
+  /* Above the cells that pass beneath, below a dialog or a menu. */
+  z-index: 2;
+  background-color: var(--mui-palette-background-paper);
+}
+
+/* The head sits above its own body's pinned cells as they scroll up to it. */
+.pinned-end thead th:last-of-type,
+.pinned-start thead th:first-of-type,
+.pinned-start[data-has-select='true'] thead th:nth-of-type(2) {
+  z-index: 3;
+}
+
+/* Sessions — the action, held against the end. */
+.pinned-end thead th:last-of-type,
+.pinned-end tbody td:last-of-type {
+  inset-inline-end: 0;
+  box-shadow: var(--pinned-seam-end);
+}
+
+/*
+ * Claims — the row's identity, held against the start.
+ *
+ * WITH THE TICK BOX, BOTH. Pinning the box alone would leave the operator
+ * ticking a row they can no longer name; pinning the name alone would put the
+ * box out of reach of the rows it selects.
+ *
+ * The box's column is given an explicit width so the second column's offset is
+ * a constant rather than a measurement — an auto-width cell grows with its
+ * content, and a pinned neighbour offset by a guess sits a few pixels off and
+ * lets a sliver of the scrolling table through the gap. 3.25rem is what the
+ * ported table already gives a checkbox cell.
+ */
+.pinned-start thead th:first-of-type,
+.pinned-start tbody td:first-of-type {
+  inset-inline-start: 0;
+}
+
+.pinned-start[data-has-select='true'] thead th:first-of-type,
+.pinned-start[data-has-select='true'] tbody td:first-of-type {
+  /* The width itself is forced in the layered block at the foot of this file —
+     see the note there on which `!important` actually wins. */
+  box-sizing: border-box;
+}
+
+.pinned-start[data-has-select='true'] thead th:nth-of-type(2),
+.pinned-start[data-has-select='true'] tbody td:nth-of-type(2) {
+  inset-inline-start: var(--pinned-lead);
+}
+
+/* The seam goes on whichever column is the last pinned one. */
+.pinned-start[data-has-select='true'] thead th:nth-of-type(2),
+.pinned-start[data-has-select='true'] tbody td:nth-of-type(2),
+.pinned-start[data-has-select='false'] thead th:first-of-type,
+.pinned-start[data-has-select='false'] tbody td:first-of-type {
+  box-shadow: var(--pinned-seam-start);
+}
+
+/*
+ * The row tints, re-applied over the opaque base.
+ *
+ * Each one is the same variable the row itself uses, so a pinned cell and the
+ * rest of its row are the same colour by construction rather than by a second
+ * value kept in step by hand.
+ */
+.pinned-end tbody tr[data-subrow] td:last-of-type {
+  background-image: linear-gradient(
+    var(--mui-palette-action-hover),
+    var(--mui-palette-action-hover)
+  );
+}
+
+.pinned-start tbody tr[data-selected='true'] td:first-of-type,
+.pinned-start tbody tr[data-selected='true'] td:nth-of-type(2) {
+  background-image: linear-gradient(
+    var(--mui-palette-primary-lightOpacity),
+    var(--mui-palette-primary-lightOpacity)
+  );
+}
+
+.pinned-start tbody tr[data-selected='false']:hover td:first-of-type,
+.pinned-start tbody tr[data-selected='false']:hover td:nth-of-type(2) {
+  background-image: linear-gradient(
+    var(--mui-palette-action-hover),
+    var(--mui-palette-action-hover)
+  );
+}
+
+/* The head's own colour is the theme's header grey, which is opaque — see the
+   layered block below. There is no separate tint on pinned header cells any
+   more: one layered over white made them a shade apart from the rest of the
+   header row they sit in. */
+
+/*
+ * THE TWO DECLARATIONS THAT HAVE TO BEAT A TAILWIND UTILITY.
+ *
+ * Both were tried as an unlayered `!important` first, and both silently lost.
+ * The cascade rule is the opposite of the intuition: for IMPORTANT
+ * declarations layer order reverses, so an earlier layer beats a later one AND
+ * beats unlayered. `app.css` declares `theme, base, components, utilities`, so
+ * a `theme` rule is what outranks a utility here. This is the same mechanism
+ * behaviour.css uses, and the reason it is written the way it is.
+ *
+ * What was losing:
+ *
+ *   background-color — Claims writes `bg-surface-sunken` on its header cells,
+ *   which is `action-hover`, a TRANSLUCENT tint. A see-through pinned cell let
+ *   the Brand column be read sliding under it: the header said "RAND" beside
+ *   "PLATFORM". The tint goes back on as a background-image above, over this
+ *   opaque base, so it still looks like the header it was.
+ *
+ *   inline-size — the tick-box cell carries `w-8`, and the cell then measured
+ *   60px because it is laid out content-box and adds its own padding. The
+ *   offset beside it is a constant, so the two overlapped by eight pixels and
+ *   printed two headings on top of each other.
+ */
+@layer theme {
+  .pinned-end thead th:last-of-type,
+  .pinned-end tbody td:last-of-type,
+  .pinned-start thead th:first-of-type,
+  .pinned-start tbody td:first-of-type,
+  .pinned-start[data-has-select='true'] thead th:nth-of-type(2),
+  .pinned-start[data-has-select='true'] tbody td:nth-of-type(2) {
+    background-color: var(--mui-palette-background-paper) !important;
+  }
+
+  /* Header cells: the same opaque grey every other header cell has, so the
+     pinned ones are indistinguishable from the row until something scrolls
+     beneath them. */
+  .pinned-end thead th:last-of-type,
+  .pinned-start thead th:first-of-type,
+  .pinned-start[data-has-select='true'] thead th:nth-of-type(2) {
+    background-color: var(--mui-palette-customColors-tableHeaderBg) !important;
+  }
+
+  .pinned-start[data-has-select='true'] thead th:first-of-type,
+  .pinned-start[data-has-select='true'] tbody td:first-of-type {
+    inline-size: var(--pinned-lead) !important;
+    min-inline-size: var(--pinned-lead) !important;
+    max-inline-size: var(--pinned-lead) !important;
+  }
+}
+
+
+/*
+ * A STICKY HEADER, OVER ROWS THAT PASS BENEATH IT.
+ *
+ * Same trap as the pinned columns, found the same way. The header carried
+ * `bg-surface-sunken`, which resolves to `action-hover` — translucent — so the
+ * rows scrolling under it were legible THROUGH the column names: row 2 and the
+ * header drawn on top of each other.
+ *
+ * `thead` cannot carry it either. Under `border-collapse: collapse` a
+ * background on the thead does not reliably paint beneath a sticky `th`, so it
+ * goes on the cells, opaque, with the sunken tint put back over the top — the
+ * same two layers, and the same reason, as above.
+ *
+ * No `!important` here, unlike the pinned columns: the Tailwind background was
+ * REMOVED from the markup rather than fought, which is the better answer when
+ * the markup is ours to change.
+ */
+.table-head-opaque th {
+  background-color: var(--mui-palette-background-paper);
+  background-image: linear-gradient(
+    var(--mui-palette-action-hover),
+    var(--mui-palette-action-hover)
+  );
+}
+
+/*
+ * VEYLIX ROW BANDS UNDER PINNED CELLS.
+ *
+ * A pinned cell has to be opaque (content scrolls beneath it), so it paints the
+ * paper colour — which hid the row's tint and squared off the band's rounded
+ * end. The tint (`--veylix-row`, set per row by the theme) is laid over that
+ * opaque fill as an image, so the pinned cell reads as part of its band. The
+ * selected and hover rules above are more specific and still win.
+ */
+.pinned-end tbody td:last-of-type,
+.pinned-start tbody td:first-of-type,
+.pinned-start[data-has-select='true'] tbody td:nth-of-type(2) {
+  background-image: linear-gradient(var(--veylix-row, transparent), var(--veylix-row, transparent));
+}

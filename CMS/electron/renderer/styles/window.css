@@ -1,0 +1,44 @@
+/*
+ * The window itself: dragging, and the room macOS needs for its buttons.
+ *
+ * NOT PART OF THE PORT. Monitor is a web page in a browser tab and has no
+ * opinion about any of this; these rules are the reason a ported shell cannot
+ * simply be dropped in. They live in their own file because both stylesheet
+ * chains need them while the port is in progress — the app's and the new one's.
+ */
+
+/*
+ * `-webkit-app-region: drag` turns an element into a title bar.
+ *
+ * The macOS window is `titleBarStyle: 'hiddenInset'`: the app draws its own
+ * header and there is no native bar to grab, so without a declared drag region
+ * the only thing that moves the window is the strip beside the traffic lights.
+ *
+ * IT INHERITS. Every control inside a dragging strip has to opt back out or it
+ * stops receiving clicks, and a header whose buttons are dead is a worse bug
+ * than a window that will not move.
+ */
+.app-drag {
+  -webkit-app-region: drag;
+  /* A drag region must not also be a text selection: dragging the window would
+     otherwise highlight whatever text it passes over. */
+  user-select: none;
+}
+
+.app-no-drag {
+  -webkit-app-region: no-drag;
+}
+
+/*
+ * WHAT USED TO BE HERE, AND WHY IT IS NOT.
+ *
+ * Two rules stood below this comment: a 34px shim that pushed the rail's header
+ * clear of the traffic lights, and a `drag` region that turned that header into
+ * the window's title bar. Both existed because the macOS window was
+ * `titleBarStyle: 'hiddenInset'` and had no bar of its own.
+ *
+ * It has a real one now (see platform/macos.ts), so macOS places and spaces the
+ * buttons itself, drags the window itself, and the rail is free to start at the
+ * top of the window like it does everywhere else. The classes above are kept
+ * because the retired layout still references them until it is deleted.
+ */

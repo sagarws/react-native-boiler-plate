@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Troubleshooting &amp; FAQ — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a class="active" href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Troubleshooting &amp; FAQ</h1>
+<p class="lead">Common problems and on-screen messages, grouped by area, with what each one means and how to fix it.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+  <li><a href="#install">Installing, signing in and updates</a></li>
+  <li><a href="#dashboard">Dashboard and syncing</a></li>
+  <li><a href="#logins">Marketplace logins</a></li>
+  <li><a href="#claims">Creating and filing claims</a></li>
+  <li><a href="#bulk">Bulk and SPF bulk claims</a></li>
+  <li><a href="#manage">Manage claims and status change</a></li>
+  <li><a href="#automations">Scheduled automations and background jobs</a></li>
+  <li><a href="#admin">Things only the TrackVid team can change</a></li>
+  <li><a href="#support">Before you contact support</a></li>
+</ol></div>
+
+<div class="callout tip"><b class="t">First, hover</b>
+Many greyed-out buttons and checkboxes show the reason when you hover the mouse over them. Read that message first. It usually tells you exactly what is missing.</div>
+
+<h2 id="install">Installing, signing in and updates</h2>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>"Windows protected your PC" when running the installer</td><td>The installer is not digitally signed yet.</td><td>Click <span class="ui">More info</span>, then <span class="ui">Run anyway</span>. Do this only for an installer you received from TrackVid. If nothing happens, check whether your antivirus quarantined it.</td></tr>
+<tr><td>"Missing Shortcut — Windows is searching for TrackVid CMS.exe"</td><td>The installed app is missing or damaged, or it was built for a different type of computer.</td><td>Run the correct installer again. Most office PCs need the <b>x64</b> installer (<code>TrackVid-CMS-x64-setup.exe</code>).</td></tr>
+<tr><td>"Cannot reach the TrackVid server. Check your internet connection."</td><td>The app cannot reach TrackVid.</td><td>Check the internet, Wi-Fi or office firewall, then try again.</td></tr>
+<tr><td>"The server took too long to respond. Please try again."</td><td>The connection is slow or the server is busy.</td><td>Wait a minute and try again.</td></tr>
+<tr><td>"Enter a valid email address" / "Password is required"</td><td>A sign-in field is empty or wrong.</td><td>Fix the highlighted field. If a red box says your email or password is wrong, ask your TrackVid admin to reset your password.</td></tr>
+<tr><td>"That did not save — …" on the Responsible Use agreement, or the agreement keeps coming back</td><td>Your answer could not be saved, usually because you are offline.</td><td>Reconnect and click <span class="ui">Agree &amp; Continue</span>. <span class="ui">Exit</span> closes the app.</td></tr>
+<tr><td>"Update required" screen with an error and <span class="ui">Try again</span></td><td>The compulsory update could not download.</td><td>Check the connection and press <span class="ui">Try again</span>. If it keeps failing, use <span class="ui">Download x.y.z manually</span>, close the app and run the installer.</td></tr>
+<tr><td>App version card says "Check failed" or "Updates not available in this build"</td><td>The update check failed, or this copy cannot update itself.</td><td>Press <span class="ui">Check for updates</span> again, or ask TrackVid for a fresh installer.</td></tr>
+</table></div>
+
+<h2 id="dashboard">Dashboard and syncing</h2>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>"N parts of this page could not be loaded"</td><td>Some figures did not load and may show a false zero.</td><td>Expand the message to see the cause, then press <span class="ui">Refresh</span> or <span class="ui">Sync</span>.</td></tr>
+<tr><td>"No marketplaces yet"</td><td>Your company has no marketplace accounts set up in TrackVid.</td><td>Ask your admin to add them in TrackVid, then click <span class="ui">Sync</span>.</td></tr>
+<tr><td>"Synced, but N could not be refreshed — check your connection"</td><td>Part of the shared data did not download.</td><td>Fix the connection and press the <span class="ui">Sync</span> icon again.</td></tr>
+</table></div>
+
+<h2 id="logins">Marketplace logins</h2>
+<p>See <a href="03-login-sessions.html">Login (marketplace sign-ins)</a> for the full page.</p>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>Red strip "N logins need updating", or a number on the <span class="ui">Login</span> menu item</td><td>Some logins are Expired, Expiring, Rejected or were never captured.</td><td>Open <span class="ui">Login</span> and press <span class="ui">Update now</span>, or <span class="ui">Re-capture</span> each row. Complete any OTPs.</td></tr>
+<tr><td>"No … login found — the window was closed before sign-in completed."</td><td>The sign-in window was closed too early.</td><td>Press <span class="ui">Re-capture</span> and wait until the seller dashboard loads. The window usually closes by itself.</td></tr>
+<tr><td>"…automatic sign-in could not finish…"</td><td>Automatic sign-in got stuck on an OTP or captcha.</td><td>Re-capture and type the code or captcha in the window yourself.</td></tr>
+<tr><td>Account shows <span class="chip red">Unverified</span></td><td>The marketplace refused the saved password. Automations skip this account.</td><td>Press <span class="ui">Verify</span>, enter the correct username and password, then <span class="ui">Save and verify</span>. Do not keep re-capturing: some marketplaces, such as Delhivery, lock the account after repeated failures.</td></tr>
+<tr><td>"Signed in to …, but the server is unreachable. The login is saved on this machine — use Update…"</td><td>The login was saved on this computer but not sent to TrackVid.</td><td>When you are back online, press <span class="ui">Update</span> on that row.</td></tr>
+<tr><td>Snapdeal or Flipkart sign-in waits forever for a code</td><td>The account's <span class="ui">OTP</span> switch is set wrong.</td><td>Turn <span class="ui">OTP</span> on if the account asks for a code, off if it does not.</td></tr>
+<tr><td>"POBs — not synced" (AJIO) or "Slaves — not synced" (Tata CliQ)</td><td>The account's extra details were not fetched.</td><td>Make sure the login is Saved, then press the <span class="ui">POBs</span> or <span class="ui">Slaves</span> button.</td></tr>
+<tr><td>Delhivery or Xbees: "…signs in with OAuth tokens rather than cookies, so it cannot be captured…"</td><td>These marketplaces cannot be signed in by hand.</td><td>Ask the TrackVid team to turn on automatic sign-in for that marketplace, or to renew the login.</td></tr>
+</table></div>
+
+<h2 id="claims">Creating and filing claims</h2>
+<p>See <a href="04-create-claim.html">Create claim</a> and <a href="07-manage-claims.html">Manage claims</a>.</p>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>"Video not found" after typing the Return AWB</td><td>No return video was recorded in TrackVid for that AWB.</td><td>Check the AWB. Then upload a video, record one with <span class="ui">Record</span>, or paste a link under "or paste link". Without a video, saving gives "*Return Video is required".</td></tr>
+<tr><td>Account username drop-down is empty</td><td>No login is saved for that marketplace.</td><td>Add it on the <a href="03-login-sessions.html">Login</a> page.</td></tr>
+<tr><td>"Minimum three images required" / "Maximum nine images allowed"</td><td>Product side images must be 3 to 9 photos.</td><td>Add or remove photos until there are 3 to 9.</td></tr>
+<tr><td>"Please select a SKU"</td><td>More than one SKU matches the AWB.</td><td>Click the SKU box and pick one in "Select Seller SKU for this AWB".</td></tr>
+<tr><td>AJIO: "No record found for … The report backup covers X to Y…"</td><td>The lookup is set to <span class="ui">Report</span>, and the order is newer than the last report sync.</td><td>Switch the toggle to <span class="ui">API</span> (needs a signed-in AJIO account), or run the AJIO report sync.</td></tr>
+<tr><td>"Each image must be less than 3MB" / "Image upload failed"</td><td>The photo is too large, or the connection dropped.</td><td>Use a smaller photo and try again.</td></tr>
+<tr><td>"Claim created. Auto claim not started."</td><td>The claim is saved, but filing did not start.</td><td>Do not enter it again, or it will be filed twice. Start it from <a href="07-manage-claims.html">Manage claims</a>.</td></tr>
+<tr><td>"No Camera Detected" / "Camera access is currently blocked"</td><td>No webcam, or the app is not allowed to use it.</td><td>Connect a webcam, or allow camera access for the app in Windows or macOS privacy settings and restart the app. Uploading files still works without a camera.</td></tr>
+<tr><td>"Update logins first — Nothing was started."</td><td>A login the action needs is not valid.</td><td>Click <span class="ui">Re-capture login</span>, finish each sign-in, then press the action again. Accounts marked "Optional" need an OTP and can be left out.</td></tr>
+<tr><td>Checkbox on a Pending claim is greyed out</td><td>Something the claim needs is missing: for example "POB ID missing", "Sub-order number missing", "No return AWB", "No evidence on this claim", or "Reached the retry limit — 3 attempts".</td><td>Hover to read the reason. Import master data that has the missing value, or wait for the nightly <a href="08-refill-data.html">Refill Data</a> task. Evidence must be added to the claim.</td></tr>
+<tr><td>"Evidence links are still being prepared"</td><td>The video or images are still uploading.</td><td>Wait a few minutes and press <span class="ui">Refresh</span>.</td></tr>
+<tr><td><span class="ui">Create Ticket</span> greyed out: "…claims run on the server for this company…"</td><td>This marketplace is set to file from the TrackVid server, not this computer.</td><td>Ask the TrackVid team to turn on desktop execution for that marketplace.</td></tr>
+<tr><td>"Could not check where … claims run — TrackVid was unreachable"</td><td>The app could not reach TrackVid.</td><td>Check the internet and click <span class="ui">Refresh</span>.</td></tr>
+</table></div>
+
+<h2 id="bulk">Bulk and SPF bulk claims</h2>
+<p>See <a href="05-bulk-claim.html">Bulk claim</a> and <a href="06-spf-bulk-claim.html">SPF bulk claim (AJIO)</a>.</p>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>Bulk claim: "Missing required column(s): …"</td><td>The Increff file is missing a required column.</td><td>The first row must have Return Order Type, Sales Channel, Return Gate Entry AWB, QC Reason, Client SKU ID / EAN, Forward AWB Number and Forward Unit Base Price. A file can have at most 1,000 rows.</td></tr>
+<tr><td>Bulk claim rows "Unmatched (no VMS record)" or "Missing / invalid: …", or <span class="ui">Total rows</span> shows 0</td><td>No return video exists for that AWB, the QC reason or claim type is not set up, or the Sales Channel does not match an enabled marketplace.</td><td>Create those claims by hand, or ask the admin to enable the marketplace or claim type. Do not upload the same report again after creating claims from it, or you will get duplicates.</td></tr>
+<tr><td>SPF bulk claim: That sheet has no "POB ID" column… / That sheet has no return numbers in it…</td><td>The uploaded file does not match the expected layout.</td><td>Click <span class="ui">Download template</span> and copy your data into it.</td></tr>
+<tr><td>Rows counted as "POB not on any AJIO login here"</td><td>No AJIO account on this computer holds that POB.</td><td>Ask the admin to run <span class="ui">Sync POBs</span> or add the missing AJIO login, then run again.</td></tr>
+<tr><td>"Automations are switched off — switch them on to start a bulk claim."</td><td>The <span class="ui">Automations</span> switch is off.</td><td>Turn the switch back on.</td></tr>
+<tr><td>"A bulk claim is already running."</td><td>Only one SPF bulk claim can run at a time.</td><td>Follow it in the <span class="ui">Background work</span> panel (bottom-right) and wait for it to finish.</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Closing the window does not stop a bulk claim</b>
+Filing carries on in the background. To stop it, turn the <span class="ui">Automations</span> switch off. The current account finishes, and the rest are not started.</div>
+
+<h2 id="manage">Manage claims and status change</h2>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>"Nothing on this tab", or a claim you expect is missing</td><td>The page opens on the last 7 days and the Pending tab.</td><td>Widen the date range (for example <span class="ui">All Time</span>) or switch the status tab. "Every row is filtered out" means you should clear the column filters.</td></tr>
+<tr><td>Status Change shows many "Not found"</td><td>No login on this computer holds those AWBs.</td><td>Sign in the company's other accounts on <span class="ui">Login</span>, then run again.</td></tr>
+<tr><td>Status Change shows many "Failed"</td><td>Usually a login problem.</td><td>Re-capture the login and run again.</td></tr>
+<tr><td>Re-Claim: "Choose which Myntra account these disputes are sent from"</td><td>No Myntra account is selected.</td><td>Pick the account in the toolbar drop-down. A ticket can be reopened only once.</td></tr>
+</table></div>
+
+<h2 id="automations">Scheduled automations and background jobs</h2>
+<p>See <a href="10-scheduled-automations.html">Scheduled automations</a> and <a href="09-background-process.html">Background process</a>.</p>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td>Nothing ran overnight</td><td>The app was closed, the computer was asleep, or the <span class="ui">Automations</span> switch was off.</td><td>Keep the app open and the switch on. Missed runs happen once when the app next opens. Check <span class="ui">Run history</span>.</td></tr>
+<tr><td>Red "Automations paused" box in the side menu</td><td>Login update could not fix every login.</td><td>Click <span class="ui">Re-capture on the Login page</span> and sign in to the accounts named. Automations restart by themselves.</td></tr>
+<tr><td>Run now: "Automations are switched off — switch them on to run this."</td><td>The switch is off.</td><td>Turn it on. Note that this runs every enabled task straight away, including Auto claim.</td></tr>
+<tr><td>Run now: "… is using the browser — try again when it ends."</td><td>Another job is using the browser.</td><td>Wait for it to finish, then try again.</td></tr>
+<tr><td>"Failed N times in a row" and the task keeps retrying</td><td>The task keeps failing, usually because of a login.</td><td>Read the reason and fix the login, or press <span class="ui">Skip this run</span> to stop retrying until the task's next time.</td></tr>
+<tr><td>Auto claim: "Nothing ready to file — N Pending claims still waiting on a missing account, POB ID or sub-order number."</td><td>Claims are missing details.</td><td>Let Refill Data run, or fill the details by hand on Manage Claims.</td></tr>
+<tr><td>Refill Data: "N past the limit"</td><td>Those claims were asked about 3 times with no answer.</td><td>Click <span class="ui">Reset</span> on the chip and confirm, so they can be asked again.</td></tr>
+<tr><td>"Started … and did not finish" / "Incomplete" in history</td><td>The app was closed, or automations were switched off, during a run.</td><td>Nothing to do: it runs again automatically. Avoid closing the app while tasks run.</td></tr>
+<tr><td>Auto claim turned itself back on</td><td>Someone pressed <span class="ui">Reset</span> in Settings, which turns every task back on.</td><td>Turn Auto claim off again if this computer should not use it.</td></tr>
+<tr><td>"Close TrackVid CMS? … is still running"</td><td>A job is still working.</td><td>Choose <span class="ui">Keep running</span>. <span class="ui">Quit anyway</span> can leave a claim filed on the marketplace that TrackVid did not record, so it may be filed again.</td></tr>
+<tr><td>A job shows Failed, or a red Failed count, on Background Process</td><td>Some items failed.</td><td>Open the row and read the <span class="ui">Reason</span> column. Fix the cause and re-run from where it was started. <span class="ui">Download report</span> lists exactly what failed.</td></tr>
+</table></div>
+
+<h2 id="admin">Things only the TrackVid team can change</h2>
+<p>These settings are managed centrally, not in the app. Contact your TrackVid admin if one of them needs to change:</p>
+<ul>
+  <li>Whether a marketplace's claims are filed from this computer or from the TrackVid server (desktop execution).</li>
+  <li>Whether a marketplace uses API-based automation.</li>
+  <li>The master import sync time.</li>
+  <li>Automatic sign-in when a login expires.</li>
+  <li>Adding or removing marketplace accounts, and syncing AJIO POBs.</li>
+</ul>
+
+<h2 id="support">Before you contact support</h2>
+<ol class="steps">
+  <li>Note the exact message on screen, or take a screenshot.</li>
+  <li>Note the app version from <a href="11-settings.html">Settings</a>.</li>
+  <li>For a failed job, open it on <span class="ui">Background Process</span> and press <span class="ui">Download report</span>.</li>
+  <li>For an update problem, open the update log and press <span class="ui">Copy</span>.</li>
+</ol>
+
+<div class="pager">
+  <a href="11-settings.html"><span>Previous</span>11. Settings &amp; profile</a>
+  <span></span>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

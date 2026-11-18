@@ -1,0 +1,266 @@
+/*
+ * Behaviour expressed in CSS: what fills the window, what can be selected.
+ *
+ * Split out of index.css when the app moved onto the ported design system.
+ * What did NOT come with it is the body's paint — background and text colour —
+ * because MUI's CssBaseline owns the body now, and two stylesheets painting it
+ * is how you get a flash of the wrong colour on every launch.
+ */
+
+@layer base {
+  /*
+   * THE DOCUMENT SCROLLS, which is a change from the old shell.
+   *
+   * The outgoing layout pinned the window at 100% and gave each screen its own
+   * scrolling box. The ported shell is built the other way round — the rail is
+   * `position: sticky; block-size: 100dvh` and the navbar is sticky too, both
+   * of which only work when the PAGE scrolls under them. With `overflow:
+   * hidden` still on the body, a long screen was simply cut off at the bottom
+   * of the window with no way to reach the rest of it.
+   *
+   * A SCREEN THAT ENDS IN A TABLE opts out of this, and does it through the
+   * shell's own mechanism rather than by fighting it — see
+   * `.trackvid-table-fill` at the end of this file.
+   */
+  html {
+    block-size: 100%;
+  }
+
+  body {
+    min-block-size: 100%;
+
+    /*
+     * THE BODY IS A FLEX ITEM, which is not obvious and is the whole story.
+     *
+     * Monitor's globals.css sets `html { display: flex }`, so <body> is a flex
+     * item in a row — and a flex item's `min-inline-size` defaults to `auto`,
+     * meaning "never narrower than my content". The claim queue's table is
+     * wider than any window, so the body itself grew to 1700px inside a 1440px
+     * window and took the whole layout with it: a horizontal scrollbar under
+     * the app, the rail sliding out of view, the navbar's buttons off the
+     * right-hand edge.
+     *
+     * Zero lets it shrink back to the window. On its own, though, zero goes too
+     * far the other way: a flex item's base size is its CONTENT, so a sparse
+     * page — the user's profile, two small cards — collapsed the whole layout
+     * to 963px inside a 1440px window and left two thirds of the screen empty.
+     *
+     * So: grow to fill, and never exceed. Both halves are needed, and each one
+     * alone produces the opposite bug.
+     */
+    min-inline-size: 0;
+    flex: 1 1 auto;
+
+    /*
+     * THE WINDOW NEVER GROWS SIDEWAYS.
+     *
+     * The belt to the braces above. Sizing the content column from the
+     * container stops the common case, but any one element deep in an
+     * un-migrated screen can still declare itself wider than the window, and
+     * the symptom is nasty: a horizontal scrollbar under the whole app, the
+     * rail sliding out of view with it, and the navbar's buttons off the
+     * right-hand edge.
+     *
+     * `clip` rather than `hidden` on purpose — `hidden` would make the body a
+     * scroll container and take the vertical scrolling with it, which is the
+     * thing the ported shell needs the document to keep doing. Nothing becomes
+     * unreachable: a wide table scrolls inside its own box, which is where the
+     * scrollbar belongs.
+     */
+    overflow-x: clip;
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-block-size: 100dvh;
+  }
+
+  /*
+   * The DATA is selectable; the CHROME is not.
+   *
+   * Selection used to be off on <body> and opt-in through an attribute nothing
+   * ever set, so an operator could not copy an AWB, a ticket number or an error
+   * message out of a table. They retype it instead, which is how a fourteen-digit
+   * AWB gets searched with one digit wrong.
+   */
+  body {
+    user-select: text;
+  }
+
+  button,
+  label,
+  nav,
+  [role='button'],
+  [role='tab'] {
+    user-select: none;
+  }
+
+  input,
+  textarea {
+    user-select: text;
+  }
+}
+
+/*
+ * THE CONTENT COLUMN TAKES WHAT THE RAIL LEAVES.
+ *
+ * Two things fight here, and the cascade decides in a way that is easy to get
+ * wrong. Monitor's wrapper carries `is-full` — `inline-size: 100%` — which is
+ * fine on a page whose content never exceeds the window. The claim queue's
+ * table does exceed it, and then "100% of the parent" and "the parent is as
+ * wide as its children" resolve each other into a 1700px layout inside a
+ * 1440px window: a horizontal scrollbar under the whole app, the rail sliding
+ * out of view with it, and the navbar's buttons off the right-hand edge.
+ *
+ * WHY THIS IS IN `@layer theme`. styles/app.css imports Tailwind's utilities
+ * with the `important` flag, so `is-full` is `inline-size: 100% !important`.
+ * For IMPORTANT declarations the cascade reverses layer order — an earlier
+ * layer wins, and an unlayered rule loses to a layered one. `theme` is the
+ * first layer declared, so this is the only place an override can sit and be
+ * heard. Written outside a layer it is silently ignored, which is exactly what
+ * happened first.
+ */
+@layer theme {
+  .ts-vertical-layout,
+  .ts-vertical-layout-content,
+  .ts-vertical-layout-content-wrapper {
+    min-inline-size: 0 !important;
+  }
+
+  /*
+   * The wrapper keeps Monitor's own `is-full`. It is a flex item beside the
+   * rail, so "100%" is only its BASE size: with `min-inline-size: 0` above it
+   * shrinks to whatever the rail leaves. Overriding the width here was a
+   * workaround for the body being wrong, and it took the fill with it.
+   */
+}
+
+/*
+ * A SCREEN THAT ENDS IN A TABLE.
+ *
+ * THE SHELL ALREADY HAS A MECHANISM FOR THIS and the first attempt here missed
+ * it, then re-implemented it badly: `#root` was pinned to one viewport with
+ * `overflow: hidden`, which clipped the table instead of scrolling it —
+ * exactly the failure the note at the top of this file records from last time.
+ *
+ * What the ported layout actually provides: a page marks itself
+ * `ts-layout-content-height-fixed` (`commonLayoutClasses.contentHeightFixed`),
+ * and then
+ *
+ *   StyledContentWrapper  caps the navbar + content at `max-block-size: 100dvh`
+ *   StyledMain (.content) takes `display: flex; overflow: hidden`
+ *
+ * so the content area is exactly the window minus the navbar and scrolls
+ * nothing itself. The page inside it owns its height, which is what lets the
+ * table have its own scrollbar and keep its heading. The document-scroll model
+ * above is untouched for every other screen.
+ *
+ * TWO THINGS THE SHELL DOES NOT DO, both supplied here:
+ */
+
+/*
+ * 1. StyledMain's `display: flex` has no direction, so it lays its children out
+ *    in a ROW. On Login the stale-login notice is a sibling of the page, and
+ *    the two would sit side by side. A column is what was meant.
+ */
+.ts-vertical-layout-content:has(> .ts-layout-content-height-fixed) {
+  flex-direction: column;
+  min-block-size: 0;
+}
+
+/*
+ * 2. The page and the table both need `min-block-size: 0`. A flex item's
+ *    default minimum is its CONTENT, so a 2,000px table refuses to shrink to
+ *    the window and the overflow lands on whatever hides it rather than in the
+ *    table. This is the line that makes the scrollbar appear where it was asked
+ *    for, and leaving it out is why the first attempt clipped.
+ */
+.trackvid-table-fill {
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
+
+/*
+ * An intermediate wrapper between the page column and the table, for screens
+ * that have one. It has to pass the height through rather than sit at its
+ * content size, or the table below it has nothing to fill.
+ */
+.trackvid-table-scroll-host {
+  flex: 1 1 auto;
+  min-block-size: 0;
+}
+
+/*
+ * PLAIN CLASS SELECTORS, not `.trackvid-table-fill > .trackvid-table-scroll`.
+ * The three screens nest this differently — Claims puts a wrapper in between,
+ * Login and Background Process do not — and a child combinator silently
+ * matches nothing on the odd one out, which looks exactly like the feature not
+ * working.
+ */
+.trackvid-table-scroll {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  /*
+   * Both axes: this replaces the `overflow-x-auto` these cards used to carry.
+   *
+   * `!important` BECAUSE MUI's Card sets `overflow: hidden` on its own root, at
+   * the same specificity as this class — so which one wins would come down to
+   * stylesheet order, and in dev Vite injects CSS at runtime where that order
+   * is not something to rely on. The class this replaces only worked because
+   * app.css imports Tailwind's utilities with `important`, so `overflow-x-auto`
+   * was already winning this exact fight; this states it out loud instead of
+   * inheriting it.
+   */
+  overflow: auto !important;
+}
+
+/*
+ * The heading stays while the rows move.
+ *
+ * `position: sticky` works here because the table now sits in a scroll
+ * container of its own — which is the whole point of the change above. The
+ * background is opaque on purpose: rows pass directly beneath it, and every row
+ * tint in this app is translucent (see table-chrome.css for the same problem
+ * solved for pinned columns).
+ */
+.trackvid-table-scroll thead {
+  position: sticky;
+  inset-block-start: 0;
+  /*
+   * ABOVE the pinned body cells (z-index 2 in table-chrome.css), not level
+   * with them. A sticky thead is its own stacking context, so the z-index 3 on
+   * its pinned `th` counts only inside it; at an equal 2, the body's pinned
+   * cells come later in the document and painted over the header as they
+   * scrolled up — the Action column on Login, the account column on Claims.
+   */
+  z-index: 4;
+  background-color: var(--mui-palette-background-paper);
+}
+
+/*
+ * A toast slides in from the right edge it lives on, short and fast-out, so it
+ * reads as arriving rather than blinking into place. Off entirely for anyone
+ * who has asked for less motion — it resolves straight to its end state.
+ */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.toast-enter {
+  animation: toast-in 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast-enter {
+    animation: none;
+  }
+}
+

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bulk claim — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html" class="active">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Bulk claim</h1>
+<p class="lead">Turn a whole Increff QC report into claims in one go — upload the sheet, let the app match each row to your recorded return videos and check it, then create all the ready claims with one click.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+  <li><a href="#what">What Bulk Claim does</a></li>
+  <li><a href="#notspf">This is not the SPF bulk claim</a></li>
+  <li><a href="#open">Where to find it</a></li>
+  <li><a href="#file">The file you upload</a></li>
+  <li><a href="#how">How to create claims from a report (step by step)</a></li>
+  <li><a href="#checks">What the app checks for each row</a></li>
+  <li><a href="#results">Reading the results</a></li>
+  <li><a href="#create">Creating the claims</a></li>
+  <li><a href="#pdf">Downloading the results PDF</a></li>
+  <li><a href="#reasons">Why a row failed</a></li>
+  <li><a href="#messages">Messages you may see</a></li>
+</ol></div>
+
+<h2 id="what">What Bulk Claim does</h2>
+<p>Bulk Claim reads the <b>Increff QC report</b> (CSV or Excel) and, for every row:</p>
+<ol>
+  <li>finds the return video recorded in TrackVid (VMS) for the row's <b>Return Gate Entry AWB</b>,</li>
+  <li>works out the marketplace from the row's <b>Sales Channel</b> and the claim type from its <b>QC Reason</b>,</li>
+  <li>checks that everything the marketplace needs is available, and</li>
+  <li>lets you create a claim for every row that passed — in one click.</li>
+</ol>
+<p>Photos are taken from the screenshots of the recorded return video, so you do not attach images by hand. The new claims appear in <a href="07-manage-claims.html">Manage Claims</a>, the same as claims saved with <span class="ui">Save</span> on the Create claim page.</p>
+
+<h2 id="notspf">This is not the SPF bulk claim</h2>
+<div class="callout warn"><b class="t">Note</b>There are two different bulk tools. <b>Bulk Claim</b> (this page) works on the <b>Increff QC report</b> for several marketplaces and is opened from the Create claim page. The <b>NDR/DDR Bulk Claim</b> is for AJIO SPF claims (returns not delivered or delivery disputes), uses a different spreadsheet, and is opened from Manage Claims — see <a href="06-spf-bulk-claim.html">SPF bulk claim (AJIO)</a>.</div>
+
+<h2 id="open">Where to find it</h2>
+<ol class="steps">
+  <li>Click <span class="ui">Create claim</span> in the side menu.</li>
+  <li>In the top bar, click <span class="ui">Bulk Claim</span>. The <span class="ui">Bulk Claim</span> window opens.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>If you do not see the <span class="ui">Bulk Claim</span> button, your company does not have it switched on. It appears only when your administrator has enabled automatic claim creation through the Increff report <b>and</b> enabled at least one marketplace for it. Ask your admin or TrackVid support.</div>
+
+<h2 id="file">The file you upload</h2>
+<p>Upload the Increff QC report as exported. Accepted formats: <b>.CSV</b>, <b>.XLSX</b>, <b>.XLS</b>. Only the first sheet is read, and the first row must hold the column names.</p>
+<p>The file must contain <b>all</b> of these columns (capital letters and extra spaces do not matter; column order does not matter):</p>
+<div class="table-wrap"><table>
+  <tr><th>Column name</th><th>Also accepted as</th><th>What it is used for</th></tr>
+  <tr><td>Return Order Type</td><td>—</td><td>Nykaa: sets the Return Type (Return to origin → RTO, customer return → DTO, anything else → REPL).</td></tr>
+  <tr><td>Sales Channel</td><td>—</td><td>Which marketplace the row belongs to (for example MYNTRA_USPA, TATACLIQ, FLIPKARTV3).</td></tr>
+  <tr><td>Return Gate Entry AWB</td><td>—</td><td>The return AWB — matched against your recorded return videos.</td></tr>
+  <tr><td>QC Reason</td><td>—</td><td>Translated into the marketplace's claim type.</td></tr>
+  <tr><td>Client SKU ID / EAN</td><td>Client SKU ID/EAN, Client SKU ID, EAN</td><td>The SKU (Nykaa uses it as the SKU ID).</td></tr>
+  <tr><td>Forward AWB Number</td><td>Forward AWB No</td><td>Saved as the claim's forward AWB.</td></tr>
+  <tr><td>Forward Unit Base Price</td><td>Unit Base Price</td><td>Read from the sheet.</td></tr>
+</table></div>
+<ul>
+  <li>Up to <b>1,000 rows</b> are read from one file. Split bigger reports into several files.</li>
+  <li>Completely empty rows are skipped.</li>
+  <li>Long AWB numbers that Excel shows as <b>2.84E+13</b> are read back correctly — you do not need to reformat them.</li>
+  <li>Rows whose <b>Sales Channel</b> is not one of the marketplaces enabled for your company are left out silently and are not counted.</li>
+</ul>
+<div class="callout danger"><b class="t">Important</b>If a column is missing, the upload is refused with <b>Missing required column(s): …</b> naming the missing columns. Add the column (it may be empty for rows that do not need it) and upload again.</div>
+
+<h2 id="how">How to create claims from a report (step by step)</h2>
+<ol class="steps">
+  <li>Open the <span class="ui">Bulk Claim</span> window (see <a href="#open">Where to find it</a>).</li>
+  <li>Click the box <b>Click to browse or drag-and-drop</b> and pick your file — or drag the file from a folder and drop it on the box.</li>
+  <li>The file name and size appear. The app works through two stages on its own: <b>Checking VMS…</b> (matching each AWB to a recorded video) and then <b>Verifying rows…</b> (checking each row can become a claim). Wait until they finish.</li>
+  <li>The results appear: the counters <span class="ui">Total rows</span>, <span class="ui">Success</span> and <span class="ui">Failed</span>, and the tables below them.</li>
+  <li>Look at the <b>Failed</b> table and its <b>Reason</b> column to see which rows cannot be created and why (see <a href="#reasons">Why a row failed</a>).</li>
+  <li>Click <span class="ui">Create Claims (N)</span> at the bottom right. N is the number of rows that passed every check.</li>
+  <li>When it finishes you see a message such as <b>Created 42 of 45 claim(s).</b> and the window switches to the <span class="ui">Success</span> list.</li>
+  <li>Click <span class="ui">Download PDF</span> to keep a record, then <span class="ui">Close</span>.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>To try a different file, close the window and open it again. Closing the window clears everything shown in it — claims already created stay created.</div>
+
+<h2 id="checks">What the app checks for each row</h2>
+<p>A row can only be created when all of these are true:</p>
+<div class="table-wrap"><table>
+  <tr><th>Check</th><th>Why it matters</th></tr>
+  <tr><td>A <b>return</b> video was recorded in TrackVid for the Return Gate Entry AWB</td><td>Every claim needs the return video. Upper/lower case in the AWB does not matter.</td></tr>
+  <tr><td>The Sales Channel matches one of your company's marketplaces</td><td>The claim must be filed under a known marketplace.</td></tr>
+  <tr><td>The QC Reason has a mapping to a claim type for that marketplace</td><td>The mapping is maintained by TrackVid. An unknown QC reason cannot be turned into a claim.</td></tr>
+  <tr><td>That claim type is set up for your company on that marketplace</td><td>The marketplace would refuse a claim type you have not configured.</td></tr>
+  <tr><td>The recorded video has enough screenshots for the photos the marketplace needs</td><td>The first screenshot becomes the main photo (for example the shipping label), the rest fill the other photo boxes. AJIO and Nykaa need at least 4 screenshots (1 + 3 side images); Myntra, Flipkart, Tata CliQ and Amazon need at least 2.</td></tr>
+  <tr><td>Marketplace extras are available</td><td>Nykaa needs a vendor code saved on your company's Nykaa login and a SKU in the sheet. Delhivery and Xbees need details the sheet cannot supply (see <a href="#reasons">Why a row failed</a>).</td></tr>
+</table></div>
+
+<h2 id="results">Reading the results</h2>
+<h3>The counters</h3>
+<div class="table-wrap"><table>
+  <tr><th>Counter</th><th>Before you click Create Claims</th><th>After Create Claims</th></tr>
+  <tr><td><span class="ui">Total rows</span></td><td>Rows read for your enabled marketplaces.</td><td>Same.</td></tr>
+  <tr><td><span class="ui">Success</span> (green)</td><td>Rows matched to a video that passed (or are still being) checked.</td><td>Claims that were created.</td></tr>
+  <tr><td><span class="ui">Failed</span> (amber)</td><td>Rows with no video, or that failed a check.</td><td>Rows that were not created, including those that failed during creation.</td></tr>
+</table></div>
+<p>Click a counter to show only that list. <span class="ui">Total rows</span> shows both lists one above the other. Each list scrolls inside its own box.</p>
+
+<h3>The tables</h3>
+<div class="table-wrap"><table>
+  <tr><th>Column</th><th>Meaning</th></tr>
+  <tr><td>#</td><td>Position in this list (1, 2, 3 …).</td></tr>
+  <tr><td>Row #</td><td>The line number in your uploaded file — use it to find the row in the sheet.</td></tr>
+  <tr><td>Return AWB</td><td>The Return Gate Entry AWB from the sheet (— if empty).</td></tr>
+  <tr><td>Sales Channel</td><td>From the sheet.</td></tr>
+  <tr><td>QC Reason</td><td>From the sheet.</td></tr>
+  <tr><td>VMS Matches</td><td>The recorded video(s) found: marketplace logo and name, the AWB, and (in the Success list) the order type, for example Return. — means no video was found.</td></tr>
+  <tr><td>Status (Success list)</td><td>An icon — hover over it to read more (see below).</td></tr>
+  <tr><td>Reason (Failed list)</td><td>Why the row cannot become a claim, in amber text.</td></tr>
+</table></div>
+
+<h3>Status icons in the Success list</h3>
+<div class="table-wrap"><table>
+  <tr><th>Icon</th><th>Hover text</th><th>Meaning</th></tr>
+  <tr><td><span class="chip grey">grey question mark</span></td><td>Click Verify to check this row</td><td>The row has not been checked yet — wait for <b>Verifying rows…</b> to finish.</td></tr>
+  <tr><td><span class="chip green">green tick</span></td><td>Ready · resolved claim: [claim type]</td><td>Passed every check; will be created. Shows the claim type it will be filed as.</td></tr>
+  <tr><td><span class="chip amber">amber info</span></td><td>Missing / invalid: [list]</td><td>Failed a check (it also moves to the Failed list).</td></tr>
+  <tr><td><span class="chip green">green tick</span> (after creating)</td><td>Created · CMS id …</td><td>The claim was created.</td></tr>
+  <tr><td><span class="chip red">red info</span> (after creating)</td><td>The error, or Create failed</td><td>Creating this claim failed.</td></tr>
+</table></div>
+
+<h2 id="create">Creating the claims</h2>
+<ul>
+  <li>The <span class="ui">Create Claims (N)</span> button only counts rows with a green tick. Rows that failed a check are never sent.</li>
+  <li>The button is greyed out while checking or verifying, while creating (it shows a spinning circle), or when no row passed.</li>
+  <li>Each claim is created with the marketplace's photo boxes filled from the video screenshots, the forward AWB from the sheet, and the feed of the recorded video.</li>
+  <li>Creating does <b>not</b> file the claims on the marketplace. They wait in <a href="07-manage-claims.html">Manage Claims</a> until filed.</li>
+</ul>
+<div class="callout danger"><b class="t">Important</b>Do not upload the same report again after creating claims from it — it would create the same claims a second time. Fix only the failed rows and upload a file with just those rows.</div>
+
+<h2 id="pdf">Downloading the results PDF</h2>
+<p>After <span class="ui">Create Claims</span> has run, the button changes to <span class="ui">Download PDF</span>.</p>
+<ol class="steps">
+  <li>Click <span class="ui">Download PDF</span>. While it is being made the button reads <b>Generating…</b>.</li>
+  <li>The file is saved as <b>[your file name]-results-[date].pdf</b>.</li>
+  <li>It has two parts, each starting on a new page: <b>Bulk Claim — Success (N)</b> and <b>Bulk Claim — Failed (N)</b>, with Row #, Return AWB, Sales Channel, QC Reason, VMS Matches and the Status or Reason. Long text is shortened with "…".</li>
+</ol>
+
+<h2 id="reasons">Why a row failed</h2>
+<div class="table-wrap"><table>
+  <tr><th>Reason shown</th><th>What to do</th></tr>
+  <tr><td>Unmatched (no VMS record)</td><td>No return video was recorded in TrackVid for that AWB. Check the AWB in the sheet, or record/upload the return, then create that claim from the <a href="04-create-claim.html">Create claim</a> page.</td></tr>
+  <tr><td>Missing / invalid: Return Video (VMS has no captured file)</td><td>The scan exists but has no video. Create the claim by hand with an uploaded video.</td></tr>
+  <tr><td>Missing / invalid: QC Reason mapping (no "…" in Increff QC Mapping)</td><td>This QC reason is not mapped to a claim type. Ask TrackVid support to add it.</td></tr>
+  <tr><td>Missing / invalid: Type of claim mapping for [marketplace]</td><td>The QC reason is mapped, but not for this marketplace. Ask TrackVid support.</td></tr>
+  <tr><td>Missing / invalid: Claim type "…" not configured for [marketplace]</td><td>Your company has not enabled that claim type. Ask your admin to enable it in the e-commerce settings.</td></tr>
+  <tr><td>Missing / invalid: Platform (couldn't resolve "…" against enabled platforms)</td><td>The Sales Channel could not be matched to a marketplace. Check the Sales Channel value.</td></tr>
+  <tr><td>Missing / invalid: [marketplace]: Shipping Label / Evidence of Issue / Product Side Images (need at least 3) …</td><td>The video has too few screenshots for the photos needed. Create this claim by hand and add the photos yourself.</td></tr>
+  <tr><td>Missing / invalid: Nykaa: Vendor Code</td><td>No vendor code is saved on your company's Nykaa login. Ask your admin.</td></tr>
+  <tr><td>Missing / invalid: Nykaa: SKU ID</td><td>The Client SKU ID / EAN cell is empty for that row.</td></tr>
+  <tr><td>Missing / invalid: Delhivery: Domestic, Subcategory, Shipping Label Image, Packing Images</td><td>Delhivery claims always need these. Create them by hand.</td></tr>
+  <tr><td>Missing / invalid: Xbees: Package photos (Top / Right / Bottom / Left), Dispute Amount, Xbees Username</td><td>Xbees claims always need these. Create them by hand.</td></tr>
+  <tr><td>Any other error after creating</td><td>The reason from the server is shown. Fix it, or create that claim by hand.</td></tr>
+</table></div>
+
+<h2 id="messages">Messages you may see</h2>
+<div class="table-wrap"><table>
+  <tr><th>Message</th><th>Meaning / what to do</th></tr>
+  <tr><td>Missing required column(s): …</td><td>Add the named columns to the first row of the file.</td></tr>
+  <tr><td>No data rows found in the uploaded file.</td><td>The file has column names but no data.</td></tr>
+  <tr><td>Uploaded file has no rows. / Failed to parse file</td><td>The file is empty or not a readable CSV/Excel file. Export it again.</td></tr>
+  <tr><td>CSV or Excel file is required.</td><td>No file reached the server. Choose the file again.</td></tr>
+  <tr><td>Total rows shows 0 and both lists are empty</td><td>No row's Sales Channel matched a marketplace enabled for your company, or no marketplace is enabled. Ask your admin.</td></tr>
+  <tr><td>Verify failed</td><td>The checks could not run. Close the window and upload again.</td></tr>
+  <tr><td>No verified rows to create</td><td>No row has a green tick.</td></tr>
+  <tr><td>Created N of M claim(s).</td><td>Creation finished. See the Failed list for the rest.</td></tr>
+  <tr><td>Create failed</td><td>Nothing was created. Check your connection and try again.</td></tr>
+  <tr><td>Too many rows (…). Split into batches of 1000 or fewer.</td><td>Split the report into smaller files.</td></tr>
+  <tr><td>No rows to export / Failed to generate PDF</td><td>There is nothing to put in the PDF, or it could not be made. Try again.</td></tr>
+  <tr><td>Request failed</td><td>The app could not reach TrackVid. Check your internet connection.</td></tr>
+</table></div>
+
+<div class="pager">
+  <a href="04-create-claim.html"><span>Previous</span>4. Create claim</a>
+  <a href="06-spf-bulk-claim.html"><span>Next</span>6. SPF bulk claim (AJIO)</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

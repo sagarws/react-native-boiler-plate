@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Login (marketplace sign-ins) — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html" class="active">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Login (marketplace sign-ins)</h1>
+<p class="lead">The <span class="ui">Login</span> page shows, for every marketplace account of your company, whether TrackVid CMS has a working saved sign-in — and lets you sign in again when it does not.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+<li><a href="#what">What a "login" (session) is</a></li>
+<li><a href="#warning">The red warning and the count in the side menu</a></li>
+<li><a href="#page">The page at a glance</a></li>
+<li><a href="#columns">Table columns</a></li>
+<li><a href="#status">Status colours: what they mean</a></li>
+<li><a href="#capture">How to capture or re-capture a login</a></li>
+<li><a href="#update-now">How to update all logins at once</a></li>
+<li><a href="#signin">Sign-in: Auto or Manual</a></li>
+<li><a href="#otp">The OTP switch (Snapdeal and Flipkart)</a></li>
+<li><a href="#verify">Unverified accounts: how to fix a wrong password</a></li>
+<li><a href="#update-btn">The Update button (saved here, not on the server)</a></li>
+<li><a href="#scope">POBs (AJIO) and Slaves (Tata CliQ)</a></li>
+<li><a href="#remove">Removing saved logins</a></li>
+<li><a href="#gate">"Update logins first" — when a claim action needs a sign-in</a></li>
+<li><a href="#platform-notes">Notes for particular marketplaces</a></li>
+<li><a href="#expired">What to do when a login expires</a></li>
+<li><a href="#messages">Messages you may see</a></li>
+</ol></div>
+
+<h2 id="what">What a "login" (session) is</h2>
+<p>Every automation in TrackVid CMS — creating claims, downloading reports, refilling data — works by talking to the marketplace's seller portal (AJIO, Myntra, Flipkart, Snapdeal and so on). To do that it needs to be signed in to that portal. When you sign in once, the app saves that sign-in (called a <b>session</b> or <b>login</b>) and re-uses it until it runs out.</p>
+<ul>
+<li>Each <b>account</b> (seller username) on each marketplace has its own saved login.</li>
+<li>A saved login lasts only a limited time. After that, the marketplace asks for a fresh sign-in.</li>
+<li>Before using a saved login, the automations check it with the marketplace, and sign in again if it has stopped working (when automatic sign-in is allowed).</li>
+<li>The accounts and passwords themselves are added in TrackVid (the web panel), not in this app. This page only manages the <i>sign-ins</i>.</li>
+</ul>
+<p>The short line at the top of the page says the same: <span class="ui">Sign in to a marketplace once. Automations check each saved login with the marketplace before using it, and sign in again if it has stopped working.</span></p>
+
+<h2 id="warning">The red warning and the count in the side menu</h2>
+<p>When one or more logins need attention, a number appears on the <span class="ui">Login</span> item in the side menu, on every screen. This is the number of accounts whose login needs updating.</p>
+<p>On the Login page (and on the <span class="ui">Create claim</span> page), a red strip appears above the page:</p>
+<p><span class="ui">3 logins need updating — automations that sign in will fail until they are</span></p>
+<p>It lists each marketplace as a small chip (for example <span class="ui">Myntra · 2</span>; hover over a chip to see the usernames) and has an <span class="ui">Update now</span> button. The strip cannot be closed — it goes away by itself once the logins are updated. See <a href="#update-now">How to update all logins at once</a>.</p>
+
+<h2 id="page">The page at a glance</h2>
+<p>At the top of the page is a card with:</p>
+<div class="table-wrap"><table>
+<tr><th>Item</th><th>What it does</th></tr>
+<tr><td><span class="ui">Refresh</span></td><td>Reads the latest login status again. Greyed out while something else on the page is running.</td></tr>
+<tr><td><span class="ui">Clear all logins</span></td><td>Removes every saved login for your company, on every marketplace. Only shown when at least one login is saved. See <a href="#remove">Removing saved logins</a>.</td></tr>
+<tr><td><span class="ui">X of Y accounts have a working saved login</span></td><td>A quick summary with a green tick. X is the number of accounts whose login is <span class="chip green">Saved</span>.</td></tr>
+</table></div>
+<p>Below the card is the table of marketplaces. Only marketplaces your company actually has accounts for are listed.</p>
+<ul>
+<li>A marketplace with <b>one account</b> shows that account on the same row.</li>
+<li>A marketplace with <b>several accounts</b> shows one summary row (for example <span class="ui">3 accounts</span> and a badge such as <span class="chip amber">2 need attention</span> or <span class="chip green">3 saved</span>). Click the row (or the arrow at its left) to open or close the list of accounts underneath. If any account needs attention, the list opens by itself.</li>
+</ul>
+<p>Other states you may see:</p>
+<ul>
+<li><span class="ui">Reading this company's marketplaces…</span> — the page is loading.</li>
+<li><span class="ui">No marketplaces yet</span> — your company has no marketplace accounts set up. Ask your administrator to add them in TrackVid.</li>
+<li>A red box with an error message — the page could not read the login status (often because the app is not signed in to TrackVid or there is no internet). Fix the cause and press <span class="ui">Refresh</span>.</li>
+<li>An amber box saying <span class="ui">The server did not report …</span> — the TrackVid server is an older version and does not know some marketplaces yet. Tell your administrator.</li>
+</ul>
+
+<h2 id="columns">Table columns</h2>
+<div class="table-wrap"><table>
+<tr><th>Column</th><th>Meaning</th></tr>
+<tr><td><span class="ui">Platform</span></td><td>The marketplace, with its logo.</td></tr>
+<tr><td><span class="ui">Account</span></td><td>The username (usually an email address) the account signs in with, and its account type if it has one. On a multi-account row this shows how many accounts there are.</td></tr>
+<tr><td><span class="ui">Used for</span></td><td>What TrackVid uses this marketplace for: <span class="ui">Claims</span>, <span class="ui">Master import</span>, <span class="ui">Tickets</span>. Hover to see the full list.</td></tr>
+<tr><td><span class="ui">Status</span></td><td>The state of the saved login: <span class="chip green">Saved</span>, <span class="chip amber">Expiring</span>, <span class="chip red">Expired</span>, <span class="chip red">Rejected</span> or <span class="chip grey">No login</span>. See <a href="#status">Status colours</a>.</td></tr>
+<tr><td><span class="ui">Verified</span></td><td>Whether the marketplace accepts this account's password at all: <span class="chip green">Verified</span> or <span class="chip red">Unverified</span> (with a <span class="ui">Verify</span> button). See <a href="#verify">Unverified accounts</a>.</td></tr>
+<tr><td><span class="ui">Sign-in</span></td><td><span class="ui">Auto</span> (lightning icon) — Re-capture signs in by itself. <span class="ui">Manual</span> (hand icon, amber) — you must type the sign-in yourself. Hover to see why. See <a href="#signin">Sign-in: Auto or Manual</a>.</td></tr>
+<tr><td><span class="ui">OTP</span></td><td>Only shown when your company has Snapdeal or Flipkart accounts. A switch that says whether this account's sign-in asks for a one-time code. See <a href="#otp">The OTP switch</a>.</td></tr>
+<tr><td><span class="ui">Actions</span></td><td>The buttons for this account: <span class="ui">Capture</span> / <span class="ui">Re-capture</span>, <span class="ui">Update</span> (sometimes), the <span class="ui">POBs</span> or <span class="ui">Slaves</span> button (AJIO and Tata CliQ), and a bin icon to remove the saved login.</td></tr>
+</table></div>
+
+<h2 id="status">Status colours: what they mean</h2>
+<div class="table-wrap"><table>
+<tr><th>Status</th><th>Meaning</th><th>What to do</th></tr>
+<tr><td><span class="chip green">Saved</span></td><td>A login is saved and has not reached its expiry time. Automations will use it.</td><td>Nothing.</td></tr>
+<tr><td><span class="chip amber">Expiring</span></td><td>The saved login will run out within about 2 hours. It still works, but a long batch started now could stop halfway.</td><td>Re-capture before starting a big run.</td></tr>
+<tr><td><span class="chip red">Expired</span></td><td>The saved login's time is over. Automations that need this account will fail or be skipped.</td><td>Re-capture.</td></tr>
+<tr><td><span class="chip red">Rejected</span></td><td>The login has not timed out, but the marketplace has stopped accepting it (for example you signed out on the portal, or signed in from somewhere else).</td><td>Re-capture.</td></tr>
+<tr><td><span class="chip grey">No login</span></td><td>This account has never been signed in from TrackVid.</td><td>Press <span class="ui">Capture</span>.</td></tr>
+</table></div>
+<p>Button colour also helps: the <span class="ui">Capture</span> / <span class="ui">Re-capture</span> button is <b>filled (dark)</b> on rows that need work, and plain on rows that are fine — so a quick look down the Actions column shows what needs doing.</p>
+<div class="callout tip"><b class="t">Tip</b><span class="chip green">Saved</span> means a login is stored and its time has not run out. It is not a guarantee that the marketplace still accepts it — the automations always check before using it.</div>
+
+<h2 id="capture">How to capture or re-capture a login</h2>
+<p>The button reads <span class="ui">Capture</span> for an account that has never been signed in, and <span class="ui">Re-capture</span> for one that has.</p>
+<ol class="steps">
+<li>Open <span class="ui">Login</span> from the side menu.</li>
+<li>Find the marketplace. If it has several accounts, click its row to show them.</li>
+<li>Press <span class="ui">Capture</span> or <span class="ui">Re-capture</span> on the account's row.</li>
+<li>A sign-in window opens showing the marketplace's own login page. The row shows a spinner and a message:
+  <ul>
+  <li><span class="ui">Signing in — finish any code, then close the window</span> — when <a href="#signin">Sign-in</a> is <span class="ui">Auto</span>. The app types the username and password itself. If the marketplace asks for an OTP or a captcha, type it in the window.</li>
+  <li><span class="ui">Sign in, then close the window</span> — when Sign-in is <span class="ui">Manual</span>. Type the username, password and any OTP yourself.</li>
+  </ul></li>
+<li>Wait until the marketplace's seller dashboard has loaded. The app watches the window and usually closes it by itself once you are signed in. If it stays open, close it yourself after the dashboard appears.</li>
+<li>A green message confirms it, for example <span class="ui">Myntra login saved for name@company.com (12 cookies)</span>. The status changes to <span class="chip green">Saved</span>.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>Only one action at a time. While a capture is running, the other buttons on the page (and <span class="ui">Refresh</span>) are greyed out. Only one sign-in window per marketplace can be open at a time.</div>
+<p><b>To stop a capture</b>, press <span class="ui">Cancel</span> next to the spinner, or simply close the sign-in window. Nothing is saved and the old login (if any) stays as it was.</p>
+<div class="callout danger"><b class="t">Important</b>Do not close the window before the seller dashboard has loaded. If you do, you will see <span class="ui">No … login found — the window was closed before sign-in completed.</span> Just press <span class="ui">Re-capture</span> again.</div>
+
+<h2 id="update-now">How to update all logins at once</h2>
+<p>The red strip at the top of the Login page has an <span class="ui">Update now</span> button that re-captures every login that needs it, one after another.</p>
+<ol class="steps">
+<li>Press <span class="ui">Update now</span> on the red strip.</li>
+<li>Sign-in windows open one at a time. The chip of the marketplace currently being signed in turns green.</li>
+<li>Enter any OTP or captcha the marketplace asks for, in each window.</li>
+<li>When all are done you see <span class="ui">All logins updated</span>. Any that failed show a red message naming the marketplace and the reason.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b><span class="ui">Update now</span> skips accounts that are <span class="chip red">Unverified</span> — signing in with a password the marketplace has refused only repeats the refusal (and some marketplaces, such as Delhivery, lock the account after several failed tries). You will see a message like <span class="ui">Delhivery: unverified — use Verify on the Login page first</span>. Fix those with <a href="#verify">Verify</a>.</div>
+
+<h2 id="signin">Sign-in: Auto or Manual</h2>
+<div class="table-wrap"><table>
+<tr><th>Shown as</th><th>Meaning</th></tr>
+<tr><td><span class="ui">Auto</span></td><td>Re-capture signs in by itself — the app fills the username and password from TrackVid. You only need to step in if the marketplace asks for an OTP or a captcha.</td></tr>
+<tr><td><span class="ui">Manual</span> (amber)</td><td>The app cannot sign in by itself; you must type the sign-in in the window. Hover over it to see why.</td></tr>
+</table></div>
+<p>The hover text for <span class="ui">Manual</span> gives one of these reasons:</p>
+<ul>
+<li><span class="ui">Automatic sign-in is off for this platform in Trackvid-Monitor. Turn it on there and the nightly Login update will do this account without anybody present.</span> — Your administrator controls this setting (called "auto login on active session") in Trackvid-Monitor. Ask them to turn it on if you want hands-free sign-in.</li>
+<li><span class="ui">Automatic sign-in is turned off on this installation.</span> — This copy of the app has automatic sign-in disabled.</li>
+<li><span class="ui">This build has no scripted sign-in for this platform …</span> — The marketplace needs a code that only the automation server can read. Re-capture it here by hand, or renew it from Monitor.</li>
+</ul>
+<p>For how the nightly <span class="ui">Login update</span> uses this, see <a href="10-scheduled-automations.html">Scheduled automations</a>.</p>
+
+<h2 id="otp">The OTP switch (Snapdeal and Flipkart)</h2>
+<p>On Snapdeal and Flipkart, some seller accounts ask for a one-time code (OTP) at sign-in and some do not — it depends on the account's own settings. The app cannot tell which without trying, so you tell it with the <span class="ui">OTP</span> switch on each account's row.</p>
+<ol class="steps">
+<li>Check whether this account asks for an OTP when you sign in on the marketplace.</li>
+<li>Turn the <span class="ui">OTP</span> switch <b>on</b> if it does, <b>off</b> if it does not.</li>
+<li>A message confirms: <span class="ui">… will be signed in with a one-time code</span> or <span class="ui">… will be signed in without waiting for a code</span>. If saving fails, the switch flips back and a red message explains why.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>Set this correctly. With OTP on for an account that never asks for one, every sign-in waits for a code that never comes. With OTP off for an account that does ask, the sign-in fails. Tata CliQ has no switch because every Tata CliQ sign-in asks for a code.</div>
+
+<h2 id="verify">Unverified accounts: how to fix a wrong password</h2>
+<p><span class="chip red">Unverified</span> in the <span class="ui">Verified</span> column means the marketplace refused this account's username or password. While an account is unverified, <b>every automation skips it</b>, and re-capturing will keep failing. The fix is to enter the correct details.</p>
+<ol class="steps">
+<li>Press <span class="ui">Verify</span> next to <span class="chip red">Unverified</span>.</li>
+<li>A window <span class="ui">Verify name@company.com</span> opens. It explains: <span class="ui">The marketplace refused this login, so every automation is skipping it. Correct it below and TrackVid will sign in with it — it goes back into the automations only if that sign-in works.</span></li>
+<li>Check or correct the <span class="ui">Username</span>, and type the current <span class="ui">Password</span>.</li>
+<li>Press <span class="ui">Save and verify</span>. The button changes to <span class="ui">Signing in…</span> while the app tries to sign in with the new details.</li>
+<li>If it works, the window closes and you see <span class="ui">… verified — it is back in the automations.</span> The column changes to <span class="chip green">Verified</span>.</li>
+<li>If the marketplace still refuses, its own message (for example "Invalid Username or Password") appears in red inside the window. Correct the details and try again, or press <span class="ui">Cancel</span>.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>Saving here also updates the password stored in TrackVid. If someone changed the password on the marketplace, update it here (or in TrackVid) straight away — otherwise the account stays skipped.</div>
+
+<h2 id="update-btn">The Update button (saved here, not on the server)</h2>
+<p>Sometimes a sign-in succeeds but the app cannot reach the TrackVid server to store it (for example the internet dropped). In that case you see: <span class="ui">Signed in to …, but the server is unreachable. The login is saved on this machine — use Update to send it when you are back online.</span></p>
+<ol class="steps">
+<li>When the connection is back, open <span class="ui">Login</span>.</li>
+<li>Press the dark <span class="ui">Update</span> button on that account's row (hover shows <span class="ui">Captured … — not yet saved to the server</span>).</li>
+<li>On success: <span class="ui">… login saved to the server</span>, and the <span class="ui">Update</span> button disappears.</li>
+</ol>
+<p>If the server is still unreachable you see <span class="ui">Still cannot reach the server. The … login is still saved here.</span> — try again later. If the server rejects it, re-capture the login instead.</p>
+
+<h2 id="scope">POBs (AJIO) and Slaves (Tata CliQ)</h2>
+<p>Two marketplaces need an extra list for each account before claims can be filed:</p>
+<div class="table-wrap"><table>
+<tr><th>Marketplace</th><th>Button</th><th>Why it is needed</th></tr>
+<tr><td>AJIO</td><td><span class="ui">POBs (n)</span></td><td>Places of business. AJIO claims, account mapping and the SKU lookup all need them.</td></tr>
+<tr><td>Tata CliQ</td><td><span class="ui">Slaves (n)</span></td><td>A Tata CliQ return is only visible to the slave that owns it, so claims need this list to search.</td></tr>
+</table></div>
+<p>The number on the button is how many are stored. If none are stored, the button reads <span class="ui">POBs — not synced</span> or <span class="ui">Slaves — not synced</span> in amber.</p>
+<ol class="steps">
+<li>Make sure the account's status is <span class="chip green">Saved</span> (re-capture first if needed).</li>
+<li>Press the <span class="ui">POBs</span> / <span class="ui">Slaves</span> button. It shows <span class="ui">Syncing…</span>.</li>
+<li>A message confirms the count, for example <span class="ui">4 POBs for name@company.com · 1 new</span>.</li>
+</ol>
+<p>Press it again any time to re-sync (for example after a new place of business is added on AJIO). Hover over the button to see when it was last synced.</p>
+
+<h2 id="remove">Removing saved logins</h2>
+<h3>Remove one login</h3>
+<ol class="steps">
+<li>Press the bin icon at the end of the account's row (only shown when a login is saved).</li>
+<li>The box <span class="ui">Remove this login?</span> names the marketplace and account. It explains that the account and password are kept — only the saved login goes.</li>
+<li>Press <span class="ui">Remove login</span> to confirm, or cancel.</li>
+</ol>
+<h3>Remove all logins</h3>
+<ol class="steps">
+<li>Press <span class="ui">Clear all logins</span> at the top of the page.</li>
+<li>The box <span class="ui">Remove every saved login?</span> tells you how many will be removed.</li>
+<li>Press <span class="ui">Remove all logins</span> to confirm.</li>
+</ol>
+<div class="callout danger"><b class="t">Important</b>Removing logins cannot be undone. Every removed account must be signed in again, and accounts that need an OTP will need someone present to read the code. Only do this when asked to (for example when handing over the machine).</div>
+
+<h2 id="gate">"Update logins first" — when a claim action needs a sign-in</h2>
+<p>When you press a marketplace action such as <span class="ui">Create Ticket</span> or <span class="ui">Check TAT</span>, the app first checks that the accounts it needs have a working login. If some do not, nothing is started and a window <span class="ui">Update logins first</span> opens:</p>
+<p><span class="ui">Nothing was started. Kindly re-capture these logins, then press Create Ticket again.</span></p>
+<p>It lists each account with its marketplace and one of these badges:</p>
+<div class="table-wrap"><table>
+<tr><th>Badge</th><th>Meaning</th></tr>
+<tr><td><span class="chip red">Login expired</span></td><td>The saved login has run out.</td></tr>
+<tr><td><span class="chip red">Marketplace rejected it</span></td><td>The login has not run out, but the marketplace no longer accepts it.</td></tr>
+<tr><td><span class="chip amber">Never captured</span></td><td>This account has never been signed in.</td></tr>
+<tr><td><span class="chip grey">No login on this machine</span></td><td>The account is not set up on this machine. It must be added to the company in TrackVid (and synced) first — it cannot be re-captured here.</td></tr>
+<tr><td><span class="chip grey">Optional</span></td><td>This account signs in with a one-time code. You can leave it; the action will run without that account and its rows stay as they are. Capture it later from the Login page when you have the code.</td></tr>
+</table></div>
+<ol class="steps">
+<li>Press <span class="ui">Re-capture login</span> (or <span class="ui">Re-capture N logins</span>). Optional accounts are not included.</li>
+<li>Sign-in windows open one at a time; the account being signed in shows <span class="chip amber">Signing in…</span>. Complete any OTP or captcha.</li>
+<li>If all succeed, you see <span class="ui">Logins updated — press Create Ticket again</span> and the window closes. Press your action button again.</li>
+<li>If a sign-in fails, a red message names the account and the reason. If the app still sees no working login after signing in, you see <span class="ui">Signed in, but TrackVid still reports no live login for … Nothing was started.</span> — go to the Login page and re-capture that account there.</li>
+</ol>
+<p>Press <span class="ui">Cancel</span> to close the window without doing anything.</p>
+
+<h2 id="platform-notes">Notes for particular marketplaces</h2>
+<div class="table-wrap"><table>
+<tr><th>Marketplace</th><th>What to know</th></tr>
+<tr><td>Snapdeal, Flipkart</td><td>Have the <span class="ui">OTP</span> switch. Set it per account.</td></tr>
+<tr><td>Tata CliQ</td><td>Every sign-in asks for a one-time code, so someone must be present. Needs <span class="ui">Slaves</span> synced.</td></tr>
+<tr><td>AJIO</td><td>Needs <span class="ui">POBs</span> synced before claims, account mapping and SKU lookup will work.</td></tr>
+<tr><td>Myntra</td><td>When signing in by hand, the sign-in opens in the installed Google Chrome browser instead of the app's own window (Myntra refuses the app's window). Sign in there; closing Chrome cancels. Only one Myntra sign-in can be open at a time.</td></tr>
+<tr><td>Delhivery, Xbees</td><td>These sign in with tokens, not cookies, so they cannot be captured by typing in a window. They need automatic sign-in turned on (in Trackvid-Monitor), or the login must be renewed from Monitor. Delhivery locks an account after repeated wrong passwords — fix <span class="chip red">Unverified</span> with <span class="ui">Verify</span> before retrying.</td></tr>
+</table></div>
+
+<h2 id="expired">What to do when a login expires</h2>
+<ol class="steps">
+<li>Look for the number on the <span class="ui">Login</span> menu item, or the red strip at the top of the Login or Create claim page.</li>
+<li>Open <span class="ui">Login</span>. Rows with <span class="chip red">Expired</span>, <span class="chip red">Rejected</span>, <span class="chip amber">Expiring</span> or <span class="chip grey">No login</span> need work; their Capture button is dark.</li>
+<li>If any account is <span class="chip red">Unverified</span>, fix it first with <span class="ui">Verify</span>.</li>
+<li>Press <span class="ui">Update now</span> on the red strip to do them all, or <span class="ui">Re-capture</span> on each row.</li>
+<li>Complete any OTP or captcha in the sign-in windows.</li>
+<li>Check the status shows <span class="chip green">Saved</span>, then restart the work that failed (for example press <span class="ui">Create Ticket</span> again).</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>Re-capture logins at the start of the day, before starting bulk runs. An <span class="chip amber">Expiring</span> login can run out halfway through a long batch.</div>
+
+<h2 id="messages">Messages you may see</h2>
+<div class="table-wrap"><table>
+<tr><th>Message</th><th>What it means / what to do</th></tr>
+<tr><td><span class="ui">No … login found — the window was closed before sign-in completed.</span></td><td>The window was closed before the seller dashboard loaded. Re-capture and wait for the dashboard.</td></tr>
+<tr><td><span class="ui">No … login found — automatic sign-in could not finish (…), and the window was closed before signing in by hand.</span></td><td>Auto sign-in got stuck (often on an OTP or captcha). Re-capture and finish the sign-in yourself in the window.</td></tr>
+<tr><td><span class="ui">That is not a signed-in … login — … Nothing has been saved.</span></td><td>The window showed a page that was not the signed-in dashboard. Re-capture and sign in fully.</td></tr>
+<tr><td><span class="ui">A … sign-in window is already open</span></td><td>Finish or close the window that is already open for that marketplace.</td></tr>
+<tr><td><span class="ui">Signed in to …, but the server is unreachable. The login is saved on this machine — use Update to send it when you are back online.</span></td><td>See <a href="#update-btn">The Update button</a>.</td></tr>
+<tr><td><span class="ui">Sign in to TrackVid before capturing a login</span></td><td>The app's own TrackVid sign-in has ended. Sign in to TrackVid CMS again.</td></tr>
+<tr><td><span class="ui">… signs in with OAuth tokens rather than cookies, so it cannot be captured by signing in through a window …</span></td><td>Delhivery/Xbees. Ask your administrator to enable automatic sign-in in Trackvid-Monitor, or renew the login from Monitor.</td></tr>
+</table></div>
+
+<div class="pager">
+  <a href="02-dashboard.html"><span>Previous</span>2. Dashboard</a>
+  <a href="04-create-claim.html"><span>Next</span>4. Create claim</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

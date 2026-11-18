@@ -1,0 +1,36 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    /*
+     * `exactOptionalPropertyTypes` is OFF for the renderer, and only for the
+     * renderer.
+     *
+     * The UI is being replaced with TrackVid-Monitor's, ported file for file so
+     * the two products render from the same theme and the same components
+     * rather than from two drifting approximations. Monitor compiles without
+     * this flag, and its components pass optional props straight through —
+     * `{...rest}` onto a styled component, `color={color}` where color may be
+     * undefined. Under this flag that is an error in 31 places, and "fixing"
+     * each one means a permanent local diff against a file we want to be able
+     * to re-copy.
+     *
+     * What is given up: passing an explicit `undefined` to an optional property
+     * is allowed again in renderer code. What is kept: everything else in
+     * `strict`, and the flag itself still applies to `tsconfig.node.json` —
+     * the main process, the IPC layer and shared/, which is where the data this
+     * app is trusted with actually lives.
+     */
+    "exactOptionalPropertyTypes": false,
+    "composite": true,
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "jsx": "react-jsx",
+    "types": []
+  },
+  "include": [
+    "electron/renderer/**/*.ts",
+    "electron/renderer/**/*.tsx",
+    "shared/**/*.ts",
+    // The renderer's own tests — see the note in tsconfig.node.json.
+    "tests/renderer/**/*.ts"
+  ]
+}

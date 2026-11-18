@@ -1,0 +1,312 @@
+TRACKVID CMS — VEYLIX UI MIGRATION — PROGRESS
+Mode: UI only. Same technology (Electron + React + MUI + Emotion + Tailwind). Same behaviour.
+Source: /Users/apple/Documents/Sagar/Trackvid/TrackVid-CMS  (feat/nykaa-ddr-bulk-claim @ 65341f9)
+Plan: MIGRATION_PLAN.md   Rules: CLAUDE.md
+
+MIGRATED: 56/56 units   (shell 1/1 · screens 10/10 · dialogs 45/45)   remaining 0
+STATUS: COMPLETE (one item needs the user: shipped defaults, see final report)
+CURRENT: done — final report at the bottom
+
+==========================================================================
+PHASE 0 — COPY + BASELINE (not counted)
+==========================================================================
+[DONE]    C1  Copy app into CMS/ (MIGRATION_PLAN.md §4 C1), source CLAUDE.md → CLAUDE.TRACKVID.md
+[DONE]    C2  npm install + npm run verify baseline (record pass/fail below)
+[DONE]    C3  Screenshots of current look (preview)
+BASELINE: npm run verify GREEN — typecheck x2 OK, lint 0 errors / 11 warnings, tokens OK (250 files),
+          250 test files / 2099 tests passed. No baseline failures.
+
+==========================================================================
+PHASE 1 — FOUNDATION (not counted)
+==========================================================================
+[DONE]    F1  docs/veylix-tokens.md from template CSS
+[DONE]    F2  theme/veylixTheme.ts replaces vercelTheme in VuexyThemeProvider
+[PARTIAL] F3  Veylix accent first in primaryColorConfig; Manrope vendored + default font
+              DONE: gold preset added (2nd), Manrope woff2 vendored + @font-face declared.
+              NEEDS USER: making gold the shipped default and Manrope selectable/default requires
+              shared/types/appearance.ts (DEFAULT_THEME_SETTINGS, ThemeFont, THEME_FONTS) — off-limits.
+[DONE]    F4  Warm dark palette
+[DONE]    F5  Shared primitives: components/ui/* (15), data/StateBlocks, card-statistics, feedback/*,
+              user/UserMenu, session/StaleSessionBanner, update/*, + PageHeading/TableToolbar/TablePaginationBar
+[DONE]    F6  Theme test renamed/adapted; npm run verify green
+
+==========================================================================
+UNITS (56) — status: PENDING | IN PROGRESS | MIGRATED | BLOCKED: <reason>
+==========================================================================
+-- Shell (1)
+[MIGRATED] 1  Shell: layout/* (AppShell, Brand, Navigation, VerticalMenuContent, PageBreadcrumb, navbarStyles),
+              components/layout/* (cron panels, SyncButton, SessionPlatformBoard, SkipPlatformButton),
+              BackgroundWork, CloseGuardDialog, DevModeModal, CronJobsModal, UpdateLogDialog
+
+-- Screens (10)
+[MIGRATED]  2  Login                pages/auth/LoginPage.tsx
+[MIGRATED]  3  Dashboard            pages/dashboard/* (DashboardPage, ImportScheduleCard, MasterImportTable)
+[MIGRATED]  4  Manage Claims        pages/claims/ClaimsPage.tsx, ColumnFilterCell.tsx
+[MIGRATED]  5  Create claim         pages/claims/create/* (CreateClaimPage, CommonRightPart, media/*, platforms/* forms)
+[MIGRATED]  6  Background Process   pages/jobs/JobsPage.tsx
+[MIGRATED]  7  Login sessions       pages/sessions/SessionsPage.tsx, VerifiedCell.tsx
+[MIGRATED]  8  Local Database       pages/database/LocalDatabasePage.tsx
+[MIGRATED]  9  Email Reply          pages/email/* (EmailReplyPage, AjioEmailsTab, MailboxesTab)
+[MIGRATED] 10  Settings             pages/settings/SettingsPage.tsx + cards (AppUpdate, AutoClaimTargets,
+                                   AutomationSchedule, CommonSettings, CompanyData, ImportScheduleSettings,
+                                   MasterBackup, FlipkartBackup, SnapdealBackup, MyntraSignIn, RefillTargets,
+                                   SessionUpdateTargets, StatusTargets, ThemeCustomizer, *ReportSyncStatus,
+                                   RefillPassProgress)
+[MIGRATED] 11  User detail          pages/profile/UserDetailPage.tsx
+
+-- Dialogs (45)
+   Shared / shell
+[MIGRATED] 12  components/ui/Modal.tsx
+[MIGRATED] 13  components/ui/ConfirmDialog.tsx
+[MIGRATED] 14  components/CloseGuardDialog.tsx
+[MIGRATED] 15  components/DevModeModal.tsx
+[MIGRATED] 16  components/layout/CronJobsModal.tsx
+[MIGRATED] 17  components/update/UpdateLogDialog.tsx
+   Manage Claims
+[MIGRATED] 18  claims/BulkClaimModal
+[MIGRATED] 19  claims/BulkEditModal
+[MIGRATED] 20  claims/BulkPlanModal
+[MIGRATED] 21  claims/ClaimFilterModal
+[MIGRATED] 22  claims/MasterDataModal
+[MIGRATED] 23  claims/NykaaDdrBulkModal
+[MIGRATED] 24  claims/ReClaimModal
+[MIGRATED] 25  claims/ReClaimTicketModal
+[MIGRATED] 26  claims/RefillFieldsModal
+[MIGRATED] 27  claims/RefillProgressModal
+[MIGRATED] 28  claims/RetryScopeModal
+[MIGRATED] 29  claims/SessionGateModal
+[MIGRATED] 30  claims/SkuPickerModal
+[MIGRATED] 31  claims/SkuSweepModal
+[MIGRATED] 32  claims/TatCheckModal
+[MIGRATED] 33  claims/TicketEditModal
+[MIGRATED] 34  claims/TicketThreadModal
+[MIGRATED] 35  claims/VideoSizeModal
+   Create claim
+[MIGRATED] 36  create/BulkClaimModal
+[MIGRATED] 37  create/RearrangeModal
+[MIGRATED] 38  create/bulk/EditBulkRowDialog
+[MIGRATED] 39  create/bulk/NormalBulkClaimModal
+[MIGRATED] 40  create/media/CameraPermissionModal
+[MIGRATED] 41  create/media/UploadModal
+[MIGRATED] 42  create/platforms/ajio/ReturnOrderPickerModal
+[MIGRATED] 43  create/platforms/ajio/SkuPickerModal
+   Email / Sessions
+[MIGRATED] 44  email/LastSyncDialog
+[MIGRATED] 45  sessions/AddCredentialModal
+[MIGRATED] 46  sessions/OtpPeekModal
+   Settings
+[MIGRATED] 47  settings/BackupCalendarModal
+[MIGRATED] 48  settings/BackupViewerModal
+[MIGRATED] 49  settings/CronHistoryModal
+[MIGRATED] 50  settings/CronModal
+[MIGRATED] 51  settings/FlipkartBackupCalendarModal
+[MIGRATED] 52  settings/FlipkartRequestCalendarModal
+[MIGRATED] 53  settings/FlipkartViewerModal
+[MIGRATED] 54  settings/SnapdealBackupCalendarModal
+[MIGRATED] 55  settings/SnapdealRequestCalendarModal
+[MIGRATED] 56  settings/SnapdealViewerModal
+
+Note: the counter counts dialogs once each. A dialog restyled entirely by the shared Modal/theme still needs
+its own check (light + dark, no hard-coded colour, layout matches the template) before it is MIGRATED.
+
+==========================================================================
+PHASE 3 — FINISH (not counted)
+==========================================================================
+[DONE]    Z1  Remove vercelTheme.ts; CLAUDE.TRACKVID.md UI/UX section says Veylix
+[DONE]    Z2  Light + dark, 1280x800 + 1920x1080, sidebar collapsed/expanded, keyboard focus, Settings → Theme works
+[DONE]    Z3  npm run verify + npm run test:e2e + npm run build:unpack
+[DONE]    Z4  Final report (bottom of this file), incl. source commits newer than 65341f9
+
+E2E BASELINE (found at Z3): npm run test:e2e FAILS on checks that exercise only main/shared, which are
+          byte-identical to the source repo: `members:*` CRUD (channel no longer exists), theme defaultsToSunset /
+          applied 'ocean' / persisted (themes retired; default is 'trackvid'), store file. Pre-existing, stale
+          test; not caused by the migration. All UI-side checks pass.
+
+==========================================================================
+DECISIONS
+==========================================================================
+2026-11-17  UI only; technology unchanged (user).
+2026-11-17  Look comes from a new theme layer theme/veylixTheme.ts in place of vercelTheme.ts (same mechanism).
+2026-11-17  Icons stay Tabler (switching icon systems is a technology change).
+2026-11-17  Manrope vendored as a woff2 file from the template, no npm dependency.
+2026-11-17  Dark mode = warm palette derived from Veylix light tokens (template has no dark mode).
+2026-11-17  Veylix accent = first primaryColorConfig entry; layer never sets palette.primary (CMS invariant).
+2026-11-17  No git commits: parent repo is shared with an agent working on ../BE.
+2026-11-17  Never log in or run automations; UI checked via preview, verify and e2e.
+2026-11-17  C2 uses `npm ci` (not `npm install`) so package-lock.json is honoured exactly: no version drift.
+
+2026-11-17  Screenshots use a scratchpad-only harness: bare Electron window + STUB preload answering read
+            channels with fake data; no app main process, no IPC handlers, all network blocked. A stubbed
+            "signed-in" session is not a login (nothing leaves the window). Lives in the session scratchpad.
+2026-11-17  shared/ stays untouched (auto-mode refused the edit; CLAUDE.md lists shared/ as unchanged). So the
+            gold is a selectable preset (2nd, after ink) and Manrope is vendored but not yet offered; default
+            stays ink #171717 + Geist until the user allows the 3-line shared/types/appearance.ts change.
+2026-11-17  Primary contrast: a primary white cannot sit on (<3:1) gets darken(primary,.72) as text — the
+            template's dark-brown-on-gold. A preset keeps its own light/dark steps (VuexyThemeProvider).
+2026-11-17  Tables: template tinted 5-step row bands with rounded ends kept, but 40px rows and a 4px gap
+            (template ~49px / 10px) so 25 claims still fit a window. border-collapse: separate.
+2026-11-17  Toast follows the template CSS (cream card, green check), not the plan's "dark pill" wording.
+2026-11-17  Dark scheme selector is [data-dark] (MUI colorSchemeSelector 'data').
+
+2026-11-17  Modal gains a visible round close button (template .dialog-heading). It calls the same onClose that
+            Escape/backdrop already call and is disabled while busy: no new way out, just a visible one.
+2026-11-17  Toasts move bottom-right (template #toast-region); newest nearest the corner. Same 3-max, same text.
+2026-11-17  Page heading: shell renders a PageHeading (big title + gold '.') above every page from the active
+            nav label, so no page's props change; the navbar keeps the breadcrumb (template shows both).
+2026-11-17  PageHeading/TableToolbar/TablePaginationBar: only PageHeading is needed (toolbars/pagers already
+            exist per screen and are restyled by the theme + table rules); not adding unused components.
+
+2026-11-17  Native <button> without its own fill gets background transparent (theme CssBaseline): Tailwind
+            preflight is not loaded, so hand-written tabs showed the platform's grey ButtonFace.
+2026-11-17  Brand keeps TrackVid's own logo art (brand identity, not template look).
+2026-11-17  styles/veylix.css: shared Veylix surface classes for hand-written panels (theme vars only).
+2026-11-17  Mojibake in LocalDatabasePage.tsx fixed (display text restored to the characters it was written
+            with). Pre-existing in the source repo too; worth porting back.
+2026-11-17  Dialogs that only open from live run states are checked through preview/DialogGallery.tsx (static
+            props, MIGRATION_PLAN §5). Preview code only; the app never routes there.
+2026-11-17  Icon subset regenerated (npm run icons equivalent) after listing the create-claim shim's glyphs;
+            source is TrackVid-Monitor's generated-icons.css, read only.
+2026-11-17  Accent-type tokens (nav pill/text/bar, accent text, selection wash, title dot, row hover, avatar)
+            derive from --mui-palette-primary-* so Settings → Theme reaches them; with the gold preset they land
+            within a shade of the template (docs/veylix-tokens.md, last table). Pinned by a new test.
+2026-11-17  Keyboard focus ring added (2px primary outline on :focus-visible / .Mui-focusVisible); the ported
+            menu and ButtonBase removed every outline, so keyboard focus was invisible (pre-existing).
+
+==========================================================================
+LOG (newest last)
+==========================================================================
+2026-11-17  Plan, CLAUDE.md and this tracker created. Next: C1.
+2026-11-17  C1 done: rsync from source @65341f9 (tree clean), CLAUDE.TRACKVID.md saved, packages/TrackVid-Automation-Core/.git removed. 414 renderer files.
+
+2026-11-17  C2: npm ci (lockfile exact) + verify baseline green (2099 tests).
+2026-11-17  C3: gallery harness built; 8 screens captured before any change (fixtures by a helper agent).
+2026-11-17  F1: docs/veylix-tokens.md written from veylix-next/src/styles (foundation, document, commerce-ui,
+            dialogs-search-toast, shell-sidebar, topbar) + derived dark table.
+2026-11-17  F2/F4: theme/veylixTheme.ts (light + derived warm dark) wired in VuexyThemeProvider in place of
+            vercelTheme (kept until Z1). navbarStyles imports PAGE_GUTTER from it.
+2026-11-17  F6: tests/renderer/vercelTheme.test.ts -> veylixTheme.test.ts (invariants kept: no palette.primary,
+            neutral channels). verify green: 250 files / 2094 tests.
+2026-11-17  F5: Modal (round close, soft hairlines, 18px title), ConfirmDialog text, StateBlocks (template
+            .c-empty), Badge (7px corner), toast (cream card, bottom-right), FormField labels 650; disabled
+            primary readable in dark. Other ui/* inherit from the theme. card-statistics is unused (no change).
+            Checked Filter claims dialog light + dark. typecheck + build green.
+2026-11-17  UNIT 1 MIGRATED: floating glass rail (248px, inset 16, 30px corner, chrome fill), template nav links
+            (gold active pill + bar), top bar as two glass pills (64px, 27px) with scrolled backdrop, chevron
+            breadcrumb, PageHeading (28px/750 + gold '.'). Checked light+dark: expanded, collapsed, user menu,
+            notifications. verify green (2094).
+2026-11-17  UNITS 12-16 MIGRATED: Modal, ConfirmDialog, CloseGuardDialog, DevModeModal, CronJobsModal checked
+            light + dark (all via restyled Modal; cron tabs fixed by the button-face reset).
+2026-11-17  UNIT 2 MIGRATED: Login on the warm page gradient; brand half a floating glass card (rail's 30px
+            corner + chrome), its ink on theme vars; form in a glass card (23px). h1 'Welcome back' unchanged.
+            Light + dark checked.
+2026-11-17  UNIT 3 MIGRATED: stat tiles get template icon tiles (new components/ui/IconTile) + 800-weight
+            figures; card titles 17px/750; ImportScheduleCard (not rendered today) on .veylix-glass. New
+            styles/veylix.css (glass/tile/note/card-title classes, theme vars only). Light+dark; verify green.
+2026-11-17  UNIT 4 MIGRATED: Manage Claims — tinted row bands reach pinned columns (table-chrome.css lays the
+            row tint over their opaque fill), selected rows show the gold selection band (theme sets --veylix-row
+            from data-selected/aria-selected/bg-primaryLighter), sticky/pinned headers opaque (tableHeaderBg =
+            paper). Light+dark, selected + idle. verify green.
+2026-11-17  DIALOGS 21 22 23 26 29 30 33 MIGRATED: Claim filter, Master data, NDR/DDR bulk, Refill fields, Session
+            gate, SKU picker, Ticket edit — opened from the page, checked light + dark, no raw colour.
+            The remaining claims dialogs only open from live run states; a helper is building preview-only
+            static-prop renders (preview/DialogGallery.tsx, MIGRATION_PLAN §5) to check them.
+2026-11-17  UNIT 5 MIGRATED: Create claim — form grid in one .veylix-glass card (heading + actions above, as on
+            the template), labels 650 (.veylix-form scoped rule), 41 raw style color:'red' asterisks across
+            create/ + 10 platform forms -> var(--mui-palette-error-main) (raw colour was against the app's own
+            rule). Light + dark checked; verify green.
+2026-11-17  UNITS 6-7 MIGRATED: Background Process (list, filter chips, expanded job with nested tables) and
+            Login sessions (grouped accounts, status pills, actions) render in the template look from the theme
+            + table rules alone; no code change needed. Light + dark checked. Note for Z2: Login table's
+            Verified column clips at 1440px (rail is ~50px wider); re-check at 1920.
+2026-11-17  UNITS 8-9 MIGRATED: Local Database (table list + rows) and Email Reply (Mailboxes + AJIO Emails tabs)
+            in template look via theme/table rules. LocalDatabasePage.tsx had pre-existing mojibake (UTF-8 read as
+            cp1252: 'â€“', 'Â·', 'â€¦' shown on screen, also in the source repo); 12 lines restored to the
+            intended characters. Light + dark checked; verify green.
+2026-11-17  UNIT 10 MIGRATED: Settings — all cards (schedule, Myntra, app version, three backups, Theme customiser,
+            company data) glass in both schemes; Company data tree lost its stray list bullets (list-none; the
+            app has no Tailwind preflight). Theme customiser shows the gold preset selected when chosen.
+2026-11-17  UNIT 11 MIGRATED: User detail — profile avatar is the template's gold disc with dark initial (theme
+            MuiAvatar colour wins over the ported light skin; variant circular). Light + dark; verify green.
+2026-11-17  DIALOGS 17-20, 24, 25, 27, 28, 31, 32, 34-56 MIGRATED: rendered open with static sample props in the
+            new preview-only electron/renderer/preview/DialogGallery.tsx (hash #dialog-gallery=<name>; main.tsx
+            gained that one branch), checked light + dark, no raw colour. Fixes made while checking:
+            - Modal md/lg widths -> template 620/850px (--veylix-dialog-md/lg in styles/veylix.css); buttons
+              nowrap + dialog footers wrap whole buttons (theme).
+            - create/BulkClaimModal + bulk/NormalBulkClaimModal: hand-set 6px corners -> theme dialog corner /
+              11px tiles, round close, accent-text glyphs, cream drop zone.
+            - bulk/EditBulkRowDialog: 20px field gap (theme spacing unit is 4px), 18/750 title, warning.dark.
+            - 10 Tabler glyphs used by create/icons.tsx were missing from styles/icons.css (shim builds class
+              names at runtime, the subset scanner never saw them -> empty tiles, pre-existing). Listed literally
+              in icons.tsx and regenerated with scripts/build-icon-subset.cjs from Monitor's icon set (read
+              only): 82 -> 92 icons, none dropped. verify green.
+2026-11-17  Z1 DONE: theme/vercelTheme.ts deleted (no importers left); provider/layer comments updated;
+            CLAUDE.TRACKVID.md UI/UX section now names Veylix, docs/veylix-tokens.md, veylixTheme.ts,
+            styles/veylix.css, the renamed test, the 4px spacing unit, the pending defaults and the dialog
+            gallery. verify green.
+
+2026-11-17  Z2 DONE: 1920x1080 light + 1280x800 dark on Login, Manage Claims, Dashboard; rail expanded +
+            collapsed; Settings → Theme: picking teal moved the switch, buttons, nav pill, selected chips,
+            title dot and avatar to teal (gold-pinned accents fixed first); keyboard: Tab order rail → top bar
+            confirmed, focus ring added and rendered light + dark. 1280: Login table scrolls under its pinned
+            Actions column (existing behaviour); 1920 shows all columns. verify green (2096 tests).
+2026-11-17  Z3 DONE: npm run verify green (250 files / 2096 tests, lint 0 errors / 11 baseline warnings, tokens OK).
+            npm run test:e2e: UI checks pass (bridge, no Node leak, 'Welcome back' login heading, auth validation,
+            update, subscribe, six-side image path); FAIL only on the pre-existing stale main/shared checks above.
+            Pre-build env check (CLAUDE.TRACKVID hard rule): no .env / .env.production*, nothing in the shell ->
+            effective TRACKVID_OBFUSCATE=true, MAIN_VITE_DISABLE_SUBMIT=false, MAIN_VITE_HEADLESS=true (+ no
+            per-platform overrides), API base URL empty, unsigned. All as required, so built:
+            CSC_IDENTITY_AUTO_DISCOVERY=false npm run build:unpack -> PASS, release/0.0.17/mac-arm64/TrackVid CMS.app
+            (obfuscated main 532->1791 KB, preload 10->39 KB; signing skipped). e2e against the packaged app:
+            same result as dev (renderer loads; same stale checks fail).
+2026-11-17  Z4 DONE: final report below.
+
+==========================================================================
+FINAL REPORT — 2026-11-17
+==========================================================================
+RESULT: 56/56 units MIGRATED (shell 1/1, screens 10/10, dialogs 45/45), 0 BLOCKED. Phase 0, 1 and 3 done,
+except one Phase-1 item that needs the user (F3 defaults, below).
+
+WHAT CHANGED (all under electron/renderer/** unless noted)
+- theme/veylixTheme.ts (new) replaces theme/vercelTheme.ts (deleted) in VuexyThemeProvider: Veylix palette,
+  derived warm dark scheme, glass cards/menus/dialogs, gold primary button, template badges, tinted table row
+  bands (40px rows, 4px gap), focus ring, nowrap buttons. Every value from docs/veylix-tokens.md (new).
+- VuexyThemeProvider: preset light/dark steps used as-is; light primaries get dark contrast text.
+- Shell: floating glass rail (248px, 30px corner), template nav links, top bar as two glass pills, chevron
+  breadcrumb, new layout/PageHeading (28px/750 + accent dot) rendered by App.tsx for every page.
+- Shared primitives: Modal (round close button = same onClose as Escape, template widths 620/850px),
+  ConfirmDialog, StateBlocks, Badge, toast (cream card, bottom-right), FormField, new ui/IconTile,
+  styles/veylix.css (glass/tile/note/card-title classes, dialog widths).
+- Screens: Login, Dashboard, Create claim (glass form card), Manage Claims (pinned columns + selection in the row
+  bands via table-chrome.css), Settings, User detail; others restyled by the theme alone.
+- Fixes to pre-existing defects found on the way: 41 raw color:'red' asterisks -> theme error colour; mojibake
+  on Local Database ('â€“' etc.); 10 Tabler glyphs missing from the icon subset (empty tiles on bulk-claim
+  dialogs) -> regenerated styles/icons.css (92 icons, none dropped); stray bullets in Company data; invisible
+  keyboard focus; native button grey face; accents that ignored Settings → Theme.
+- Tests: tests/renderer/vercelTheme.test.ts -> veylixTheme.test.ts (same two invariants + Veylix values +
+  accent-follows-primary). CLAUDE.TRACKVID.md UI/UX section rewritten for Veylix.
+- Preview only: preview/DialogGallery.tsx + one #dialog-gallery branch in main.tsx (static-prop renders of the
+  33 dialogs that only open from live runs).
+- Behaviour: no props, IPC, store, validation or operator text changed (except the mojibake repair).
+  electron/main, electron/preload, shared/, packages/, build config: untouched (diff -rq = identical).
+
+NEEDS YOUR DECISION (one item)
+- Shipped defaults. The gold accent ships as a selectable preset (2nd) and Manrope is vendored + declared, but a
+  fresh install still opens in near-black + Geist: the defaults live in shared/types/appearance.ts
+  (DEFAULT_THEME_SETTINGS.primaryColor/font, ThemeFont, THEME_FONTS), which this UI-only run may not edit (the
+  edit was refused). To finish: allow that 3-line change, move 'primary-veylix' first in configs/
+  primaryColorConfig.ts, add a 'manrope' FONT_STACK entry in VuexyThemeProvider + the font picker option, and
+  update tests/defaultPrimaryColour.test.ts's pinned '#171717'. Screens were reviewed with the gold selected.
+
+VERIFIED / NOT VERIFIED
+- Verified: dev renderer in a stub-bridge window (light + dark, 1280x800 / 1440x900 / 1920x1080, rail expanded +
+  collapsed, focus ring, Settings → Theme teal), npm run verify, test:e2e (dev + packaged), build:unpack on
+  macOS arm64.
+- Not verified: Windows, macOS x64, a signed/notarised build, real data or a signed-in session (never logged
+  in; no automation, claim, backup, email reply or session capture was run; nothing pointed at api.trackvid.in).
+- Known non-blocking: at 1280px the Login table scrolls under its pinned Actions column (as before; full at
+  1920). Manrope remains unused until the defaults change.
+
+SOURCE DRIFT: no commits on TrackVid-CMS after 65341f9 (feat/nykaa-ddr-bulk-claim, tree clean).
+GIT: CMS/ is NOT committed (no git commands that change anything were run; parent repo shared with ../BE).
+Port-back candidates for the source repo: the mojibake fix, icons.tsx glyph list + icons.css, the red-asterisk
+fix, the stale e2e smoke checks.

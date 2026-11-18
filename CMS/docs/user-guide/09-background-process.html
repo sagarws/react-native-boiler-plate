@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Background process — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html" class="active">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Background process</h1>
+<p class="lead">The <span class="ui">Background Process</span> page is the history of every bulk run this computer has done — what went through, what failed and why — and the floating <span class="ui">Background work</span> panel shows what is running right now.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+<li><a href="#what">What counts as a background process</a></li>
+<li><a href="#panel">The "Background work" panel (live progress)</a></li>
+<li><a href="#page">The Background Process page</a></li>
+<li><a href="#filters">Filters</a></li>
+<li><a href="#columns">Table columns</a></li>
+<li><a href="#status">Status colours</a></li>
+<li><a href="#details">How to see the details of a run</a></li>
+<li><a href="#report">How to download a report</a></li>
+<li><a href="#clear">How to clear history</a></li>
+<li><a href="#closing">Closing the app while something is running</a></li>
+<li><a href="#stop-retry">Stopping and retrying</a></li>
+</ol></div>
+
+<h2 id="what">What counts as a background process</h2>
+<p>Many jobs in TrackVid CMS take minutes or hours — bulk claims, re-claims, refills, report syncs. They run in the background, so you can keep using the app (or leave it) while they work. You do not need to stay on the page that started them, and you should <b>not</b> press the start button again "to make sure" — check the panel or this page instead.</p>
+<p>There are two places to look:</p>
+<div class="table-wrap"><table>
+<tr><th>Where</th><th>What it shows</th></tr>
+<tr><td><span class="ui">Background work</span> panel (bottom-right of the window)</td><td>Work happening <b>right now</b>, with live progress.</td></tr>
+<tr><td><span class="ui">Background Process</span> page (side menu)</td><td>A <b>record</b> of every finished (and running) bulk run on this computer, newest first.</td></tr>
+</table></div>
+
+<h2 id="panel">The "Background work" panel (live progress)</h2>
+<p>When something is running, a small panel titled <span class="ui">Background work</span> floats at the bottom-right corner of the window, on every page. When nothing is running and nothing finished is waiting to be read, the panel is hidden.</p>
+<p>The header shows a summary:</p>
+<ul>
+<li>A spinning icon and <span class="ui">2 running · 45% done</span> — work in progress; the percentage covers all running jobs together.</li>
+<li><span class="ui">1 queued</span> — work waiting to start.</li>
+<li>A green tick and <span class="ui">1 finished</span> — work is done and its result is waiting for you to read.</li>
+</ul>
+<h3>Panel buttons</h3>
+<div class="table-wrap"><table>
+<tr><th>Button</th><th>What it does</th></tr>
+<tr><td>Click the title, or the down-arrow</td><td>Hide or show the list (<span class="ui">Hide jobs</span> / <span class="ui">Show jobs</span>). The summary stays visible when hidden.</td></tr>
+<tr><td>Diagonal-arrows icon</td><td><span class="ui">Show the tally and failed AWBs</span> — makes the panel bigger and lists every failed AWB with its reason. Press again for <span class="ui">Show less</span>.</td></tr>
+<tr><td>External-link icon on a job</td><td><span class="ui">Reopen this job's window</span> — brings back the window that started the job (for jobs that have one, such as a minimised bulk window).</td></tr>
+<tr><td>X icon on a job</td><td><span class="ui">Dismiss</span> — removes a <b>finished</b> job from the panel. Running jobs cannot be dismissed.</td></tr>
+</table></div>
+<h3>What each job line shows</h3>
+<ul>
+<li><b>Title</b> — what is running and on which marketplace, for example <span class="ui">NDR/DDR bulk claim · Ajio</span>, <span class="ui">Ticket creation · Myntra</span>, <span class="ui">Re-claim · Myntra</span>, <span class="ui">SKU lookup · Ajio</span>, or <span class="ui">Claim · Flipkart</span> for a single claim.</li>
+<li><b>Detail line</b> — the AWB or ticket being worked on, or what the job is doing (for example <span class="ui">Starting…</span>, <span class="ui">Next in 12s</span>). When finished: a result such as <span class="ui">All 20 tickets created</span> or <span class="ui">18 created, 2 failed</span>.</li>
+<li><b>Count</b> — <span class="ui">7 of 20</span>, or <span class="ui">Running</span> / <span class="ui">Queued</span> for a single claim.</li>
+<li><b>Progress bar</b> — dark while running, green when finished.</li>
+<li><b>Tally</b> — <span class="ui">successful</span> (green tick), <span class="ui">failed</span> (red cross) and, while running, <span class="ui">remaining</span>.</li>
+</ul>
+<p>When an AJIO NDR/DDR bulk claim ends, a message also pops up wherever you are, for example <span class="ui">NDR/DDR bulk claim finished — Job 1a2b3c4d: 18 successful, 2 failed, 0 skipped</span>. These messages are also kept in the notification centre.</p>
+<div class="callout tip"><b class="t">Tip</b>A finished job stays in the panel until you dismiss it, so you will not miss the final count. To copy a failed AWB, open the bigger view and select its number.</div>
+
+<h2 id="page">The Background Process page</h2>
+<p>Open <span class="ui">Background Process</span> from the side menu. The top card says <span class="ui">Every bulk run this machine has done, newest first.</span> and has:</p>
+<div class="table-wrap"><table>
+<tr><th>Button</th><th>What it does</th></tr>
+<tr><td><span class="ui">Refresh</span></td><td>Reads the list again. The list also updates by itself when a run finishes.</td></tr>
+<tr><td><span class="ui">Clear history</span> / <span class="ui">Clear …</span></td><td>Deletes the records shown under the current filter. See <a href="#clear">How to clear history</a>.</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Note</b>This page shows runs done on <b>this computer</b>. A run done on a colleague's computer is generally not listed here, because its details were saved on that computer.</div>
+<p>Other states:</p>
+<ul>
+<li><span class="ui">Reading this machine's runs…</span> — loading.</li>
+<li><span class="ui">Nothing has run here yet</span> — no bulk run has been started on this computer. Start one and it will appear.</li>
+<li><span class="ui">No job of that kind</span> — there are runs, but none match the filter. Pick <span class="ui">All</span> to see the rest.</li>
+</ul>
+
+<h2 id="filters">Filters</h2>
+<p>A row of filter tabs, each with a count, narrows the list to one kind of run:</p>
+<div class="table-wrap"><table>
+<tr><th>Filter</th><th>Shows</th></tr>
+<tr><td><span class="ui">All</span></td><td>Every run.</td></tr>
+<tr><td><span class="ui">Ajio bulk claim</span></td><td>AJIO NDR/DDR bulk claim runs. See <a href="06-spf-bulk-claim.html">SPF bulk claim (AJIO)</a>.</td></tr>
+<tr><td><span class="ui">Myntra re-claim</span></td><td>Myntra re-claim (dispute) runs.</td></tr>
+<tr><td><span class="ui">Map Username</span></td><td>Account mapping runs (matching claims to marketplace accounts and sub-order numbers).</td></tr>
+<tr><td><span class="ui">Refill Data</span></td><td>Refill data runs. See <a href="08-refill-data.html">Refill data &amp; status change</a>.</td></tr>
+<tr><td><span class="ui">Master data backup</span></td><td>AJIO master data (report) backup runs.</td></tr>
+<tr><td><span class="ui">Snapdeal report sync</span></td><td>Snapdeal report sync runs.</td></tr>
+<tr><td><span class="ui">Scheduled</span></td><td>Runs started automatically by the schedule.</td></tr>
+</table></div>
+<p>When <span class="ui">Scheduled</span> is selected, a second row of tabs appears so you can pick one scheduled automation: <span class="ui">All scheduled</span>, <span class="ui">Login update</span>, <span class="ui">AJIO report sync</span>, <span class="ui">Snapdeal report sync</span>, <span class="ui">Flipkart report sync</span>, <span class="ui">Refill Data</span>, <span class="ui">Status change</span>, <span class="ui">Auto claim</span>. For how these are set up, see <a href="10-scheduled-automations.html">Scheduled automations</a>.</p>
+
+<h2 id="columns">Table columns</h2>
+<div class="table-wrap"><table>
+<tr><th>Column</th><th>Meaning</th></tr>
+<tr><td>(arrow)</td><td>Click a row to open its details; the arrow turns down.</td></tr>
+<tr><td><span class="ui">Job</span></td><td>Marketplace and type of run, for example <span class="ui">Ajio · NDR/DDR bulk claim</span>.</td></tr>
+<tr><td><span class="ui">Details</span></td><td>A short description (account, file and so on) and the first 8 characters of the job ID. Hover to read the full line.</td></tr>
+<tr><td><span class="ui">Started</span></td><td>Date and time the run started (your computer's local time).</td></tr>
+<tr><td><span class="ui">Took</span></td><td>How long it ran, for example <span class="ui">45s</span>, <span class="ui">12m</span>, <span class="ui">1.5h</span>. Shows <span class="ui">running</span> while it is still going.</td></tr>
+<tr><td><span class="ui">Status</span></td><td>How the run ended. See <a href="#status">Status colours</a>.</td></tr>
+<tr><td><span class="ui">Successful</span></td><td>How many items went through.</td></tr>
+<tr><td><span class="ui">Failed</span></td><td>How many items failed. Shown in <b>red</b> when more than zero.</td></tr>
+<tr><td><span class="ui">Total</span></td><td>How many items the run was given.</td></tr>
+</table></div>
+
+<h2 id="status">Status colours</h2>
+<div class="table-wrap"><table>
+<tr><th>Status</th><th>Meaning</th></tr>
+<tr><td><span class="chip grey">Running</span></td><td>Still in progress. Watch it in the Background work panel.</td></tr>
+<tr><td><span class="chip green">Finished</span></td><td>Ran to the end. Some items may still have failed — check the <span class="ui">Failed</span> count.</td></tr>
+<tr><td><span class="chip amber">Stopped</span></td><td>Stopped part-way by an operator (it was stopped on purpose, not an error).</td></tr>
+<tr><td><span class="chip red">Failed</span></td><td>The run itself broke and could not continue. Open it to read the error.</td></tr>
+</table></div>
+
+<h2 id="details">How to see the details of a run</h2>
+<ol class="steps">
+<li>Open <span class="ui">Background Process</span>.</li>
+<li>Pick a filter if needed, and click the run's row. Only one row opens at a time; click it again to close.</li>
+<li>The details show (after a short <span class="ui">Loading…</span>):
+  <ul>
+  <li>The full description line.</li>
+  <li>A summary box for runs whose result is not a list (for example backups and scheduled runs).</li>
+  <li>A red box with the error, if the run failed.</li>
+  <li><span class="ui">This job did not run to the end, so the lists below are what it reached — not everything it was given.</span> — if it stopped part-way.</li>
+  <li><span class="ui">Successful (n)</span> — each item that went through, with its reference (for example AWB), the <span class="ui">Ticket</span> number when one was raised, and a last column whose heading depends on the run (for example <span class="ui">SKU</span>, <span class="ui">Myntra status</span>, <span class="ui">What was filled</span>, <span class="ui">What happened</span>).</li>
+  <li><span class="ui">Failed (n)</span> — each item that did not go through, with the <span class="ui">Reason</span> in the marketplace's own words.</li>
+  </ul></li>
+</ol>
+<p>Empty lists say <span class="ui">Nothing went through on this run.</span> or <span class="ui">Nothing failed.</span></p>
+<div class="callout tip"><b class="t">Tip</b>Read the <span class="ui">Reason</span> column before retrying. Many failures repeat for the same cause (for example an expired login — see <a href="03-login-sessions.html">Login</a>), and fixing the cause first saves a wasted run.</div>
+
+<h2 id="report">How to download a report</h2>
+<p>For bulk claims, re-claims, account mapping and refills you can save the result as a spreadsheet. (Backups, report syncs and scheduled runs have no report — their rows went into the backup itself.)</p>
+<ol class="steps">
+<li>Open the run's row.</li>
+<li>Press <span class="ui">Download report</span> at the top of the details.</li>
+<li>Choose where to save the file and confirm.</li>
+<li>A message confirms: <span class="ui">Report saved — 18 successful, 2 failed</span>.</li>
+</ol>
+
+<h2 id="clear">How to clear history</h2>
+<p>The clear button removes only what the current filter shows.</p>
+<ol class="steps">
+<li>Pick the filter you want to clear (or <span class="ui">All</span> for everything).</li>
+<li>Press <span class="ui">Clear history</span> (with <span class="ui">All</span>) or <span class="ui">Clear …</span> (for example <span class="ui">Clear refill data</span>).</li>
+<li>Read the confirmation (<span class="ui">Clear every job history?</span> or <span class="ui">Clear the … history?</span>) and press <span class="ui">Clear</span>.</li>
+<li>You see <span class="ui">Cleared n records</span> (or <span class="ui">There was nothing to clear</span>).</li>
+</ol>
+<div class="callout danger"><b class="t">Important</b>Clearing cannot be undone. For some runs (such as Myntra re-claims) this page is the only record of what was done. Download the report first if you may need it. Runs recorded by TrackVid for other machines are not affected and may still appear after clearing.</div>
+
+<h2 id="closing">Closing the app while something is running</h2>
+<p>If you close TrackVid CMS while a background process is running, a box <span class="ui">Close TrackVid CMS?</span> appears saying the job <span class="ui">is still running</span> and <span class="ui">Closing now can stop it part-way through.</span></p>
+<div class="table-wrap"><table>
+<tr><th>Button</th><th>What it does</th></tr>
+<tr><td><span class="ui">Keep running</span></td><td>Cancels closing. The job continues. (Recommended.)</td></tr>
+<tr><td><span class="ui">View Background Process</span></td><td>Cancels closing and opens the Background Process page.</td></tr>
+<tr><td><span class="ui">Quit anyway</span></td><td>Closes the app. The step in progress finishes and nothing new is started.</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Note</b>If you quit during a claim run, a claim being filed at that moment may exist on the marketplace without TrackVid recording it, and the next run could file it again. Keep the app open until the run finishes whenever you can.</div>
+
+<h2 id="stop-retry">Stopping and retrying</h2>
+<p>The Background Process page and the Background work panel are for <b>watching and reviewing</b> — they do not have stop or retry buttons.</p>
+<ul>
+<li><b>To stop a run</b>, reopen the window that started it (the external-link icon in the Background work panel, where available) and stop it there.</li>
+<li><b>To retry failed items</b>, fix the cause shown in the <span class="ui">Reason</span> column, then start the work again from the page where it was started — for example <a href="05-bulk-claim.html">Bulk claim</a>, <a href="06-spf-bulk-claim.html">SPF bulk claim (AJIO)</a>, <a href="07-manage-claims.html">Manage claims</a> or <a href="08-refill-data.html">Refill data &amp; status change</a>. The downloaded report is a handy list of exactly which items failed.</li>
+<li>Scheduled runs retry on their next scheduled time. See <a href="10-scheduled-automations.html">Scheduled automations</a>.</li>
+</ul>
+
+<div class="pager">
+  <a href="08-refill-data.html"><span>Previous</span>8. Refill data &amp; status change</a>
+  <a href="10-scheduled-automations.html"><span>Next</span>10. Scheduled automations</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

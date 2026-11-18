@@ -1,0 +1,56 @@
+/*
+ * Veylix surfaces for hand-written markup (CMS/docs/veylix-tokens.md).
+ *
+ * MUI components get these from theme/veylixTheme.ts. A few screens still draw
+ * their own <section> or <div> as a panel; these classes give them the same
+ * surface without a colour of their own. Every value is a theme variable.
+ */
+
+/* `.glass-card` */
+.veylix-glass {
+  border-radius: var(--mui-shape-customBorderRadius-xl);
+  background-color: var(--veylix-glass-solid);
+  background-image: var(--veylix-glass);
+  border: 1px solid var(--veylix-glass-border);
+  box-shadow: var(--veylix-shadow-glass);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+
+/* `.c-summary > div` — a lighter tile inside or beside cards. */
+.veylix-tile {
+  border-radius: 17px;
+  background-image: var(--veylix-tile);
+  border: 1px solid var(--veylix-glass-border);
+  box-shadow: var(--veylix-shadow-tile);
+}
+
+/* `.form-note` — a quiet explanatory band. */
+.veylix-note {
+  border-radius: 9px;
+  background-color: var(--veylix-form-note);
+  color: var(--veylix-form-note-text);
+}
+
+/* `.card-heading h2` — 17px, heavy. */
+.veylix-card-title {
+  font-size: 1.0625rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  color: var(--mui-palette-text-primary);
+}
+
+/*
+ * `.c-field` labels inside a Veylix form: 650 weight. The claim forms label
+ * each field with a plain body1 Typography, so the rule is scoped to the form
+ * card rather than written into every platform's form.
+ */
+.veylix-form p.MuiTypography-body1 {
+  font-weight: 650;
+}
+
+/* `.app-dialog` / `.dialog-wide`: the template's two dialog widths. */
+:root {
+  --veylix-dialog-md: min(620px, calc(100vw - 32px));
+  --veylix-dialog-lg: min(850px, calc(100vw - 32px));
+}

@@ -1,0 +1,170 @@
+===============================================================================
+MEESHO CLAIM — createTicket answers HTTP 500 with an empty backendData
+===============================================================================
+First seen   2026-09-18
+Diagnosed    2026-09-19
+Status       FIXED (probable cause; see "How to confirm it is really fixed")
+Affects      platforms/meesho/claim-management/api-based-flow/
+Fixed in     platforms/meesho/common/browserId.js  +  claimApiFlow.js headers
+
+-------------------------------------------------------------------------------
+1. WHAT IT LOOKS LIKE
+-------------------------------------------------------------------------------
+On the Claims page, in the Script Error column:
+
+    Create ticket failed: HTTP 500 {"error":"Request failed with status code
+    500","options":{"backendData":{"error":""}}}
+
+An empty `backendData.error`. No field name, no message, nothing to act on.
+The attempt counter climbs — 5, 7, more — because every retry does the same.
+
+THE TELL THAT MATTERS: it worked for a day or two, then failed every single
+time, for every claim, on an account whose session was still good. Nothing was
+deployed here in between. That shape — "worked, then stopped, and stayed
+stopped" — means the change was on Meesho's side, not in the payload.
+
+-------------------------------------------------------------------------------
+2. WHAT IT IS **NOT** (all of this was ruled out before the cause was found)
+-------------------------------------------------------------------------------
+NOT the claim window. The flow already asks `validateTicketField` after a bare
+500 and files ME1 when the window is shut. It did not fire, so the window was
+open.
+
+NOT a bad sub-order number. The flow then asks `validateSubOrderNumber` on its
+own and files ME2. It did not fire either, so Meesho recognised the number.
+
+NOT the data. The seller filed THE SAME AWB, the same sub-order number, the
+same account, by hand in the portal — and it was accepted, ticket created.
+
+NOT the payload shape. The browser's own `createTicket` body was captured
+during that manual filing and compared field by field against what this code
+builds. They match: same eleven `ticket_details` entries, same keys, same
+order, same types, same empty-array convention for unused file slots, same
+`faq_classification_info` block.
+
+NOT an expired session. The same cookie jar answered every other Meesho call —
+the returns search, the validations, the attachment uploads all succeeded. Only
+`createTicket` failed.
+
+NOT our attachment handling. All four uploads returned GCS URLs and those URLs
+went into the payload exactly as the portal sends them.
+
+-------------------------------------------------------------------------------
+3. THE CAUSE
+-------------------------------------------------------------------------------
+A MISSING REQUEST HEADER: `browser-id`.
+
+Every request the supplier panel makes carries it. This code deliberately did
+not send it. The reasoning, written into the source at the time, was that it is
+a per-browser fingerprint that nothing here has an honest value for, and that
+inventing one would be worse than omitting it. The code even predicted this:
+
+    "If Meesho starts requiring it, that is the first thing to add."
+
+That is what happened. `createTicket` began rejecting requests without it, and
+the rejection surfaces as a bare 500 rather than as a 400 naming the header.
+
+THE PART THAT WAS WRONG: the value did not need inventing. It is already in the
+session. The manual capture shows the header and a cookie carrying the same
+string, the cookie merely percent-encoded:
+
+    header   browser-id: <opaque base64-ish token>
+    cookie   browser_id=<the same token, with = as %3D>
+
+So the sign-in is handed this value, it is harvested into the stored jar along
+with every other cookie, and forwarding it is exactly what a browser does. No
+fingerprint is fabricated, and — importantly — no single fingerprint is shared
+across every seller and every machine, which is the pattern that gets a
+marketplace's bot rules tightened in the first place.
+
+Two smaller drifts were found in the same comparison and corrected:
+
+  * `client-package-version` was 1.2.3; the panel now sends 1.2.4. It is the
+    SPA's own build number and it moves.
+  * The user-agent claimed Chrome 151 while `sec-ch-ua` claimed 152 — a pairing
+    no real browser produces. Both now derive from one constant (153, from the
+    capture).
+
+Neither is known to cause the 500 on its own. They are corrected because a
+request that is trying to look ordinary should not contradict itself.
+
+-------------------------------------------------------------------------------
+4. THE FIX
+-------------------------------------------------------------------------------
+platforms/meesho/common/browserId.js
+    Reads `browser_id` out of the session jar, percent-decodes it, and returns
+    it as a `browser-id` header. Returns {} when the jar has no such cookie, so
+    an older session behaves exactly as it did before rather than worse.
+
+platforms/meesho/claim-management/api-based-flow/claimApiFlow.js
+    `apiHeaders` sends it — which covers createTicket, validateTicketField,
+    validateSubOrderNumber and searchTickets — and so does the attachment
+    upload, which builds its own headers. Also added the sec-fetch-* trio and
+    `priority`, which the browser sends and this did not.
+
+platforms/meesho/common/returnsSearch.js
+    Sends it too. The submit endpoint started requiring it; there is no reason
+    to assume the fulfillment endpoint never will.
+
+NO RE-CAPTURE IS NEEDED. `browser_id` is an ordinary cookie on
+supplier.meesho.com and has been harvested into every stored Meesho session all
+along — it was simply never read back out.
+
+-------------------------------------------------------------------------------
+5. HOW TO CONFIRM IT IS REALLY FIXED
+-------------------------------------------------------------------------------
+This was diagnosed by comparing a successful manual request against the one
+this code sends. It has NOT been proven against the live endpoint, because
+proving it means filing a real claim.
+
+To confirm: file ONE claim from the app on an account whose session is current.
+
+  * It succeeds  → the header was the cause.
+  * It still 500s → the header was not enough. Next steps, in order:
+      1. Read the logged request shape (`logSubmittedShape` writes the keys and
+         value sizes of what was sent on every createTicket failure) and diff it
+         against a fresh manual capture.
+      2. Compare the COOKIE NAMES in the stored jar against the browser's.
+         Meesho sits behind Akamai Bot Manager — `_abck`, `bm_sz`, `bm_sv`,
+         `ak_bmsc`. If `_abck` is absent from the stored jar, or is the
+         unvalidated form, the edge may be scoring the request as automation.
+         That would be the next thing to test, and it is a harder problem: those
+         cookies are issued to a browser that ran Akamai's script, so the answer
+         would be to file through the logged-in page rather than over HTTP.
+      3. Check whether `client-package-version` has moved again.
+
+-------------------------------------------------------------------------------
+6. HOW TO RECOGNISE THIS CLASS OF FAILURE NEXT TIME
+-------------------------------------------------------------------------------
+The signature is all four of these together:
+
+    1. It worked, then stopped, and stays stopped.
+    2. Every claim fails, not some — so it is not the data.
+    3. The same claim filed BY HAND in the portal succeeds.
+    4. Other calls on the same session still work.
+
+When all four hold, stop looking at the payload. The difference is in what the
+request looks like, not what it says: a header, a header's value, or a cookie.
+The way to find it is to capture the browser's own request while filing the same
+claim manually and diff the two, header by header — which is the only reason
+this one was found.
+
+WHAT TO CAPTURE when asking for help with this: the full cURL of the successful
+manual `createTicket` (Chrome devtools → Network → right-click the request →
+Copy as cURL) and its response body. The cURL carries a live session, so it
+must never be committed, pasted into code, or put in a file like this one —
+read it, use it, discard it, and sign that session out afterwards.
+
+-------------------------------------------------------------------------------
+7. RELATED
+-------------------------------------------------------------------------------
+common/claimErrors.js          ME1 / ME2 / ME3 — the coded failures this one is
+                               deliberately NOT one of. A bare 500 with the
+                               window open and the number valid is rethrown as
+                               itself, because an invented reason would be worse
+                               than an honest "Meesho failed".
+createTicketWithVerification   After an opaque 500 the flow polls the ticket
+                               list, because a lost response over a ticket that
+                               WAS created would otherwise be retried into a
+                               duplicate dispute.
+===============================================================================

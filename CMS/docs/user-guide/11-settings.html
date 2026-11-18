@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Settings &amp; profile — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html" class="active">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Settings &amp; profile</h1>
+<p class="lead">The Settings page controls when this computer runs its automations and shows which version of the app is installed. Your profile page shows your own account details.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+<li><a href="#overview">What is on the Settings page</a></li>
+<li><a href="#schedule">The automation schedule (short version)</a></li>
+<li><a href="#app-version">App version card</a></li>
+<li><a href="#profile">Your profile (User detail page)</a></li>
+</ol></div>
+
+<h2 id="overview">What is on the Settings page</h2>
+<p>Click <span class="ui">Settings</span> in the side menu. The page starts with the line "Preferences for this installation." — these settings belong to <b>this computer</b>, not to your whole company. It has two parts:</p>
+<div class="table-wrap"><table>
+<tr><th>Part</th><th>What it is for</th></tr>
+<tr><td>The automation schedule (the list of tasks at the top)</td><td>Turn each automatic task on or off, change how often it runs, run it now, or see its history.</td></tr>
+<tr><td><span class="ui">App version</span> card</td><td>See which version is installed, check for a new one and install it.</td></tr>
+</table></div>
+
+<h2 id="schedule">The automation schedule (short version)</h2>
+<p>The first card on the page lists the tasks this computer runs by itself, without anyone pressing a button. Each row is one task:</p>
+<ul>
+<li><span class="ui">Login update</span> — keeps marketplace logins fresh.</li>
+<li><span class="ui">AJIO report sync</span>, <span class="ui">Snapdeal report sync</span>, <span class="ui">Flipkart report sync</span> — download each marketplace's reports (the "master data").</li>
+<li><span class="ui">Refill Data</span> — fills in missing claim details.</li>
+<li><span class="ui">Status change</span> — updates the status of claims.</li>
+<li><span class="ui">Auto claim</span> — files claims automatically.</li>
+</ul>
+<p>Some rows also list the accounts or marketplaces the task is about to work on. These use colours: <span class="chip red">red</span> means work still to do, <span class="chip green">green</span> means done, and they change while the task runs.</p>
+
+<h3>What each row shows and the buttons on it</h3>
+<div class="table-wrap"><table>
+<tr><th>Item</th><th>Meaning</th></tr>
+<tr><td>Task name, with a <span class="ui">Running</span> label</td><td>The label appears while the task is working.</td></tr>
+<tr><td>Last-run line</td><td>One of: "Last completed 12/10/2026, 10:02:11 am · …", "Running since …", <span class="chip amber">Started … and did not finish</span>, <span class="chip red">Last run failed — reason</span>, or "Has not run on this machine yet". If the task is on, it ends with when it runs next, for example "· next in 40 min".</td></tr>
+<tr><td><span class="chip red">Failed 3 times in a row — it keeps retrying, but something needs fixing or skipping.</span></td><td>The task keeps failing. Usually a login needs re-capturing. Fix the cause, or use <span class="ui">Skip this run</span>.</td></tr>
+<tr><td>Schedule button, for example <span class="ui">Every hour</span>, <span class="ui">At 10:00</span>, <span class="ui">At 09:00, 18:00</span> or <span class="ui">Not set</span></td><td>Shows how often the task runs. Click it to choose a different interval or time.</td></tr>
+<tr><td><span class="ui">On</span> / <span class="ui">Off</span> switch</td><td>Turns this one task on or off. If no schedule is set yet, switching it on first asks you to choose one.</td></tr>
+<tr><td><span class="ui">Run now</span></td><td>Starts the task immediately, exactly as the schedule would. You see "&lt;task&gt; started" and then a success or error message.</td></tr>
+<tr><td><span class="ui">Skip this run</span></td><td>Appears only after a failed run. A failed task holds up the tasks after it; skipping lets the others continue. It asks you to confirm.</td></tr>
+<tr><td><span class="ui">History</span></td><td>Every run of this task on this computer.</td></tr>
+<tr><td><span class="ui">Reset</span> (top-right of the card)</td><td>Puts every task back on, at its default time (logins hourly, AJIO report sync at 10:00, Refill Data at 23:00, Auto claim every 2 hours). It asks you to confirm.</td></tr>
+<tr><td><span class="chip amber">… is using the browser</span> (top-right, for example "Login update is using the browser")</td><td>Another job is using the app's browser right now, so tasks wait their turn.</td></tr>
+</table></div>
+
+<div class="callout danger"><b class="t">Important</b><span class="ui">Reset</span> turns <span class="ui">Auto claim</span> back on, and Auto claim files real claims. Only reset if you want that.</div>
+<div class="callout tip"><b class="t">Tip</b>To stop <b>all</b> automations at once, use the <span class="ui">Automations</span> switch at the bottom of the side menu instead of turning off each task.</div>
+<p>For a full explanation of every task, the schedule window, the History window and when to skip a run, see <a href="10-scheduled-automations.html">10. Scheduled automations</a>.</p>
+
+<h2 id="app-version">App version card</h2>
+<p>The <span class="ui">App version</span> card — "Which build this machine is running, and where it stands against the latest release." — shows your installed version and lets you update.</p>
+
+<h3>The status badge</h3>
+<p>A badge at the top-right of the card tells you where things stand:</p>
+<div class="table-wrap"><table>
+<tr><th>Badge</th><th>Meaning</th></tr>
+<tr><td><span class="chip green">Up to date</span></td><td>You have the latest version.</td></tr>
+<tr><td><span class="chip grey">Checking…</span></td><td>The app is asking whether a newer version exists.</td></tr>
+<tr><td><span class="chip amber">Update available</span></td><td>A newer version was found and is downloading in the background. You can keep working.</td></tr>
+<tr><td><span class="chip amber">Downloading</span></td><td>The new version is downloading. A progress bar shows, for example "40% of 120.5 MB · 2.1 MB/s".</td></tr>
+<tr><td><span class="chip green">Ready to install</span></td><td>The new version is downloaded and waiting for you to install it.</td></tr>
+<tr><td><span class="chip amber">Check failed</span></td><td>The app could not check for updates. A red message underneath says why.</td></tr>
+<tr><td><span class="chip grey">Updates not available in this build</span></td><td>This copy of the app cannot update itself. Use the manual download link if one is shown, or ask TrackVid for a new installer.</td></tr>
+</table></div>
+
+<h3>What else the card shows</h3>
+<ul>
+<li><span class="ui">Installed</span> — your version number. <span class="ui">Latest</span> appears beside it when a newer version exists.</li>
+<li>A red message if something went wrong.</li>
+<li>"Version 0.1.21 can be downloaded and installed manually: <span class="ui">open the download</span>." — appears when a newer version exists and a download link is available. Use it if the automatic update keeps failing.</li>
+<li><span class="ui">What changed</span> — the release notes for the new version, when provided.</li>
+</ul>
+
+<h3>How to check for and install an update</h3>
+<ol class="steps">
+<li>Open <span class="ui">Settings</span> and find the <span class="ui">App version</span> card.</li>
+<li>Click <span class="ui">Check for updates</span>. The button shows a spinner while checking. (It is greyed out while a download is in progress.)</li>
+<li>If a new version is found, it downloads by itself. Wait for the badge to change to <span class="chip green">Ready to install</span>.</li>
+<li>Make sure no automation is running (the Background work panel is gone or shows everything finished).</li>
+<li>Click <span class="ui">Restart &amp; install 0.1.21</span> (the number is the new version). The app closes, installs and reopens.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>Installing closes the app, so any automation running on this computer stops. Unfinished claims are picked up on the next run. If you do not install now, the update installs automatically the next time you close the app.</div>
+
+<h3>How to install an update by hand</h3>
+<ol class="steps">
+<li>On the <span class="ui">App version</span> card, click <span class="ui">open the download</span>.</li>
+<li>Your browser downloads the installer. When it finishes, close TrackVid CMS.</li>
+<li>Run the downloaded installer. If Windows says <span class="ui">Windows protected your PC</span>, click <span class="ui">More info</span> then <span class="ui">Run anyway</span> (see <a href="01-getting-started.html#install">Installing the app</a>).</li>
+<li>The app reopens on the new version. Your sign-in and settings are kept.</li>
+</ol>
+
+<h2 id="profile">Your profile (User detail page)</h2>
+<p>Your profile is not in the side menu. To open it:</p>
+<ol class="steps">
+<li>Click your initials and name at the top-right of the window.</li>
+<li>Click <span class="ui">View profile</span>.</li>
+<li>The <span class="ui">User detail</span> page opens. The top bar shows <span class="ui">TrackVid Operations / User detail</span>; click <span class="ui">TrackVid Operations</span> to go back to the Dashboard.</li>
+</ol>
+<p>The page starts with "Your TrackVid account as it is stored on the server." and has a <span class="ui">Sign out</span> button on the right.</p>
+
+<h3>Your details</h3>
+<p>The first card shows your initial, your full name and email, and a <span class="ui">Details</span> list:</p>
+<div class="table-wrap"><table>
+<tr><th>Field</th><th>Meaning</th></tr>
+<tr><td><span class="ui">First name</span></td><td>Your first name in TrackVid.</td></tr>
+<tr><td><span class="ui">Last name</span></td><td>Your last name in TrackVid.</td></tr>
+<tr><td><span class="ui">Email</span></td><td>The email you sign in with.</td></tr>
+<tr><td><span class="ui">Phone</span></td><td>Your phone number with country code.</td></tr>
+</table></div>
+<p>A grey dash (<b>—</b>) means that detail is not saved in TrackVid. These details cannot be edited in the desktop app; ask your TrackVid administrator to change them.</p>
+
+<h3>About this installation</h3>
+<p>The second card, <span class="ui">About this installation</span> — "What this machine is running, and whether anything newer exists." — shows:</p>
+<div class="table-wrap"><table>
+<tr><th>Field</th><th>Meaning</th></tr>
+<tr><td><span class="ui">Installed version</span></td><td>The version on this computer. Give this to support when asked.</td></tr>
+<tr><td><span class="ui">Update status</span></td><td><span class="chip green">Up to date</span>, <span class="chip grey">Checking…</span>, <span class="chip amber">Version 0.1.21 found — starting download</span>, <span class="chip amber">Downloading version 0.1.21 — 40%</span>, <span class="chip green">Version 0.1.21 downloaded — restarting to install…</span>, or a grey message explaining why updates are unavailable.</td></tr>
+<tr><td><span class="ui">Available version</span></td><td>The newer version, while an update is in progress.</td></tr>
+<tr><td><span class="ui">Release notes</span></td><td>What changed in the new version, when provided.</td></tr>
+</table></div>
+<p>Click <span class="ui">Check for updates</span> on this card to check straight away. When the update is downloaded, install it with <span class="ui">Restart and install</span> in the top bar, or from <a href="#app-version">Settings → App version</a>.</p>
+
+<h3>Empty state</h3>
+<p>If the page shows <span class="ui">No user loaded</span> — "Sign in again to see your profile details." — your sign-in details could not be read. Close and reopen the app; if it still shows, sign out and sign in again.</p>
+
+<div class="pager">
+  <a href="10-scheduled-automations.html"><span>Previous</span>10. Scheduled automations</a>
+  <a href="12-troubleshooting.html"><span>Next</span>12. Troubleshooting &amp; FAQ</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

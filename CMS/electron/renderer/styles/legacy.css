@@ -1,0 +1,229 @@
+/*
+ * THE BRIDGE BETWEEN TWO DESIGN SYSTEMS, and it is temporary.
+ *
+ * While the screens are being moved over one at a time, both systems are live
+ * in the same document. The first version of this file gave the outgoing
+ * screens their ORIGINAL colours, which was technically correct and looked
+ * wrong: a Vuexy shell around teal buttons, its own status colours, its own
+ * radii. Two products on one window.
+ *
+ * So the old token names now RESOLVE TO MUI'S. `bg-accent` on a screen that has
+ * not been migrated yet is Monitor's primary; `bg-danger-surface` is Monitor's
+ * error tint; `rounded-lg` is Monitor's shape token. The markup is untouched
+ * and keeps working — it just stops being a different product while it waits
+ * its turn.
+ *
+ * WHAT THIS DOES NOT DO. It cannot change a component's SHAPE: an old table is
+ * still an old table, an old badge is still a rounded rectangle rather than a
+ * MUI chip. Those are fixed by migrating the screen, or — where the component
+ * is shared by many screens — by rebuilding that component on MUI, which is
+ * what components/ui/Button and components/ui/Badge now are.
+ *
+ * DELETED WITH THE LAST OLD SCREEN, together with styles/theme.css.
+ */
+
+.legacy-ui,
+.legacy-tokens {
+  /* ---------------------------------------------------------------------
+   * The neutral ramp, which 800 utilities still name directly.
+   * 0 is a card, 100 the page, the middle is lines, the top is ink.
+   * ------------------------------------------------------------------- */
+  --color-neutral-0: var(--mui-palette-background-paper);
+  --color-neutral-50: var(--mui-palette-action-hover);
+  --color-neutral-100: var(--mui-palette-background-default);
+  --color-neutral-200: var(--mui-palette-divider);
+  --color-neutral-300: var(--mui-palette-divider);
+  --color-neutral-400: var(--mui-palette-divider);
+  --color-neutral-500: var(--mui-palette-text-disabled);
+  --color-neutral-600: var(--mui-palette-text-secondary);
+  --color-neutral-700: var(--mui-palette-text-secondary);
+  --color-neutral-800: var(--mui-palette-text-primary);
+  --color-neutral-900: var(--mui-palette-text-primary);
+  --color-neutral-950: var(--mui-palette-text-primary);
+
+  /* The `slate`/`white` bridge the un-migrated markup still writes. */
+  --color-white: var(--mui-palette-background-paper);
+  --color-slate-50: var(--mui-palette-action-hover);
+  --color-slate-100: var(--mui-palette-background-default);
+  --color-slate-200: var(--mui-palette-divider);
+  --color-slate-300: var(--mui-palette-divider);
+  --color-slate-400: var(--mui-palette-divider);
+  --color-slate-500: var(--mui-palette-text-disabled);
+  --color-slate-600: var(--mui-palette-text-secondary);
+  --color-slate-700: var(--mui-palette-text-secondary);
+  --color-slate-800: var(--mui-palette-text-primary);
+  --color-slate-900: var(--mui-palette-text-primary);
+  --color-slate-950: var(--mui-palette-text-primary);
+
+  /* ---------------------------------------------------------------------
+   * Brand. The old ramp is used for rings and tints; all of it is Monitor's
+   * primary now, which is what stops a teal button appearing under a purple
+   * shell.
+   * ------------------------------------------------------------------- */
+  --color-brand-50: var(--mui-palette-primary-lighterOpacity);
+  --color-brand-100: var(--mui-palette-primary-lightOpacity);
+  --color-brand-200: var(--mui-palette-primary-mainOpacity);
+  --color-brand-300: var(--mui-palette-primary-light);
+  --color-brand-400: var(--mui-palette-primary-light);
+  --color-brand-500: var(--mui-palette-primary-main);
+  --color-brand-600: var(--mui-palette-primary-main);
+  --color-brand-700: var(--mui-palette-primary-dark);
+  --color-brand-800: var(--mui-palette-primary-dark);
+  --color-brand-900: var(--mui-palette-primary-dark);
+
+  /* ---------------------------------------------------------------------
+   * Surfaces and text, by role.
+   * ------------------------------------------------------------------- */
+  --color-canvas: var(--mui-palette-background-default);
+  --color-surface: var(--mui-palette-background-paper);
+  --color-surface-raised: var(--mui-palette-background-paper);
+  --color-surface-hover: var(--mui-palette-action-hover);
+  --color-surface-active: var(--mui-palette-action-selected);
+  --color-surface-sunken: var(--mui-palette-background-default);
+  --color-surface-inverted: var(--mui-palette-text-primary);
+  --color-surface-inverted-border: var(--mui-palette-divider);
+  --color-on-inverted: var(--mui-palette-background-paper);
+
+  --color-primary: var(--mui-palette-text-primary);
+  --color-body: var(--mui-palette-text-primary);
+  --color-secondary: var(--mui-palette-text-secondary);
+  --color-muted: var(--mui-palette-text-secondary);
+  --color-faint: var(--mui-palette-text-disabled);
+  --color-disabled: var(--mui-palette-text-disabled);
+  --color-inverse: var(--mui-palette-common-white);
+  --color-on-accent: var(--mui-palette-primary-contrastText);
+
+  /* Lines. MUI has one divider, and the old system's four weights collapse
+     onto it plus the text ramp — a hairline and a control outline are the
+     same line in Monitor. */
+  --color-hairline: var(--mui-palette-divider);
+  --color-subtle: var(--mui-palette-divider);
+  --color-strong: var(--mui-palette-divider);
+  --color-emphasis: var(--mui-palette-text-disabled);
+  --color-focus: var(--mui-palette-primary-main);
+  --color-track: var(--mui-palette-action-selected);
+
+  --color-accent: var(--mui-palette-primary-main);
+  --color-accent-hover: var(--mui-palette-primary-dark);
+  --color-accent-active: var(--mui-palette-primary-dark);
+  --color-accent-soft: var(--mui-palette-primary-lightOpacity);
+
+  --color-link: var(--mui-palette-primary-main);
+  --color-link-hover: var(--mui-palette-primary-dark);
+  --color-plate: var(--mui-palette-background-paper);
+
+  /* Chrome. Nothing in the outgoing screens draws a rail any more, but the
+     tokens are still referenced and must not resolve to nothing. */
+  --color-sidebar: var(--mui-palette-background-paper);
+  --color-sidebar-active: #ebebeb;
+  --color-sidebar-active-fg: #171717;
+  --color-sidebar-hover: var(--mui-palette-action-selected);
+  --color-sidebar-fg: var(--mui-palette-text-secondary);
+  --color-sidebar-muted: var(--mui-palette-text-disabled);
+  --color-sidebar-strong: var(--mui-palette-text-primary);
+  --color-overlay: var(--mui-palette-common-black);
+
+  /* ---------------------------------------------------------------------
+   * Status, in the four roles the old system uses.
+   *
+   * `-surface` is a tint, `-fg` the text on it, `-border` its ring, `-solid`
+   * a saturated fill. Monitor expresses the same four as a main colour with
+   * opacity variants, which is exactly what a tonal chip is made of.
+   * ------------------------------------------------------------------- */
+  --color-success-surface: var(--mui-palette-success-lightOpacity);
+  --color-success-border: var(--mui-palette-success-mainOpacity);
+  --color-success-fg: var(--mui-palette-success-main);
+  --color-success-solid: var(--mui-palette-success-main);
+
+  --color-warning-surface: var(--mui-palette-warning-lightOpacity);
+  --color-warning-border: var(--mui-palette-warning-mainOpacity);
+  --color-warning-fg: var(--mui-palette-warning-main);
+  --color-warning-solid: var(--mui-palette-warning-main);
+
+  --color-danger-surface: var(--mui-palette-error-lightOpacity);
+  --color-danger-border: var(--mui-palette-error-mainOpacity);
+  --color-danger-fg: var(--mui-palette-error-main);
+  --color-danger-solid: var(--mui-palette-error-main);
+
+  --color-info-surface: var(--mui-palette-info-lightOpacity);
+  --color-info-border: var(--mui-palette-info-mainOpacity);
+  --color-info-fg: var(--mui-palette-info-main);
+  --color-info-solid: var(--mui-palette-info-main);
+
+  /* JSON highlighting in developer mode. Monitor has no equivalent, so these
+     keep their own hues and only follow the mode. */
+  --color-code-string: var(--mui-palette-success-main);
+  --color-code-number: var(--mui-palette-warning-main);
+  --color-code-key: var(--mui-palette-info-main);
+
+  /* ---------------------------------------------------------------------
+   * Shape and depth, which is the other half of "looks like a different
+   * product": Monitor's corners are softer and its shadows are its own.
+   * ------------------------------------------------------------------- */
+  --radius-xs: var(--mui-shape-customBorderRadius-xs);
+  --radius-sm: var(--mui-shape-customBorderRadius-sm);
+  --radius-md: var(--mui-shape-customBorderRadius-md);
+  --radius-lg: var(--mui-shape-customBorderRadius-lg);
+  --radius-xl: var(--mui-shape-customBorderRadius-xl);
+  --radius-2xl: var(--mui-shape-customBorderRadius-xl);
+
+  --shadow-xs: var(--mui-customShadows-xs);
+  --shadow-sm: var(--mui-customShadows-sm);
+  --shadow-md: var(--mui-customShadows-md);
+  --shadow-lg: var(--mui-customShadows-lg);
+  --shadow-xl: var(--mui-customShadows-xl);
+}
+
+/*
+ * A whole old SCREEN paints its own ground; an old COMPONENT on Monitor's
+ * navbar must not. Both get the tokens above.
+ */
+.legacy-ui {
+  background-color: var(--mui-palette-background-default);
+  color: var(--mui-palette-text-primary);
+
+  /*
+   * A WIDE TABLE MUST SCROLL INSIDE ITSELF, not widen the window.
+   *
+   * The outgoing screens put their tables in `overflow-auto` boxes, which only
+   * bound anything while every ancestor is allowed to be narrower than its
+   * content. The old shell guaranteed that; the ported one lays the page out as
+   * a flex column, and a flex item's default `min-inline-size: auto` means it
+   * refuses to shrink below its content — so the claim queue's table pushed the
+   * whole document sideways and put a scrollbar under the window instead of
+   * under the table.
+   */
+  min-inline-size: 0;
+  max-inline-size: 100%;
+
+  /*
+   * The screen scrolls itself sideways rather than handing the problem
+   * upwards. A scroll container's min-content stops propagating to its
+   * ancestors, which is what actually stops the window from growing.
+   */
+  overflow-x: auto;
+}
+
+/*
+ * TABLES, until the screen that owns them is migrated.
+ *
+ * The outgoing screens write plain `<table>` markup with utility classes. This
+ * gives them Monitor's table metrics — the border colour, the cell padding, the
+ * small uppercase head — so a table on an un-migrated screen reads like the one
+ * on a migrated screen instead of like a different application.
+ */
+.legacy-ui table {
+  border-color: var(--mui-palette-divider);
+}
+
+.legacy-ui thead th {
+  color: var(--mui-palette-text-disabled);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.legacy-ui tbody tr:hover {
+  background-color: var(--mui-palette-action-hover);
+}

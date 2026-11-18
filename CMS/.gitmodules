@@ -1,0 +1,15 @@
+[submodule "packages/TrackVid-Automation-Core"]
+	path = packages/TrackVid-Automation-Core
+	url = https://github.com/trackVid21/TrackVid-Automation-Core.git
+	# Which branch `git submodule update --remote` follows. Without it git
+	# falls back to `master`, which does not exist here — so the one command
+	# meant to move the pin forward failed, and the pin got moved by hand
+	# instead.
+	#
+	# THIS DOES NOT MOVE THE PIN ON ITS OWN. A plain `git submodule update`
+	# still checks out the exact commit this repo records, which is the whole
+	# point of pinning; only `--remote` follows the branch, and that is an
+	# explicit request to move to the tip of main. Per CLAUDE.md that is a
+	# deliberate act — build the core, verify here, check the other consumer —
+	# not something to do because a command was available.
+	branch = main

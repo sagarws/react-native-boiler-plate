@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Manage claims — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html" class="active">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Manage claims</h1>
+<p class="lead">See every claim your company has in TrackVid, find the ones you need, and file, check or correct them from this computer.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+  <li><a href="#overview">What you see on this page</a></li>
+  <li><a href="#find">Finding claims: search and dates</a></li>
+  <li><a href="#platforms">Platform tabs</a></li>
+  <li><a href="#statuses">Status tabs</a></li>
+  <li><a href="#columns">The table and its columns</a></li>
+  <li><a href="#colours">What the colours mean</a></li>
+  <li><a href="#colfilter">Filtering inside a column</a></li>
+  <li><a href="#pages">Pages, Refresh and Export</a></li>
+  <li><a href="#select">Selecting claims</a></li>
+  <li><a href="#create">Create Ticket — filing claims from this computer</a></li>
+  <li><a href="#gate">"Update logins first" window</a></li>
+  <li><a href="#tat">Check TAT (Meesho)</a></li>
+  <li><a href="#sku">Choosing the seller SKU (AJIO)</a></li>
+  <li><a href="#bulkupdate">Bulk Update — change one field on many claims</a></li>
+  <li><a href="#statuschange">Status Change</a></li>
+  <li><a href="#reclaim">Re-Claim (Myntra)</a></li>
+  <li><a href="#ndr">NDR/DDR Bulk Claim (AJIO)</a></li>
+  <li><a href="#empty">Empty, loading and error states</a></li>
+</ol></div>
+
+<h2 id="overview">What you see on this page</h2>
+<p>Open <span class="ui">Manage Claims</span> from the side menu. The claims are read live from TrackVid — the same records the web CMS shows — so you see the full history, not only what this computer has filed.</p>
+<p>The page has, from top to bottom:</p>
+<ol>
+  <li><b>The toolbar</b> — search box, date range, and action buttons.</li>
+  <li><b>Platform tabs</b> — one per marketplace, with a count, and the <span class="ui">Export</span> button on the right.</li>
+  <li><b>Status tabs</b> — the claim statuses for the chosen marketplace, each with a coloured dot and a count.</li>
+  <li><b>The claims table</b>, with a filter box under each column heading.</li>
+  <li><b>The page bar</b> — total claims, page number, <span class="ui">Rows per page</span>, <span class="ui">Previous</span> and <span class="ui">Next</span>.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>The page opens on the <b>Ajio</b> tab, the <b>Pending</b> status and the <b>last 7 days</b> — the claims that still need filing. Change any of these to see more.</div>
+
+<h2 id="find">Finding claims: search and dates</h2>
+<h3>Search</h3>
+<p>Type in the box <span class="ui">Search AWB, ticket or order…</span>. The table and all tab counts update to match, and you go back to page 1.</p>
+<h3>Date range</h3>
+<p>The date box next to the search limits the claims to those created in that window. It starts at the last 7 days (today included).</p>
+<ol class="steps">
+  <li>Click the date box.</li>
+  <li>Pick a ready-made range on the left — <span class="ui">Today</span>, <span class="ui">Yesterday</span>, <span class="ui">This Week</span>, <span class="ui">Last Week</span>, <span class="ui">This Month</span>, <span class="ui">Last Month</span> or <span class="ui">All Time</span> — or click a start day and then an end day on the calendar. Future days cannot be picked.</li>
+  <li>The table reloads for the new dates.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>If a claim you expect is missing, check the dates first. The counts on the tabs only count claims inside the chosen date range and search.</div>
+
+<h2 id="platforms">Platform tabs</h2>
+<p>The tabs are, in order: <span class="ui">Ajio</span>, <span class="ui">Meesho</span>, <span class="ui">Snapdeal</span>, <span class="ui">Nykaa</span>, <span class="ui">Amazon</span>, <span class="ui">Myntra</span>, <span class="ui">Flipkart</span>, <span class="ui">Tata CliQ</span>, <span class="ui">Delhivery</span>, <span class="ui">Xbees</span> and <span class="ui">Other</span>. Each shows the marketplace logo and how many claims it has. Tabs with zero claims look faded, but you can still open them.</p>
+<ul>
+  <li>Switching platform <b>keeps your status tab</b> (for example Pending). If the new platform has no such status, <span class="ui">All</span> is shown instead.</li>
+  <li>Switching platform clears the column filters and goes back to page 1.</li>
+  <li>Some buttons only appear on certain platforms: <span class="ui">NDR/DDR Bulk Claim</span> on Ajio, <span class="ui">Re-Claim</span> on Myntra, <span class="ui">Check TAT</span> on Meesho, and <span class="ui">Status Change</span> on Ajio, Myntra, Meesho, Snapdeal, Flipkart, Delhivery and Nykaa.</li>
+</ul>
+
+<h2 id="statuses">Status tabs</h2>
+<p>Every platform has these: <span class="ui">All</span>, <span class="ui">Failed to Proceed</span>, <span class="ui">Pending</span>, <span class="ui">In Review</span>, <span class="ui">Approved</span>, <span class="ui">Rejected</span>. Some platforms have extra tabs:</p>
+<div class="table-wrap"><table>
+  <tr><th>Platform</th><th>Extra status tabs</th></tr>
+  <tr><td>Ajio</td><td>Un Attended, In Progress, Customer Replied, Resolved</td></tr>
+  <tr><td>Myntra</td><td>Awaiting Seller Response, Awaiting Agent Response, Paid</td></tr>
+  <tr><td>Nykaa</td><td>Open, In Progress, On Hold, Awaiting Seller Response, Resolved, Closed</td></tr>
+</table></div>
+<div class="table-wrap"><table>
+  <tr><th>Status</th><th>Meaning in simple words</th></tr>
+  <tr><td>Pending</td><td>Not filed with the marketplace yet. These are the claims you can file.</td></tr>
+  <tr><td>Failed to Proceed</td><td>Filing was tried and could not finish, or the claim cannot be filed (for example the claim window has expired). Needs a person to look at it.</td></tr>
+  <tr><td>In Review / In Progress / Un Attended / Customer Replied / Awaiting … / Open / On Hold</td><td>Filed with the marketplace and waiting on them (or on you).</td></tr>
+  <tr><td>Approved / Paid / Resolved</td><td>Settled in your favour.</td></tr>
+  <tr><td>Rejected / Closed</td><td>Refused or closed by the marketplace. See the <b>Rejection reason</b> column.</td></tr>
+</table></div>
+
+<h2 id="columns">The table and its columns</h2>
+<p>The table only shows the columns that mean something for the chosen marketplace. The first columns (tick box and Platform) stay in place while you scroll sideways.</p>
+<div class="table-wrap"><table>
+  <tr><th>Column</th><th>Shown on</th><th>Meaning</th></tr>
+  <tr><td>Platform</td><td>All</td><td>The marketplace.</td></tr>
+  <tr><td>Username</td><td>All</td><td>The marketplace login the claim belongs to. A faint dash means none is set yet — such a claim cannot be filed.</td></tr>
+  <tr><td>Ticket</td><td>All</td><td>The marketplace ticket number, once filed.</td></tr>
+  <tr><td>Return AWB</td><td>All</td><td>The return shipment number. Every claim needs one.</td></tr>
+  <tr><td>Sub Order No</td><td>Meesho, Snapdeal</td><td>The per-item order number. Meesho claims cannot be filed without it.</td></tr>
+  <tr><td>Seller SKU</td><td>Ajio, Meesho, Nykaa, Myntra, Other</td><td>Your SKU for the returned item. On Ajio, a refresh icon may appear here — see <a href="#sku">Choosing the seller SKU</a>.</td></tr>
+  <tr><td>POB ID</td><td>Ajio only</td><td>AJIO's place of business. AJIO claims cannot be filed without it.</td></tr>
+  <tr><td>Status (first)</td><td>All</td><td>The <b>claim's</b> status (Pending, In Review, Approved…).</td></tr>
+  <tr><td>Amount</td><td>All</td><td>What the marketplace paid on the claim, in rupees. A dash if nothing is paid.</td></tr>
+  <tr><td>Rejection reason</td><td>All</td><td>Why the marketplace rejected it. Hover to read the full text.</td></tr>
+  <tr><td>Status (second)</td><td>All</td><td>The <b>automation's</b> status for this claim: Not Started, Queued, Running, Success/Completed, Failed, Help Center Failed.</td></tr>
+  <tr><td>Drive Status</td><td>Ajio only</td><td>Whether the evidence links for the claim are ready. While pending or failed, the claim cannot be filed.</td></tr>
+  <tr><td>Attempts</td><td>All</td><td>How many times the automation has tried to file it. The limit is 3.</td></tr>
+  <tr><td>Error</td><td>All</td><td>The last error from the automation, in red. Hover to read all of it.</td></tr>
+  <tr><td>Scanned Number</td><td>Ajio, Meesho, Snapdeal, Nykaa, Myntra, Other</td><td>The number scanned when the return was received.</td></tr>
+  <tr><td>Cust. Order No.</td><td>Ajio, Meesho, Myntra, Other</td><td>The customer order number.</td></tr>
+  <tr><td>Brand</td><td>All</td><td>The brand.</td></tr>
+  <tr><td>Account Type</td><td>Ajio, Meesho, Myntra, Other</td><td>The type of seller account.</td></tr>
+  <tr><td>Forward Order Date</td><td>All</td><td>When the original order was shipped.</td></tr>
+  <tr><td>Feed Name</td><td>All</td><td>The source/feed the claim came from.</td></tr>
+  <tr><td>Create Date - Time</td><td>All</td><td>When the claim was created in TrackVid.</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Note</b>There are <b>two columns called "Status"</b>. The first is the claim's status at the marketplace; the second is what the automation on this computer did with it.</div>
+
+<h2 id="colours">What the colours mean</h2>
+<h3>Claim status badges</h3>
+<div class="table-wrap"><table>
+  <tr><th>Colour</th><th>Statuses</th></tr>
+  <tr><td><span class="chip green">Green</span></td><td>Approved, Paid, Resolved</td></tr>
+  <tr><td><span class="chip amber">Amber</span></td><td>Pending, In Progress, Awaiting Agent Response</td></tr>
+  <tr><td>Blue</td><td>In Review</td></tr>
+  <tr><td><span class="chip red">Red</span></td><td>Rejected, Failed to Proceed</td></tr>
+  <tr><td><span class="chip grey">Grey</span></td><td>Customer Replied, Un Attended, and any other status</td></tr>
+</table></div>
+<h3>Automation status badges (second Status column)</h3>
+<div class="table-wrap"><table>
+  <tr><th>Colour</th><th>Statuses</th></tr>
+  <tr><td><span class="chip green">Green</span></td><td>Success, Completed</td></tr>
+  <tr><td><span class="chip amber">Amber</span></td><td>Running, Queued</td></tr>
+  <tr><td><span class="chip red">Red</span></td><td>Failed, Help Center Failed</td></tr>
+  <tr><td><span class="chip grey">Grey</span></td><td>Not Started</td></tr>
+</table></div>
+<p>The status tabs also carry a coloured dot: Failed to Proceed dark red, Pending amber, In Review blue, Approved green, Rejected red. A ticked row is highlighted.</p>
+
+<h2 id="colfilter">Filtering inside a column</h2>
+<p>Under every column heading there is a small <span class="ui">Search</span> box with a filter icon. These filters only narrow the rows already loaded — they do not change the tab counts.</p>
+<h3>How to search inside one column</h3>
+<ol class="steps">
+  <li>Type in the <span class="ui">Search</span> box under the column heading. Rows that do not match are hidden straight away.</li>
+</ol>
+<h3>How to pick values (like a spreadsheet filter)</h3>
+<ol class="steps">
+  <li>Click the filter icon inside the column's search box. A list of the column's values opens, each with how many rows have it.</li>
+  <li>Use <span class="ui">Find a value</span> to shorten the list.</li>
+  <li>Untick values to hide those rows, or use <span class="ui">Select all</span> / <span class="ui">Clear</span>. Changes apply as you click — there is no Apply button.</li>
+  <li>At the bottom, <b>Page X of Y loaded</b> tells you how many pages of claims the list covers. Scroll to the end, or click <span class="ui">Load next page</span>, to add the values from the next page.</li>
+  <li>Click outside the list to close it. A dot on the filter icon shows that the column is filtered.</li>
+</ol>
+<p>To remove all column filters, click the <b>Clear column filters</b> icon at the far left of the filter row (shown on tabs where rows can be ticked).</p>
+<div class="callout tip"><b class="t">Tip</b>Once a column filter is on, the table shows matches from every page loaded so far, not just the current page. A ticked row that a filter hides is automatically unticked, so you never file something you cannot see.</div>
+
+<h2 id="pages">Pages, Refresh and Export</h2>
+<ul>
+  <li>The bottom bar shows <b>N claims · page X of Y</b>. Use <span class="ui">Previous</span> and <span class="ui">Next</span> to move between pages.</li>
+  <li><span class="ui">Rows per page</span> can be 25, 50, 100 or 200. Changing it goes back to page 1.</li>
+  <li><span class="ui">Refresh</span> (toolbar) reloads the claims and re-checks which platforms this computer may file for.</li>
+</ul>
+<h3>How to export to Excel</h3>
+<ol class="steps">
+  <li>Set the platform, status, dates, search and any column filters so the table shows the claims you want.</li>
+  <li>Click <span class="ui">Export</span> (right of the platform tabs). It is greyed out when the table is empty.</li>
+  <li>Choose where to save the file.</li>
+  <li>You will see <b>Exported N claims</b> (and <b>on N sheets</b> if there is more than one platform). Images are not included.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>If the message ends with <b>— N had left this page, refresh to include them</b>, some claims changed while you were exporting. Click <span class="ui">Refresh</span> and export again.</div>
+
+<h2 id="select">Selecting claims</h2>
+<p>A tick-box column appears at the left of the table <b>only on the Pending and Failed to Proceed tabs</b> (and while <a href="#bulkupdate">Bulk Update</a> or <a href="#statuschange">Status Change</a> is switched on). Other tabs hold claims that are already with the marketplace, and filing them again would raise a second ticket.</p>
+<ul>
+  <li>Tick a row's box to select it. The box in the heading ticks every row on the page that can be filed.</li>
+  <li>A <b>greyed-out box</b> means that claim cannot be filed yet. <b>Hover over it</b> to see why.</li>
+  <li>The selection is cleared whenever the list reloads (new tab, search, dates or page).</li>
+</ul>
+<h3>Why a claim cannot be ticked</h3>
+<div class="table-wrap"><table>
+  <tr><th>Message when you hover</th><th>What to do</th></tr>
+  <tr><td>This claim is being filed right now…</td><td>Wait for it to finish.</td></tr>
+  <tr><td>Reached the retry limit — N attempts (max 3)…</td><td>A Failed to Proceed claim that has failed 3 times. Fix what is failing (read the Error column) before it can run again.</td></tr>
+  <tr><td>No return AWB on this claim…</td><td>Import the master data that carries the AWB, then retry.</td></tr>
+  <tr><td>No … account on this claim — there is no login to file it with…</td><td>The Username is empty. Import the master data carrying the account. (The scheduled <a href="08-refill-data.html">Refill Data</a> task can also fill it.) Nykaa does not need one.</td></tr>
+  <tr><td>No evidence on this claim — … refuses a claim with no images or video attached…</td><td>Add the evidence to the claim, then retry. (Meesho, Snapdeal, Delhivery, Flipkart, Myntra.)</td></tr>
+  <tr><td>POB ID missing — AJIO rejects a claim without it…</td><td>AJIO only. Import the master data carrying the POB ID, or let Refill Data fill it.</td></tr>
+  <tr><td>Evidence links are still being prepared for this AJIO claim…</td><td>AJIO only. Wait for the upload to finish, then <span class="ui">Refresh</span>.</td></tr>
+  <tr><td>Sub-order number missing — the Meesho claim form is searched by it…</td><td>Meesho only. Import the master data carrying it, or let Refill Data fill it.</td></tr>
+</table></div>
+
+<h2 id="create">Create Ticket — filing claims from this computer</h2>
+<p>When you tick one or more claims, a <span class="ui">Create Ticket (N)</span> button appears in the toolbar.</p>
+<ol class="steps">
+  <li>Go to the platform tab and the <span class="ui">Pending</span> (or <span class="ui">Failed to Proceed</span>) tab.</li>
+  <li>Tick the claims you want to file.</li>
+  <li>Click <span class="ui">Create Ticket (N)</span>.</li>
+  <li>The app checks that every login needed has a live session. If not, the <a href="#gate">Update logins first</a> window opens and nothing is started.</li>
+  <li>Filing runs in the background — one browser per account. Watch it in the <span class="ui">Background work</span> panel in the bottom-right corner (row <b>Ticket creation · <i>platform</i></b>).</li>
+  <li>When it finishes you see <b>Created N tickets</b>, and if any failed, <b>N failed — <i>reason</i></b>. The table reloads.</li>
+</ol>
+<h3>When Create Ticket is greyed out</h3>
+<p>Hover over the button to see why:</p>
+<div class="table-wrap"><table>
+  <tr><th>Message</th><th>Meaning / fix</th></tr>
+  <tr><td>Checking where … claims run…</td><td>Wait a moment.</td></tr>
+  <tr><td>Could not check where … claims run — TrackVid was unreachable. Press Refresh to try again.</td><td>Check your internet, then click <span class="ui">Refresh</span>.</td></tr>
+  <tr><td>This app has no … claim runner, so … claims can only be filed on the server.</td><td>This marketplace cannot be filed from the desktop app.</td></tr>
+  <tr><td>… claims run on the server for this company. Turn on desktop execution for … in Monitor to file them here.</td><td>Your admin decides this in TrackVid Monitor. Until they switch it on, these claims are filed by the server.</td></tr>
+</table></div>
+
+<h2 id="gate">"Update logins first" window</h2>
+<p>Before <span class="ui">Create Ticket</span>, <span class="ui">Check TAT</span>, <span class="ui">Status Change</span> or a <span class="ui">Re-claim</span> run starts, the app checks the marketplace logins it needs. If any is not usable, this window opens. <b>Nothing has been started.</b></p>
+<p>It lists each account with a badge:</p>
+<div class="table-wrap"><table>
+  <tr><th>Badge</th><th>Meaning</th></tr>
+  <tr><td><span class="chip red">Login expired</span></td><td>The saved session has run out.</td></tr>
+  <tr><td><span class="chip amber">Never captured</span></td><td>This login has never been signed in on this computer.</td></tr>
+  <tr><td><span class="chip red">Marketplace rejected it</span></td><td>The marketplace no longer accepts the saved session.</td></tr>
+  <tr><td><span class="chip grey">No login on this machine</span></td><td>The account is not added for your company on this computer. It must be added (and synced) first.</td></tr>
+  <tr><td><span class="chip grey">Optional</span></td><td>This login needs a one-time code (OTP). The action can run without it; its rows are left as they are.</td></tr>
+</table></div>
+<ol class="steps">
+  <li>Click <span class="ui">Re-capture login</span> (or <span class="ui">Re-capture N logins</span>). A sign-in window opens for each account in turn — complete each one.</li>
+  <li>When all succeed you see <b>Logins updated — press <i>action</i> again</b>. The window closes.</li>
+  <li>Press the original button again.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>If you see <b>Signed in, but TrackVid still reports no live login for …</b>, the sign-in did not reach TrackVid. Try again from the <a href="03-login-sessions.html">Login</a> page.</div>
+
+<h2 id="tat">Check TAT (Meesho)</h2>
+<p>On the <b>Meesho</b> tab, when you tick claims, a <span class="ui">Check TAT (N)</span> button appears next to Create Ticket. It asks Meesho whether each claim is still inside its claim window (TAT). Claims that are not are moved to <b>Failed to Proceed</b>.</p>
+<ol class="steps">
+  <li>On Meesho → Pending, tick the claims to check.</li>
+  <li>Click <span class="ui">Check TAT (N)</span>. (The login check runs first.)</li>
+  <li>The <span class="ui">Checking claim windows</span> window shows progress, how many are left, and each AWB's answer. You can click <span class="ui">Hide</span> — the check keeps running.</li>
+  <li>At the end a message such as <b>TAT checked on 20 claims: 3 moved to Failed to Proceed, 16 still claimable, 1 could not be checked</b> appears and the table reloads.</li>
+</ol>
+<div class="table-wrap"><table>
+  <tr><th>Result</th><th>Meaning</th></tr>
+  <tr><td><span class="chip red">ME1: TAT expired</span> (Expired)</td><td>The claim window has closed. Moved to Failed to Proceed.</td></tr>
+  <tr><td><span class="chip amber">ME2: Bad sub-order number</span> (Bad sub-order)</td><td>Meesho did not accept the sub-order number. Moved to Failed to Proceed. Correct the sub-order number.</td></tr>
+  <tr><td><span class="chip green">Claimable</span></td><td>Still inside the window. Nothing changed.</td></tr>
+  <tr><td><span class="chip grey">Not checked</span></td><td>Could not find out. Nothing changed — the claim is still in Pending.</td></tr>
+</table></div>
+
+<h2 id="sku">Choosing the seller SKU (AJIO)</h2>
+<p>An AJIO claim cannot be filed without the right SKU when a return has several items. On the <b>Ajio</b> tab, a small refresh icon appears in the <b>Seller SKU</b> cell of a claim that is Pending or Failed to Proceed and has a Username, a POB ID and a Return AWB.</p>
+<ol class="steps">
+  <li>Click the refresh icon in the Seller SKU cell (<b>Read this return's articles from AJIO and choose the SKU</b>).</li>
+  <li>The <span class="ui">Choose the seller SKU</span> window opens and reads the return from AJIO. This signs in to AJIO, so give it a moment.</li>
+  <li>Each item on the return is listed with its picture (if any), product name and codes (SKU, Sterling, Jio code, EAN, Scan, Qty). If there is only one item, it is chosen for you.</li>
+  <li>Pick the right item and click <span class="ui">Use this SKU</span>.</li>
+  <li>You see <b>SKU set to …</b> or <b>SKU changed from … to …</b>, and the table reloads.</li>
+</ol>
+<div class="callout warn"><b class="t">Note</b>Read any notes under an item: if AJIO gave no seller SKU, another code (for example EAN) is stored instead — the claim still matches. If two items share a code, check the product before saving. An item with no code at all cannot be chosen. If AJIO returns no items, the window says <b>AJIO returned no articles for this return. Nothing can be chosen.</b></div>
+
+<h2 id="bulkupdate">Bulk Update — change one field on many claims</h2>
+<p>Use <span class="ui">Bulk Update</span> to set one field to one value on many claims at once — for example, to correct a status on forty rows.</p>
+<ol class="steps">
+  <li>Click <span class="ui">Bulk Update</span> in the toolbar. The button changes to <span class="ui">Cancel update</span> and tick boxes appear on <b>every</b> row, on any status tab.</li>
+  <li>Tick the claims to change.</li>
+  <li>Click <span class="ui">Edit N selected</span>. The <span class="ui">Update N claims</span> window opens.</li>
+  <li>Choose the <span class="ui">Field</span>. The list comes from TrackVid, so it only offers fields that may be changed.</li>
+  <li>Enter the <span class="ui">New value</span>. For fields with fixed choices (such as a status) you pick from a list; otherwise you type. Some fields may be left empty to clear them (<b>Leave empty to clear</b>).</li>
+  <li>Read the line <b>… will be set to … on all N selected claims. This cannot be undone.</b></li>
+  <li>Click the red <span class="ui">Update N claims</span> button.</li>
+  <li>You see <b>Updated X of N claims</b> (claims that already had the value are not counted as changed). Any skipped claims are named. The selection clears and the table reloads.</li>
+</ol>
+<div class="callout danger"><b class="t">Important</b>Bulk Update cannot be undone. Check the number on the red button before you click it.</div>
+<p>To stop without changing anything, click <span class="ui">Cancel update</span> (or <span class="ui">Cancel</span> in the window). If the window shows <b>This TrackVid server does not have bulk update yet…</b>, the server needs updating — tell your admin.</p>
+
+<h2 id="statuschange">Status Change</h2>
+<p><span class="ui">Status Change</span> asks the marketplace where each filed ticket now stands (and what was paid) and updates the claim. It is on the Ajio, Myntra, Meesho, Snapdeal, Flipkart, Delhivery and Nykaa tabs. Full steps are on <a href="08-refill-data.html#manual-status">Refill data &amp; status change</a>.</p>
+
+<h2 id="reclaim">Re-Claim (Myntra)</h2>
+<p>On the <b>Myntra</b> tab, <span class="ui">Re-Claim</span> lets you dispute rejected Myntra SPF claims — reopen each ticket with a written reason and the same proofs, so Myntra checks it again.</p>
+<div class="callout danger"><b class="t">Important</b>A ticket can be reopened <b>only once</b>. Once a dispute is sent, the same ticket cannot be argued again with a different reason. Write the reason carefully.</div>
+
+<h3>Getting the tickets in</h3>
+<p>When the <span class="ui">Re-claim</span> window opens it says <b>Upload a Myntra rejection export to dispute its tickets.</b> You have three choices at the bottom:</p>
+<ul>
+  <li><span class="ui">Upload export</span> — choose Myntra's rejection export (Excel). It needs a <b>ticketId</b> column and an <b>RR Remarks</b> column (the reason sent for each ticket). <b>Issue category</b> is optional. Other columns in the file are shown as they are.</li>
+  <li><span class="ui">Download template</span> — save a blank sheet with the right columns.</li>
+  <li><span class="ui">Add rows by hand</span> — type a few tickets yourself. For each row enter the <b>Ticket</b> id, the <b>Remarks — sent as the dispute</b> and, optionally, the <b>Issue category</b> (blank keeps the ticket's own). Use <span class="ui">Add row</span> to add more (the remarks are copied from the row above), the bin icon to remove one, then click <span class="ui">Use these N rows</span>. <span class="ui">Back</span> returns without using them.</li>
+</ul>
+<p>Nothing is sent just by loading the sheet. If a column is missing you will see <b>The sheet has no … column — rows may be thin</b>.</p>
+
+<h3>The ticket table</h3>
+<ul>
+  <li>The table shows 50 rows per page, with <span class="ui">Previous</span> / <span class="ui">Next</span> and <b>Rows X–Y of N</b>.</li>
+  <li>Columns: tick box, <b>#</b> (row number in the sheet), <b>Action</b>, <b>Ticket</b>, <b>Remarks — sent as the dispute</b>, <b>Issue category</b>, and, if the export has them, <b>Status</b>, <b>Rejection reason</b>, <b>Created</b>, <b>Rejected</b>, <b>Closed</b>.</li>
+  <li>A row with no ticket id shows <span class="chip amber">No ticket id</span> and cannot be sent.</li>
+  <li>The eye icon beside a ticket id (<b>Read this ticket from Myntra — nothing is sent</b>) opens the ticket so you can read why it was rejected before you argue.</li>
+  <li>The box <b>Why this rejection should be reconsidered — sent only for rows whose Remarks column is empty</b> holds a default reason. Edit it; it is used only for rows with no remarks of their own.</li>
+</ul>
+
+<h3>Toolbar</h3>
+<ul>
+  <li><span class="ui">Choose an account…</span> — appears if you have more than one Myntra login. Pick the account the disputes are sent from.</li>
+  <li><span class="ui">Filter — ticket, reason…</span> — narrows the rows.</li>
+  <li><span class="ui">Rows</span> <b>from</b> … <span class="ui">to</span> <b>to</b> + <span class="ui">Select</span> — ticks a range of row numbers (added to what is already ticked).</li>
+  <li><span class="ui">Choose another</span> — load a different file.</li>
+  <li><span class="ui">Re-claim selected (N)</span> — dispute all ticked tickets. <span class="ui">Clear</span> unticks all.</li>
+</ul>
+<p>When every row on the page is ticked and the sheet has more than one page, a blue note offers <span class="ui">Select all N rows</span> (or <span class="ui">Select all N matching rows</span> when a filter is on), then <span class="ui">Clear the selection</span>.</p>
+
+<h3>How to dispute one ticket</h3>
+<ol class="steps">
+  <li>Click <span class="ui">Re-claim</span> in the row's Action column. The line <b>Disputing … — reading the ticket, reopening it, then reading it back</b> shows while it works.</li>
+  <li>The ticket window opens with a green (sent) or red (refused) message and what Myntra now says about the ticket.</li>
+  <li>The row shows a coloured chip with the ticket's new status (or <b>Raised</b> / <b>Refused</b>). Hover for Myntra's message, click to reopen the details. The row's button becomes <span class="ui">Re-claim again</span>.</li>
+</ol>
+
+<h3>How to dispute many tickets</h3>
+<ol class="steps">
+  <li>Pick the Myntra account if asked. If you skip it with several accounts, you will see <b>Choose which Myntra account these disputes are sent from</b>.</li>
+  <li>Tick the tickets (or use the range / select-all options).</li>
+  <li>Click <span class="ui">Re-claim selected (N)</span>. The login check runs first.</li>
+  <li>A confirmation <span class="ui">Re-claim N ticket(s)?</span> tells you how many send their own remarks and quotes the default reason the rest will get. Click <span class="ui">Send N dispute(s)</span>.</li>
+  <li>You see <b>Disputing N tickets — it carries on if you close this window, and the result is on the Jobs page.</b></li>
+  <li>Tickets are sent one at a time with a short pause between them (<b>Pausing …s before ticket … — spaced out on purpose</b>). The progress card shows <b>Disputing X / Y</b>, the percentage, and how many were <b>raised</b> and <b>refused</b>. The table page follows the ticket being sent.</li>
+  <li>To stop, click the red <span class="ui">Stop after this one</span>. The ticket in progress finishes; the rest are left untouched.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>A long run carries on if you close the window. The <span class="ui">Background work</span> panel shows <b>Re-claim · Myntra</b> with raised/refused counts and, when enlarged, Myntra's reason for each refusal. The finished run is listed on <a href="09-background-process.html">Background Process</a>.</div>
+
+<h3>The ticket details window</h3>
+<p>Title <b>Ticket …</b>. It shows: Ticket, Status, Original status, Validation reason (usually says why it was rejected), Issue category, Return reason, Tracking id, Order, Return, SKU, Style, Compensation and Last modified. <b>Everything else Myntra returned</b> can be expanded. After a dispute, <b>What was sent, and what came back</b> shows Myntra's answer (open automatically if it was refused).</p>
+<ul>
+  <li><b>Myntra has no such ticket on this account. Check the account, or the ticket id in the sheet.</b> — wrong account chosen or wrong id.</li>
+  <li><b>Myntra returned no ticket when it was read back. The dispute may still have landed — check the portal before sending it again.</b></li>
+</ul>
+
+<h2 id="ndr">NDR/DDR Bulk Claim (AJIO)</h2>
+<p>On the <b>Ajio</b> tab, the <span class="ui">NDR/DDR Bulk Claim</span> button opens the spreadsheet bulk claim for AJIO SPF claims. See <a href="06-spf-bulk-claim.html">SPF bulk claim (AJIO)</a>.</p>
+
+<h2 id="empty">Empty, loading and error states</h2>
+<div class="table-wrap"><table>
+  <tr><th>What you see</th><th>Meaning / fix</th></tr>
+  <tr><td><b>Reading claims from TrackVid…</b></td><td>The list is loading.</td></tr>
+  <tr><td><b>Nothing on this tab</b> — No claim on this marketplace has that status in the selected date range. Widen the dates, or try another status.</td><td>There really are no claims here. Try a wider date range or another tab.</td></tr>
+  <tr><td><b>Every row is filtered out</b> — This page has N claims, and the column filter hides them all. Clear the filter to see them.</td><td>Clear the column filters.</td></tr>
+  <tr><td>A red box at the top with an error</td><td>The claims could not be read from TrackVid (often no internet). Fix the connection and click <span class="ui">Refresh</span>.</td></tr>
+</table></div>
+
+<div class="pager">
+  <a href="06-spf-bulk-claim.html"><span>Previous</span>6. SPF bulk claim (AJIO)</a>
+  <a href="08-refill-data.html"><span>Next</span>8. Refill data &amp; status change</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

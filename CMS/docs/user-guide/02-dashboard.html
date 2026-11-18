@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard — TrackVid CMS Guide</title>
+<link rel="stylesheet" href="assets/guide.css">
+</head>
+<body>
+<div class="layout">
+<nav class="sidebar">
+  <div class="brand"><a href="index.html">TrackVid CMS</a></div>
+  <div class="sub">User guide · desktop app</div>
+  <ol>
+    <li><a href="index.html">Home</a></li>
+    <div class="group">Start here</div>
+    <li><a href="01-getting-started.html">1. Getting started</a></li>
+    <li><a href="02-dashboard.html" class="active">2. Dashboard</a></li>
+    <li><a href="03-login-sessions.html">3. Login (marketplace sign-ins)</a></li>
+    <div class="group">Claims</div>
+    <li><a href="04-create-claim.html">4. Create claim</a></li>
+    <li><a href="05-bulk-claim.html">5. Bulk claim</a></li>
+    <li><a href="06-spf-bulk-claim.html">6. SPF bulk claim (AJIO)</a></li>
+    <li><a href="07-manage-claims.html">7. Manage claims</a></li>
+    <li><a href="08-refill-data.html">8. Refill data &amp; status change</a></li>
+    <div class="group">Automation</div>
+    <li><a href="09-background-process.html">9. Background process</a></li>
+    <li><a href="10-scheduled-automations.html">10. Scheduled automations</a></li>
+    <div class="group">More</div>
+    <li><a href="11-settings.html">11. Settings &amp; profile</a></li>
+    <li><a href="12-troubleshooting.html">12. Troubleshooting &amp; FAQ</a></li>
+  </ol>
+</nav>
+<main><div class="content">
+
+<h1>Dashboard</h1>
+<p class="lead">The Dashboard is the first page you see after signing in. It shows, for every marketplace your company uses, how many claims there are, how they are going, how much money has been recovered, and what needs your attention today.</p>
+
+<div class="toc"><strong>On this page</strong>
+<ol>
+<li><a href="#header">The header bar and Refresh</a></li>
+<li><a href="#tiles">The six summary tiles</a></li>
+<li><a href="#outcomes">Claim outcomes by platform</a></li>
+<li><a href="#attention">Needs attention</a></li>
+<li><a href="#platforms">The Platforms table</a></li>
+<li><a href="#states">Loading, empty and error messages</a></li>
+<li><a href="#routine">A daily routine using the Dashboard</a></li>
+</ol></div>
+
+<p>To open it, click <span class="ui">Dashboard</span> in the side menu, or click <span class="ui">TrackVid Operations</span> in the top bar from any page. The Dashboard only shows information; nothing on it changes your claims. Several tiles and rows are clickable and take you to the page where you can act.</p>
+
+<h2 id="header">The header bar and Refresh</h2>
+<p>At the top is a bar reading "Claims, logins and master data for every platform this company runs · updated 5 minutes ago". The "updated" part tells you how fresh the figures are.</p>
+<h3>How to refresh the Dashboard</h3>
+<ol class="steps">
+<li>Click <span class="ui">Refresh</span> at the right of the header bar. The button shows a spinner while it works.</li>
+<li>The figures reload and "updated" changes to <span class="ui">just now</span>.</li>
+</ol>
+<div class="callout tip"><b class="t">Tip</b>The Sync button (circular arrows) in the top bar also refreshes the Dashboard, and at the same time downloads the latest shared data from TrackVid. Use it if Refresh alone does not show a change you expect.</div>
+
+<h2 id="tiles">The six summary tiles</h2>
+<p>Below the header are six tiles. Together they answer "how are we doing?" for the whole company, across all platforms.</p>
+<div class="table-wrap"><table>
+<tr><th>Tile</th><th>What it shows</th><th>Click it to…</th></tr>
+<tr><td><span class="ui">Recovered</span></td><td>Total compensation (in ₹) the marketplaces have paid out on your claims. The icon turns green when this is above zero. If it says "Not available yet — the server has to be updated to report it", TrackVid has not started sending this figure; it shows <b>—</b> until then.</td><td>(not clickable)</td></tr>
+<tr><td><span class="ui">Claims</span></td><td>Total number of claims, how many platforms they are on, and how many are <b>queued on this machine</b> (waiting to be filed by this computer).</td><td>Open <a href="07-manage-claims.html">Manage Claims</a>.</td></tr>
+<tr><td><span class="ui">Approval rate</span></td><td>Approved claims as a share of claims that have been <b>decided</b> (approved or rejected). Undecided claims are not counted. A green bar fills to the same share. For example "45 approved of 60 decided" gives 75%. If nothing is decided yet it says "No claim decided yet".</td><td>(not clickable)</td></tr>
+<tr><td><span class="ui">In review</span></td><td>Claims the marketplace is still looking at, and what percentage of all claims that is.</td><td>(not clickable)</td></tr>
+<tr><td><span class="ui">Failed to proceed</span></td><td>Claims that could not be filed. When above zero the icon turns amber and the tile says "Could not be filed — open the claim queue". When zero it says "Nothing stuck".</td><td>Open <a href="07-manage-claims.html">Manage Claims</a> to see and retry them.</td></tr>
+<tr><td><span class="ui">Logins need attention</span></td><td>Marketplace accounts whose saved login has expired, been rejected, or is missing. When above zero the icon is red and says "of 8 accounts — automations on them will fail". When zero the icon is green: "All 8 accounts are signed in".</td><td>Open the <a href="03-login-sessions.html">Login</a> page to re-capture them.</td></tr>
+</table></div>
+<div class="callout tip"><b class="t">Tip</b>"Approved" includes claims marked <b>Paid</b> — a paid claim was approved first.</div>
+
+<h2 id="outcomes">Claim outcomes by platform</h2>
+<p>This card compares your platforms side by side. Each row is one platform (with its logo), sorted with the platform that has the most claims at the top.</p>
+<ul>
+<li>The <b>coloured bar</b> shows how that platform's claims are split by status. Hover your mouse over any part of the bar to see the exact number and percentage, for example "Rejected: 12 (8%)".</li>
+<li>On the right is the <b>total number of claims</b>, and underneath: "75% of 60 decided" (the approval rate and how many claims it is based on), "None decided yet", or "No claims".</li>
+<li>Click a row to open <a href="07-manage-claims.html">Manage Claims</a>.</li>
+</ul>
+<p>The colour key (legend) is at the top-right of the card:</p>
+<div class="table-wrap"><table>
+<tr><th>Colour</th><th>Status</th><th>Meaning</th></tr>
+<tr><td><span class="chip green">Green</span></td><td>Approved</td><td>The marketplace accepted the claim (includes Paid).</td></tr>
+<tr><td><span class="chip amber">Amber / brown</span></td><td>Pending</td><td>Waiting for a decision from the marketplace.</td></tr>
+<tr><td>Blue</td><td>In review</td><td>The marketplace is looking at it.</td></tr>
+<tr><td><span class="chip red">Red</span></td><td>Rejected</td><td>The marketplace turned the claim down.</td></tr>
+<tr><td><span class="chip grey">Grey</span></td><td>Other</td><td>Every other status (for example Failed to Proceed). Hover to see which statuses are included.</td></tr>
+</table></div>
+<div class="callout tip"><b class="t">Tip</b>A platform with a lot of red compared with the others is worth a closer look — check the rejection reasons in Manage Claims.</div>
+
+<h2 id="attention">Needs attention</h2>
+<p>This card is your to-do list. It lists, most urgent first, the problems that stop claims from being filed. Click any line to go to the page where you fix it.</p>
+<div class="table-wrap"><table>
+<tr><th>Line</th><th>Icon colour</th><th>What it means</th><th>Clicking it opens</th></tr>
+<tr><td>"3 logins need updating" — followed by the platforms, for example "Myntra 2 · Ajio"</td><td><span class="chip red">Red key</span></td><td>Saved marketplace logins have expired or been refused. Automations on those accounts will fail until you re-capture them.</td><td><a href="03-login-sessions.html">Login</a></td></tr>
+<tr><td>"5 claims failed to proceed" — with the platforms</td><td><span class="chip amber">Amber warning</span></td><td>These claims could not be filed and are waiting for you.</td><td><a href="07-manage-claims.html">Manage Claims</a></td></tr>
+<tr><td>"Master data is out of date on 2 platforms" — for example "Ajio 3 days ago · Snapdeal never synced"</td><td><span class="chip grey">Grey database</span></td><td>The order/return data the app downloads from that marketplace has not been updated for more than 48 hours, or never. Claims may be missing details.</td><td><a href="11-settings.html">Settings</a> (the report sync tasks in the automation schedule)</td></tr>
+</table></div>
+<p>When there is nothing to do, the card shows a green tick and <span class="ui">All clear</span> — "Every login works and nothing is stuck."</p>
+
+<h3>How to clear the Needs attention list</h3>
+<ol class="steps">
+<li>Start with the red login line. Click it, and on the Login page re-capture each account it names (see <a href="03-login-sessions.html">3. Login</a>).</li>
+<li>Next, click the amber failed-claims line and retry or fix those claims in Manage Claims (see <a href="07-manage-claims.html">7. Manage claims</a>).</li>
+<li>If the grey master-data line appears, click it. On Settings, check the report sync task for that platform: make sure it is switched <span class="ui">On</span>, and click <span class="ui">Run now</span> if needed (see <a href="10-scheduled-automations.html">10. Scheduled automations</a>). A login that needs updating is often the reason a sync failed, so fix logins first.</li>
+<li>Come back to the Dashboard and click <span class="ui">Refresh</span>. Fixed items disappear from the list.</li>
+</ol>
+
+<h2 id="platforms">The Platforms table</h2>
+<p>At the bottom is a table with every figure for every platform, so you can read the numbers without hovering. Scroll sideways if the window is narrow.</p>
+<div class="table-wrap"><table>
+<tr><th>Column</th><th>Meaning</th></tr>
+<tr><td><span class="ui">Platform</span></td><td>The marketplace, with its logo.</td></tr>
+<tr><td><span class="ui">Claims</span></td><td>Total claims on that platform.</td></tr>
+<tr><td><span class="ui">Approved</span></td><td>Approved claims (including Paid).</td></tr>
+<tr><td><span class="ui">Rejected</span></td><td>Rejected claims.</td></tr>
+<tr><td><span class="ui">Approval rate</span></td><td>Approved out of approved + rejected. Shows <b>—</b> if none are decided.</td></tr>
+<tr><td><span class="ui">Recovered</span></td><td>Money (₹) paid out on that platform's claims. <b>—</b> if not available.</td></tr>
+<tr><td><span class="ui">In review</span></td><td>Claims the marketplace is reviewing.</td></tr>
+<tr><td><span class="ui">Pending</span></td><td>Claims with the status Pending.</td></tr>
+<tr><td><span class="ui">Failed to proceed</span></td><td>Claims that could not be filed. Shown in amber when above zero.</td></tr>
+<tr><td><span class="ui">Login</span></td><td>The health of that platform's worst saved login (see below). <b>—</b> if there is none to show.</td></tr>
+<tr><td><span class="ui">Master data</span></td><td>When the platform's data was last downloaded, for example "6 hours ago". <span class="chip amber">Never synced</span> in amber means it has never been downloaded. <b>—</b> means the platform does not use master data.</td></tr>
+<tr><td><span class="ui">Queued here</span></td><td>Claims waiting to be filed by <b>this</b> computer.</td></tr>
+</table></div>
+
+<h3>Login column badges</h3>
+<div class="table-wrap"><table>
+<tr><th>Badge</th><th>Meaning</th><th>What to do</th></tr>
+<tr><td><span class="chip green">Saved</span></td><td>The login is working.</td><td>Nothing.</td></tr>
+<tr><td><span class="chip amber">Expiring</span></td><td>The login will run out soon.</td><td>Re-capture it on the Login page when convenient, before it expires.</td></tr>
+<tr><td><span class="chip red">Expired</span></td><td>The login has run out.</td><td>Re-capture it now on the Login page.</td></tr>
+<tr><td><span class="chip red">Rejected</span></td><td>The marketplace refused the saved login (for example, the password changed or you were signed out elsewhere).</td><td>Re-capture it now on the Login page.</td></tr>
+<tr><td><span class="chip grey">No login</span></td><td>No login has been captured for this platform on this computer.</td><td>Capture one on the Login page if this computer should work on that platform.</td></tr>
+</table></div>
+
+<h2 id="states">Loading, empty and error messages</h2>
+<div class="table-wrap"><table>
+<tr><th>What you see</th><th>What it means</th><th>What to do</th></tr>
+<tr><td><span class="ui">Reading this company's claims…</span> with a spinner</td><td>The Dashboard is loading.</td><td>Wait a few seconds.</td></tr>
+<tr><td><span class="ui">No marketplaces yet</span></td><td>Your company has no marketplace accounts set up in TrackVid, so there is nothing to show.</td><td>Ask your TrackVid administrator to add the marketplace credentials in TrackVid, then click Sync.</td></tr>
+<tr><td>A red box with an error message, and no figures</td><td>The Dashboard could not load at all.</td><td>Check your internet connection and click <span class="ui">Refresh</span>.</td></tr>
+<tr><td>An amber box such as <span class="ui">2 parts of this page could not be loaded</span>, with a button like <span class="ui">2 items</span></td><td>Most of the Dashboard loaded, but some figures could not be fetched. Those figures may show as zero even though they are not.</td><td>Click the <span class="ui">2 items</span> button to see what failed (grouped by cause; click <span class="ui">Hide</span> to close it). Then click <span class="ui">Refresh</span>. If it keeps happening, report the listed cause to support.</td></tr>
+</table></div>
+<div class="callout warn"><b class="t">Note</b>When the amber "could not be loaded" box is showing, do not trust zeros on the page — they may be zero only because that part failed to load.</div>
+
+<h2 id="routine">A daily routine using the Dashboard</h2>
+<ol class="steps">
+<li>Open the app. It starts on the Dashboard.</li>
+<li>Check the "updated" time in the header. If it is old, click <span class="ui">Refresh</span>.</li>
+<li>Look at <span class="ui">Needs attention</span>. If it does not say <span class="ui">All clear</span>, work through it from the top (see <a href="#attention">How to clear the list</a>).</li>
+<li>Glance at <span class="ui">Failed to proceed</span> and <span class="ui">Logins need attention</span>. Both should be zero by the time you finish.</li>
+<li>Use <span class="ui">Claim outcomes by platform</span> and the <span class="ui">Platforms</span> table to spot any platform with unusually many rejections.</li>
+<li>Go to <span class="ui">Create claim</span> to file the day's new claims.</li>
+</ol>
+
+<div class="pager">
+  <a href="01-getting-started.html"><span>Previous</span>1. Getting started</a>
+  <a href="03-login-sessions.html"><span>Next</span>3. Login (marketplace sign-ins)</a>
+</div>
+
+</div></main>
+</div>
+</body>
+</html>

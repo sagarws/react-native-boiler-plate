@@ -1,0 +1,27 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "composite": true,
+    "lib": ["ES2023"],
+    "types": ["node"]
+  },
+  "include": [
+    "electron/main/**/*.ts",
+    "electron/preload/**/*.ts",
+    "shared/**/*.ts",
+    "tests/**/*.ts",
+    "electron.vite.config.ts",
+    "vitest.config.ts",
+    "vite-obfuscator-plugin.d.ts"
+  ],
+  /*
+   * `tests/renderer` belongs to the WEB project.
+   *
+   * Those tests cover the parts of the renderer that are plain logic — the
+   * claim form's rules and its per-platform payload builders — so they import
+   * renderer modules, which are compiled with the DOM lib and without
+   * `exactOptionalPropertyTypes`. Checking them here would check that code
+   * under the main process's settings, which is a different language.
+   */
+  "exclude": ["tests/renderer/**/*.ts"]
+}

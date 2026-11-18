@@ -1,0 +1,39 @@
+/*
+ * The renderer's one stylesheet.
+ *
+ * ONE ENTRY, BECAUSE TAILWIND NEEDS ONE. Every `@theme` block has to be read in
+ * the same entry or Tailwind generates utilities for whichever file it saw and
+ * not the other — half the app would silently lose its classes. So both token
+ * systems are imported here, in the order that decides which one wins.
+ *
+ * ORDER IS THE POINT:
+ *   tailwind    the layers, once, with `important` so a utility beats MUI
+ *   theme.css   the OUTGOING system's tokens — still generating the utilities
+ *               every screen that has not been migrated yet is written in
+ *   vuexy.css   Monitor's tokens. Read last, so where the two systems use the
+ *               same name, Monitor wins for the document as a whole
+ *   legacy.css  gives the thirteen contested names back to old screens, scoped
+ *               to the subtree they render in
+ *   fonts/icons/window/behaviour — the rest
+ *
+ * NO PREFLIGHT, which is a deliberate difference from the old entry: Monitor
+ * imports `tailwindcss/theme.css` and `tailwindcss/utilities.css` rather than
+ * all of `tailwindcss`, and lets MUI's CssBaseline do the resetting. Running
+ * both resets fights MUI for control of every element it styles.
+ */
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme) important;
+@import 'tailwindcss/utilities.css' layer(utilities) important;
+@plugin 'tailwindcss-logical';
+
+@import './theme.css';
+@import './vuexy.css';
+@import './legacy.css';
+
+@import './fonts.css';
+@import './icons.css';
+@import './window.css';
+@import './behaviour.css';
+@import './table-chrome.css';
+@import './login.css';
+@import './veylix.css';
