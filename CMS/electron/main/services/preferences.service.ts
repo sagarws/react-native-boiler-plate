@@ -80,6 +80,13 @@ export interface Preferences {
    */
   showLoginInfo: boolean
   /**
+   * Which half of the app opens — the CMS or the VMS recorder (Argos Watch,
+   * merged in; see VMS_MERGE_PLAN.md). Per installation: a packing desk opens
+   * straight into VMS, an office machine into CMS. Anything unreadable is CMS,
+   * which is what every installation was before this existed.
+   */
+  appMode: AppMode
+  /**
    * The operator's own palette, type scale and corners.
    *
    * AN OVERRIDE SET, never a theme: the empty value is a complete, correct app,
@@ -96,8 +103,13 @@ interface PersistedPreferences {
   myntraHeadlessLogin?: boolean
   automationsOnAtLaunch?: boolean
   showLoginInfo?: boolean
+  appMode?: string
   appearance?: unknown
 }
+
+export type AppMode = 'cms' | 'vms'
+
+const toAppMode = (value: unknown): AppMode => (value === 'vms' ? 'vms' : 'cms')
 
 /**
  * Reads a stored appearance back, keeping only what this build understands.
@@ -177,6 +189,7 @@ let current: Preferences = {
   myntraHeadlessLogin: false,
   automationsOnAtLaunch: true,
   showLoginInfo: false,
+  appMode: 'cms',
   appearance: DEFAULT_APPEARANCE
 }
 
@@ -209,6 +222,7 @@ export const initialisePreferences = (): void => {
       automationsOnAtLaunch: parsed.automationsOnAtLaunch !== false,
       // `=== true`: hidden is the safe way for an unreadable value to fall.
       showLoginInfo: parsed.showLoginInfo === true,
+      appMode: toAppMode(parsed.appMode),
       appearance: readAppearance(parsed.appearance)
     }
     logger.info('Preferences loaded', {
@@ -229,6 +243,7 @@ export const initialisePreferences = (): void => {
       myntraHeadlessLogin: false,
       automationsOnAtLaunch: true,
       showLoginInfo: false,
+      appMode: 'cms',
       appearance: DEFAULT_APPEARANCE
     }
   }
@@ -243,6 +258,7 @@ const persist = async (next: Preferences): Promise<void> => {
     myntraHeadlessLogin: next.myntraHeadlessLogin,
     automationsOnAtLaunch: next.automationsOnAtLaunch,
     showLoginInfo: next.showLoginInfo,
+    appMode: next.appMode,
     appearance: next.appearance
   }
   const target = filePath()
@@ -370,6 +386,23 @@ export const setAppearance = async (appearance: unknown): Promise<Preferences> =
   } catch (error) {
     // Applies for this session either way; only the persistence failed.
     logger.warn('Could not persist the appearance', {
+      error: error instanceof Error ? error.message : String(error)
+    })
+  }
+
+  return current
+}
+
+/** CMS or VMS — which half of the app this installation opens in. */
+export const setAppMode = async (mode: unknown): Promise<Preferences> => {
+  current = { ...current, appMode: toAppMode(mode) }
+
+  try {
+    await persist(current)
+    logger.info(`App mode set to ${current.appMode}`)
+  } catch (error) {
+    // Applies for this session either way; only the persistence failed.
+    logger.warn('Could not persist the app mode', {
       error: error instanceof Error ? error.message : String(error)
     })
   }

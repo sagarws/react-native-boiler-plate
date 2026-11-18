@@ -1,0 +1,134 @@
+VMS → CMS MERGE — PROGRESS
+Plan: VMS_MERGE_PLAN.md   Source: Argos-Watch-TrackVid-App @ 59a1e23   Started: 2026-11-18
+STATUS: COMPLETE (V0–V6) — needs a real-device test (camera, upload, Flipkart account); backend deploy optional (fallback in place)
+CURRENT: done
+
+[DONE]    V0  Backend POST /api/auth/feed-token — TrackVid-BE (issueFeedToken + respondWithFeedSession, tsc clean)
+              and Nest BE (src/modules/auth/feed-token.handler.ts + route; tsc clean; auth/express/feed parity
+              suites 110/110). Not committed, not deployed.
+[DONE]    V1  Contracts: shared/vms/* (Argos types copied + feeds.ts), VMS_CHANNELS/VMS_EVENTS, appMode preference
+              (main + IPC + renderer client), renderer/vms/store (redux stand-in, same API). Typecheck x2 clean.
+[DONE]    V2  Main: electron/main/vms/* (feed session, node:http+ws local server, RTSP bridge, JSON queue with
+              feedId, upload driver with bundled ffmpeg, vms.ipc, media permissions), auth logout releases the feed,
+              quit hooks, CSP connect-src for 127.0.0.1, usage strings; ws 8.21.3 + @types/ws 8.18.1 declared.
+              tests/vms 34/34; full suite 255 files / 2130 tests green (helper agent). Not run against real BE/camera.
+[DONE]    V3  Renderer: vms/AppModeContext + ModeToggle (rail foot, both modes), VmsSessionContext, shell (nav
+              Forward/Return, feed picker + takeover confirm, network/pending/failed/credits/camera switch), Failed
+              uploads dialog (+PDF), API probe, guards (idle 15 min, storage 5/10 GB, date), media permissions,
+              recorder (vms/recorder/**: capture shell, webcam + RTSP, screenshots, SKU panel, condition popup,
+              multi-step), CSP for 127.0.0.1 + mediastream:, #vms-recorder-preview. Light + dark checked.
+[DONE]    V4  npm run verify green (301 files tokens, 255 test files / 2130 tests); build:unpack PASS (obfuscated,
+              unsigned, camera/mic usage strings in Info.plist, ffmpeg-static unpacked). e2e NOT run: see report.
+[DONE]    V5  Report
+[DONE]    V6  Flipkart VMS mirror (partner VMS) ported from TrackVid-App @ c188745 (PR #182): main
+              electron/main/vms/partnerVms/* (controller, flow config, injection, IPC), PARTNER_VMS_CHANNELS/EVENTS,
+              renderer vms/partnerVms/* (nav entry, gated page, chips, mirror bridge, 12 s minimum), 34 new tests.
+              verify green (261 files / 2169 tests). Never loaded fkvms; screenshots from the stub bridge only.
+
+DECISIONS
+2026-11-18  User chose a backend endpoint (both backends) over reading feed passwords from POST /api/feed.
+2026-11-18  This task is a feature merge, not UI-only: electron/main, preload, shared/ and build config are in scope
+            (the earlier UI-migration limits applied to that migration only). Still: no commits/branches/deploys.
+2026-11-18  Nest BE change is additive (new handler file + one route line); BE/legacy submodule untouched.
+2026-11-18  TrackVid-BE: an unrelated uncommitted change in systemAdmin.routes.ts was already there; left alone.
+2026-11-18  Feed picker lists feeds from GET /api/feed/common-feed (no passwords), not POST /api/feed.
+2026-11-18  No new runtime deps except `ws` made explicit (8.21.3, already installed via puppeteer; MIT, pure JS):
+            redux/router/formik/yup/hot-toast/framer/idle-timer/uuid/systeminformation replaced by CMS equivalents;
+            better-sqlite3 -> JSON store; express/multer/cors -> node:http; fluent-ffmpeg/fix-webm-duration ->
+            bundled ffmpeg spawned directly (copy-remux writes the WebM duration).
+2026-11-18  Argos' 256 MB heap cap and global CSP are not carried over; only camera/mic permission and the
+            CSP sources VMS needs are added to the CMS's own.
+2026-11-18  Redux replaced by renderer/vms/store: createSlice stand-in (structuredClone draft) + useSyncExternalStore;
+            same useAppSelector/useAppDispatch/action names, so ported components keep their store code.
+2026-11-18  Recorder upload contract (renderer -> local server), replacing Argos' multipart POST /upload (no multer):
+            POST /upload/file (raw bytes, header x-file-name) -> {id}; POST /upload JSON {file, files[], fields}
+            -> Argos' own /upload response. Same queue row, same fields.
+2026-11-18  Queue rows gain `feedId` (the feed recorded under); the upload driver only sends rows of the feed
+            whose session is held — an admin can switch feeds, Argos could not.
+2026-11-18  Local server starts lazily on first VMS use, so a CMS-only installation opens no port.
+2026-11-18  The VMS upload queue (`vms-upload-queue`) is kept on CMS sign-out (localData KEPT list) — Argos kept its
+            queue across logouts; rows carry feedId so they never upload under another feed.
+2026-11-18  Local server answers only the app's own origin (Argos accepted any). A 401 from create-order re-queues
+            without spending a retry and drops the feed session. Newest 500 synced rows kept. ws dependency check:
+            MIT, pure JS, maintained, Node>=10, already installed; @types/ws types only.
+2026-11-18  shared/vms/app.ts APP_NAME -> 'TrackVid CMS' (VMS messages named Argos Watch).
+2026-11-18  Recorder reads the latest stamp fields through a ref — in Argos the AWB never reached the burned-in
+            stamp (bug fixed while porting). Date check / permissions / camera switch live in the shell only.
+2026-11-18  Screenshot harness: camera/mic always refused; GALLERY_FAKECAM=1 swaps in Chromium's synthetic camera.
+            (One helper run earlier opened the Mac's real camera before this existed; frames deleted, nothing
+            recorded or uploaded.)
+2026-11-18  V6 source is TrackVid-App (not Argos Watch, which never had it): src/main/partnerVms/*, the renderer's
+            FlipkartVmsPage / usePartnerVms / MirrorStatusChip / partnerVmsMirror. Gated by the feed session's
+            partnerVmsEnabled exactly as there. Never loaded or logged into fkvms.synlabs.io during this work.
+2026-11-18  USER CHOSE "combined": vms:select-feed tries POST /auth/feed-token; only when the backend lacks that
+            route (Express plain-text 404/405, i.e. not deployed) it falls back to POST /feed (admin token) for the
+            feed's userId+password -> check-already-login (unless force) -> feed-login with the CMS admin's email.
+            The password stays in a local variable in main (never logged/stored/sent to the renderer). An endpoint
+            JSON 404 ("feed not found") does NOT trigger the fallback. Known limit: on an undeployed backend, a
+            sub-user (non-admin email) cannot open feeds — feed-login needs the company admin's email; message says so.
+            Pinned by 5 new tests in tests/vms/feedSession.test.ts (11/11 pass).
+
+2026-11-18  V6: the mirror is gated in MAIN as well (enable/start refuse unless the held feed session has
+            partnerVmsEnabled); main tears the view down on feed release / switch / 401 / flag off, on CMS sign-out
+            (via the feed release), on window close and on quit. The renderer never calls disable.
+2026-11-18  V6: partition persist:fkvms (same as TrackVid-App) gets its own permission policy: media for
+            https://fkvms.synlabs.io only; the CMS default-session policy is unchanged. Popups from their page are
+            denied (TrackVid-App allowed Electron's default). teardown also closes the view's webContents.
+2026-11-18  V6: the 12 s minimum is ported as refuse-scan + disabled Stop with countdown (TrackVid-App's final
+            behaviour); the older "hold and replay" queue is not, since the refusal makes it unreachable.
+2026-11-18  V6: TrackVid-App's camera auto-picker / pinning / 720p constant / relaxed-constraints retry are recorder
+            changes not ported; the mirror gets the label and format actually opened by the CMS recorder.
+
+LOG (newest last)
+2026-11-18  V0 done. Plan + tracker written.
+2026-11-18  V1 done. V2/V3 split across three agents: main services; VMS shell; recorder page.
+2026-11-18  V2 done (helper agent); lead kept the queue on sign-out, renamed VMS app name.
+2026-11-18  V3 done (two helper agents) + lead integration: preview hash, duplicates resolved, verify green.
+2026-11-18  V4: a CMS/.env now exists (created by the user). It was not inspected before build:unpack ran — the
+            pre-build rule was missed. Checked straight after: TRACKVID_OBFUSCATE=true, DISABLE_SUBMIT=false,
+            HEADLESS=true, no per-platform overrides, no .env.production* -> the build is compliant; secrets gate
+            47 files / 7 values, none inlined. The local package points at api.trackvid.in, so e2e was not run.
+
+==========================================================================
+FINAL REPORT — 2026-11-18
+==========================================================================
+WHAT YOU GET
+- One app. Bottom of the sidebar: CMS | VMS toggle (both modes; collapsed rail = one swap button; remembered
+  per installation; blocked while a recording runs).
+- VMS mode: same CMS login and shell. Header feed picker lists the company's feeds; picking one takes that feed's
+  session from the new backend endpoint (takeover question if it is signed in elsewhere). Then the Argos Watch
+  recorder: AWB/scan, Forward/Return/RTO, duplicate check, condition popup, platform, screenshots (15) with burned
+  in timestamp, SKU panel, multi-step _S{n}, webcam or RTSP, local upload queue with retry + compression, failed
+  uploads list + PDF, pending/failed/credits/network in the rail, idle / storage / clock guards. Veylix look,
+  light + dark.
+- No new runtime dependency except `ws` declared at its installed 8.21.3 (+ @types/ws). No native module.
+
+BACKEND (uncommitted, NOT deployed)
+- POST /api/auth/feed-token in Trackvid/TrackVid-BE (issueFeedToken; feed-login refactored onto a shared
+  respondWithFeedSession) and in react-native-boiler-plate/BE (src/modules/auth/feed-token.handler.ts + route).
+- VMS mode cannot take a feed until the backend the app talks to is deployed with this endpoint.
+- Security issues found in the existing backend (not changed): feed-login never checks the admin password;
+  GET /api/system-admin/:id issues tokens with no auth; feed passwords stored + returned in plain text by
+  POST /api/feed. Worth fixing separately.
+
+VERIFIED: typecheck x2, lint (0 errors), tokens, 2130 unit tests incl. 34 new VMS tests (feed mapping, 409/force,
+401, queue, upload names, local server end-to-end on 127.0.0.1), build:unpack on macOS arm64, screenshots of
+every VMS state in light + dark with a stub bridge and a synthetic camera.
+NOT VERIFIED: a real recording, a real RTSP camera, a real upload, the endpoint against a real database, Windows,
+Intel Mac, signed builds, e2e on this build (it points at production). First real test should be on a test feed.
+
+FILES: electron/main/vms/*, electron/renderer/vms/*, shared/vms/*, tests/vms/*, plus small edits to
+shared/constants/channels.ts, preferences (main/IPC/renderer), auth.service (release feed on logout), main.ts
+(quit hooks, CSP), database/index.ts, localData.service (keep VMS queue on sign-out), App.tsx, layout (toggle
+slot), index.html (CSP), main.tsx (#vms-recorder-preview), electron-builder.yml (usage strings), package.json.
+GIT: nothing committed, no branch changed, in CMS or either backend.
+2026-11-18  Combined feed access implemented (endpoint first, feed-login fallback). Mirror port (V6) still running.
+2026-11-18  USER REPORT: VMS stuck on "Loading feeds…". Cause 1 (network, not ours): main.log shows every TrackVid API
+            call "fetch failed" 03:31–03:32Z (CMS calls + claim socket too); server answers again (curl v4/v6 + Node
+            fetch 200). Cause 2 (OUR BUG): VmsSessionContext's mountedRef was only ever cleared on unmount, so after
+            React StrictMode's dev remount every result (incl. the error) was dropped. Fixed (set true on mount) +
+            the feed list now retries itself every 15 s while failing. tsc + eslint clean.
+2026-11-18  V6 verified by lead after merging the combined-login fallback + feed-list fix: npm run verify green
+            (308 files tokens, 261 test files / 2169 tests, lint 0 errors). Mirror screens reviewed light + dark.
+            Needs a real Flipkart VMS account to validate: selectors/timings on their live page, login persistence
+            (partition persist:fkvms), camera sharing, park/stop timing.

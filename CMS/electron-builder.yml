@@ -168,12 +168,15 @@ mac:
   # device without a usage description is terminated by the OS, not refused —
   # the window simply disappears, with nothing in the app's own log.
   extendInfo:
+    # Both strings also cover VMS mode, which records parcels being packed and
+    # opened at a packing station (webcam, with audio) for upload to TrackVid.
     NSCameraUsageDescription: >-
       TrackVid CMS records the return being opened and photographs the parcel,
-      as evidence attached to a marketplace claim.
+      as evidence attached to a marketplace claim, and in VMS mode records
+      parcels being packed and opened at this station.
     NSMicrophoneUsageDescription: >-
       TrackVid CMS records audio alongside the return-opening video attached to
-      a marketplace claim.
+      a marketplace claim, and alongside VMS packing-station recordings.
 
 dmg:
   artifactName: TrackVid-CMS-${arch}.${ext}

@@ -34,6 +34,7 @@ import { loginRateLimiter, forgotPasswordRateLimiter } from '@legacy/middleware/
 import { Post } from '../../core/http/routes';
 import { Legacy } from '../../core/auth';
 import { delegate } from '../../core/legacy/delegate';
+import { issueFeedToken } from './feed-token.handler';
 import type { LegacyMiddleware as MW } from '../../core/legacy/express-adapter';
 
 /** Port of legacy src/routes/Auth/auth.route.ts — 24 routes, handlers delegated. */
@@ -47,6 +48,8 @@ export class AuthController {
   @Post('check-already-login') post_check_already_login_2(@Req() q: Rq, @Res() r: Reply) { return delegate(q, r, alreadyLoggedInCheck); }
   /** legacy line 45: POST /feed-login */
   @Post('feed-login') post_feed_login_3(@Req() q: Rq, @Res() r: Reply) { return delegate(q, r, loginFeedUser); }
+  /** CMS desktop app, VMS mode: a feed session for a signed-in admin. Not in the pinned legacy tree — see feed-token.handler. */
+  @Post('feed-token') @Legacy((adminAuth(["feed::view"])) as MW) post_feed_token(@Req() q: Rq, @Res() r: Reply) { return delegate(q, r, issueFeedToken); }
   /** legacy line 47: POST /company-setting */
   @Post('company-setting') post_company_setting_4(@Req() q: Rq, @Res() r: Reply) { return delegate(q, r, companySetting); }
   /** legacy line 49: POST /feed-logout */

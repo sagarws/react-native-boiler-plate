@@ -31,6 +31,16 @@ if (window.location.hash === '#ui-preview') {
       </StrictMode>
     )
   })
+} else if (window.location.hash.startsWith('#vms-recorder-preview')) {
+  // Preview only: the VMS recorder with a fake feed session (no camera is
+  // requested by the stub harness). See vms/recorder/RecorderPreview.tsx.
+  void import('./vms/recorder/RecorderPreview').then(({ RecorderPreview }) => {
+    createRoot(container).render(
+      <StrictMode>
+        <RecorderPreview />
+      </StrictMode>
+    )
+  })
 } else {
   void import('./AppRoot').then(({ AppRoot }) => {
     createRoot(container).render(

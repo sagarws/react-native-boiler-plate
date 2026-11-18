@@ -66,8 +66,12 @@ import { logger } from './logger'
  * those are the history of backup RUNS, which is this machine's activity log
  * like every other job archive, not the data.
  */
+// `vms-upload-queue`: VMS recordings not yet uploaded (VMS_MERGE_PLAN.md). A
+// CMS sign-out must not delete them — Argos Watch kept its queue across
+// logouts, and each row carries the feedId it was recorded under, so a later
+// operator cannot send it under another company's feed.
 const KEPT =
-  /^(ajio|snapdeal)-backup-(settings|index|requests)$|^snapdeal-backup-return$|^(ajio|snapdeal)-backup-[a-z]+-\d{4}-\d{2}$|^flipkart-backup-(settings|requests|forward|return)$/
+  /^vms-upload-queue$|^(ajio|snapdeal)-backup-(settings|index|requests)$|^snapdeal-backup-return$|^(ajio|snapdeal)-backup-[a-z]+-\d{4}-\d{2}$|^flipkart-backup-(settings|requests|forward|return)$/
 
 export const isKeptOnSignOut = (name: string): boolean => KEPT.test(name)
 

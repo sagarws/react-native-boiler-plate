@@ -18,6 +18,8 @@ export interface Preferences {
   automationsOnAtLaunch: boolean
   /** Whether the Login page shows each login's password, with a copy button. */
   showLoginInfo: boolean
+  /** Which half of the app opens: the CMS, or the VMS recorder. */
+  appMode: 'cms' | 'vms'
   /** The operator's own palette, type scale and corners. */
   appearance: AppearanceState
 }
@@ -35,6 +37,8 @@ export const preferencesClient = {
   /** Show (true) or hide (false) passwords on the Login page. */
   setShowLoginInfo: (enabled: boolean): Promise<Result<Preferences>> =>
     invoke<Preferences>(PREFERENCES_CHANNELS.setShowLoginInfo, { enabled }),
+  setAppMode: (mode: 'cms' | 'vms'): Promise<Result<Preferences>> =>
+    invoke<Preferences>(PREFERENCES_CHANNELS.setAppMode, { mode }),
   /** The whole override set. Sanitised again in the main process. */
   setAppearance: (appearance: AppearanceState): Promise<Result<Preferences>> =>
     invoke<Preferences>(PREFERENCES_CHANNELS.setAppearance, { appearance }),

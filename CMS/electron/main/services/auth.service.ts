@@ -6,6 +6,7 @@ import { apiRequest } from './httpClient'
 import { readCompany } from './company.store'
 import { logger } from './logger'
 import { clearSession, getSession, restoreSession, saveSession } from './session.store'
+import { releaseFeedQuickly } from '../vms/feedSession.service'
 import { reportAppVersion } from './appVersion.service'
 import { clearRoutingCache } from './automationRouting.service'
 import { resumeSchedule, stopAutomationScheduler } from './automationScheduler.service'
@@ -183,6 +184,9 @@ export const login = async (payload: unknown): Promise<Result<SessionState>> => 
 export const logout = async (): Promise<Result<SessionState>> => {
   const session = getSession()
   if (session) logger.info('User signed out', { userId: session.user.id })
+  // VMS: a feed taken under this admin is given back (feed-logout) before the
+  // admin session goes. Best effort, short budget — never blocks the sign-out.
+  await releaseFeedQuickly()
   disconnectClaimSocket()
   stopImportScheduler()
   stopMasterImportQueue()

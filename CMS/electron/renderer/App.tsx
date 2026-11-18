@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import Divider from '@mui/material/Divider'
 import { SYSTEM_CHANNELS } from '@shared/constants/channels'
 import type { PlatformInfo } from '@shared/types/ipc'
@@ -42,6 +42,14 @@ import { EmailReplyPage } from './pages/email/EmailReplyPage'
 import { UserDetailPage } from './pages/profile/UserDetailPage'
 import { invoke } from './services/ipcClient'
 import { initialAppearance, preferencesClient } from './services/preferences.service'
+import { AppModeProvider, useAppMode } from './vms/AppModeContext'
+import { ModeToggle } from './vms/ModeToggle'
+import { VmsApp } from './vms/VmsApp'
+import { VmsSessionProvider } from './vms/VmsSessionContext'
+import { VmsRailStatus } from './vms/shell/VmsRailStatus'
+import { VmsTitle } from './vms/shell/VmsTitle'
+import { useVmsNavigation } from './vms/shell/useVmsNavigation'
+import { useAppSelector } from './vms/store/store'
 
 /**
  * One icon set, one weight, one size.
@@ -96,6 +104,15 @@ const AppShell = () => {
   const auth = useAuth()
   const [activeId, setActiveId] = useState('dashboard')
   /*
+   * CMS or VMS: one shell, two halves. The rail, the bar, the account menu and
+   * the notifications are the same in both; what changes is the menu, the
+   * bar's left pill, the rail's footer and the content. See VMS_MERGE_PLAN.md.
+   */
+  const appMode = useAppMode()
+  const vms = appMode.mode === 'vms'
+  const vmsNav = useVmsNavigation()
+  const vmsRecording = useAppSelector((state) => state.video.videoRecording)
+  /*
    * The stale-login count, for the rail.
    *
    * Read here rather than inside the rail because NAV_ITEMS is a module
@@ -145,6 +162,21 @@ const AppShell = () => {
     if (id === 'create-claim') setEditTarget(null)
     setActiveId(id)
   }, [])
+
+  /*
+   * A CMS screen asked for from the VMS half — the account menu's profile, the
+   * close guard's Background Process. Switches back first; not while a VMS
+   * recording runs, which leaving would end.
+   */
+  const { setMode } = appMode
+  const openCms = useCallback(
+    (id: string) => {
+      if (vms && vmsRecording) return
+      setMode('cms')
+      navigate(id)
+    },
+    [vms, vmsRecording, setMode, navigate]
+  )
   const [platform, setPlatform] = useState<PlatformInfo | null>(null)
   /**
    * The heading over the content, which is not always a nav item.
@@ -236,13 +268,40 @@ const AppShell = () => {
     return <LoginPage appVersion={platform?.appVersion} />
   }
 
+  // The stored mode is one IPC read away; waiting for it is what stops the
+  // window painting the CMS and snapping to the recorder a frame later.
+  if (!appMode.ready) {
+    return (
+      <div className='legacy-ui h-full'>
+        <SessionSplash />
+      </div>
+    )
+  }
+
+  const buildLine = platform && (
+    <span className='text-xs text-muted'>
+      v{platform.appVersion} · {platform.platform} {platform.arch}
+    </span>
+  )
+
   return (
-    <NavigationProvider activeId={visibleId} navigate={navigate}>
+    <NavigationProvider
+      activeId={vms ? vmsNav.activeId : visibleId}
+      navigate={vms ? vmsNav.navigate : navigate}
+    >
       <Shell
         systemMode='light'
-        navItems={navItems}
+        navItems={vms ? vmsNav.navItems : navItems}
         brand={<Brand />}
+        // Under the BrowserCheckNotice, at the rail's very foot, in both modes.
+        modeToggle={<ModeToggle />}
         navFooter={
+          vms ? (
+            <div className='flex flex-col gap-3'>
+              <VmsRailStatus />
+              {buildLine}
+            </div>
+          ) : (
           /*
             The schedule's master switch sits above the build line, because it
             is the one control an operator needs from every screen: the nightly
@@ -251,20 +310,21 @@ const AppShell = () => {
           */
           <div className='flex flex-col gap-2'>
             <CronSwitch onOpenLogin={() => navigate('sessions')} />
-            {platform && (
-              <span className='text-xs text-muted'>
-                v{platform.appVersion} · {platform.platform} {platform.arch}
-              </span>
-            )}
+            {buildLine}
           </div>
+          )
         }
         navAlert={<BrowserCheckNotice />}
         title={
-          <PageBreadcrumb
-            root='TrackVid Operations'
-            current={activeLabel}
-            onRoot={activeId === 'dashboard' ? undefined : () => navigate('dashboard')}
-          />
+          vms ? (
+            <VmsTitle />
+          ) : (
+            <PageBreadcrumb
+              root='TrackVid Operations'
+              current={activeLabel}
+              onRoot={activeId === 'dashboard' ? undefined : () => navigate('dashboard')}
+            />
+          )
         }
         actions={
           auth.user && (
@@ -289,7 +349,7 @@ const AppShell = () => {
               <UserMenu
                 user={auth.user}
                 companyName={auth.companyName}
-                onViewProfile={() => setActiveId('profile')}
+                onViewProfile={() => openCms('profile')}
                 onSignOut={() => void auth.signOut()}
                 // The name is read at sign-in, usually before the company
                 // document has downloaded. Ask again until it is there.
@@ -327,7 +387,7 @@ const AppShell = () => {
          * button — where they are creating the claims.
          */
         notice={
-          activeId === 'sessions' ? (
+          vms ? null : activeId === 'sessions' ? (
             <StaleSessionBanner entries={staleEntries} accounts={staleLogins} />
           ) : activeId === 'create-claim' ? (
             <StaleSessionBanner entries={claimStaleEntries} accounts={claimStaleLogins} />
@@ -342,6 +402,12 @@ const AppShell = () => {
           a glance which ones are left. When the list is empty, the wrapper, the
           stylesheet behind it and styles/theme.css all go together.
         */}
+        {/* The VMS half: feed picker's empty state, or the recorder behind
+            its guards. The CMS pages below are not mounted meanwhile. */}
+        {vms && <VmsApp heading={vmsNav.heading} />}
+
+        {!vms && (
+          <>
         {/* The page's own title, in the template's heading style. */}
         <PageHeading title={activeLabel} />
 
@@ -380,13 +446,22 @@ const AppShell = () => {
             checkingUpdate={updater.checking}
           />
         )}
+          </>
+        )}
 
         {/* Asked when the window is closed mid-run. Off the shell (the login
             screen), main falls back to the system dialog. */}
-        <CloseGuardDialog onOpenJobs={() => navigate('jobs')} />
+        <CloseGuardDialog onOpenJobs={() => openCms('jobs')} />
       </Shell>
     </NavigationProvider>
   )
+}
+
+/** The VMS feed session, live only while the VMS half is on screen. */
+const VmsSessionGate = ({ children }: { children: ReactNode }) => {
+  const { mode } = useAppMode()
+
+  return <VmsSessionProvider enabled={mode === 'vms'}>{children}</VmsSessionProvider>
 }
 
 /**
@@ -456,7 +531,13 @@ const App = () => (
                     the first thing a company sees, and once accepted it is
                     never shown again. */}
                 <TermsGate>
-                  <AppShell />
+                  {/* Inside auth: the VMS feed session is released when the
+                      CMS signs out, and only asked for while signed in. */}
+                  <AppModeProvider>
+                    <VmsSessionGate>
+                      <AppShell />
+                    </VmsSessionGate>
+                  </AppModeProvider>
                 </TermsGate>
               </DevModeProvider>
             </AuthProvider>

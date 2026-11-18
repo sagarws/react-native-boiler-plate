@@ -50,6 +50,10 @@ import { createMainWindow } from './windows/mainWindow'
 import { afterHomePage } from './services/startupGate.service'
 import { cleanUpInstallersAtLaunch } from './services/installerCleanup.service'
 import { applyDevProfile } from './database'
+import { isFeedHeld, releaseFeedQuickly } from './vms/feedSession.service'
+import { stopSidecar } from './vms/sidecar.service'
+import { stopUploadDriver } from './vms/uploadDriver.service'
+import { attachPartnerVmsWindow, disablePartnerVms } from './vms/partnerVms/partnerVms.ipc'
 
 // Windows: required for correct taskbar grouping and notification identity.
 app.setAppUserModelId(APP_ID)
@@ -154,7 +158,8 @@ if (!app.requestSingleInstanceLock()) {
     initialiseUpdater()
     registerIpcHandlers()
 
-    createMainWindow()
+    // VMS: the Flipkart VMS mirror's view is drawn inside the main window.
+    attachPartnerVmsWindow(createMainWindow())
 
     // One check per launch, after the window exists so its events have somewhere
     // to go. Not awaited: a slow update server must never delay first paint.
@@ -186,7 +191,7 @@ if (!app.requestSingleInstanceLock()) {
 
     app.on('activate', () => {
       // macOS: clicking the dock icon reopens a window when none are open.
-      if (BrowserWindow.getAllWindows().length === 0) createMainWindow()
+      if (BrowserWindow.getAllWindows().length === 0) attachPartnerVmsWindow(createMainWindow())
     })
   })
 
@@ -217,8 +222,29 @@ if (!app.requestSingleInstanceLock()) {
     stopImportScheduler()
     stopMasterImportQueue()
 
+    // VMS: no upload starts while quitting, and the camera previews' ffmpeg
+    // processes and the local server's port go with the app.
+    stopUploadDriver()
+    void stopSidecar()
+    // The Flipkart VMS mirror: its view, probe timer and power blocker go too.
+    // Its Flipkart login stays in its own persistent partition.
+    disablePartnerVms()
+
     logger.info('Application shutting down')
     logger.close()
+  })
+
+  /*
+   * VMS: give a held feed back (feed-logout) so its desk lock does not wait for
+   * the server's timeout. `before-quit` cannot wait for a promise, so the quit
+   * is held here for at most two seconds and then resumed; with no feed held
+   * this does nothing.
+   */
+  app.on('will-quit', event => {
+    if (!isFeedHeld()) return
+
+    event.preventDefault()
+    void releaseFeedQuickly(2_000).finally(() => app.quit())
   })
 }
 
@@ -235,7 +261,7 @@ function applyContentSecurityPolicy(): void {
       responseHeaders: {
         ...details.responseHeaders,
         'Content-Security-Policy': [
-          `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' ${devServer ? `${devServer} ws:` : ''}; object-src 'none'; base-uri 'none'; form-action 'none'`
+          `default-src 'self'; script-src ${scriptSrc}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self' http://127.0.0.1:* ws://127.0.0.1:* ${devServer ? `${devServer} ws:` : ''}; object-src 'none'; base-uri 'none'; form-action 'none'`
         ]
       }
     })

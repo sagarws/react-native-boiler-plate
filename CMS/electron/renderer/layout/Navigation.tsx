@@ -93,9 +93,15 @@ interface Props {
    * Not inside `footer`, which truncates to one line per row.
    */
   alert?: React.ReactNode
+  /**
+   * The CMS | VMS switch — the very last thing in the rail, under the alert,
+   * in both modes. Rendered on a collapsed rail too: it draws its own compact
+   * form there (vms/ModeToggle).
+   */
+  modeToggle?: React.ReactNode
 }
 
-export const Navigation = ({ items, brand, footer, alert }: Props) => {
+export const Navigation = ({ items, brand, footer, alert, modeToggle }: Props) => {
   const verticalNavOptions = useVerticalNav()
   const { settings } = useSettings()
   const theme = useTheme()
@@ -196,6 +202,11 @@ export const Navigation = ({ items, brand, footer, alert }: Props) => {
       )}
       {/* `mbs-auto` pushes it to the foot: the rail's container is a flex column. */}
       {alert && !(isCollapsed && !isHovered) && <div className='mbs-auto pli-3 pbe-3'>{alert}</div>}
+      {/* Under the alert, at the very foot. Takes the push itself when there
+          is no alert block above it. */}
+      {modeToggle && (
+        <div className={alert && !(isCollapsed && !isHovered) ? undefined : 'mbs-auto'}>{modeToggle}</div>
+      )}
     </VerticalNav>
   )
 }

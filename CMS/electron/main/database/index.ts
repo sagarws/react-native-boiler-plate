@@ -33,3 +33,11 @@ export const applyDevProfile = (): void => {
   if (!profile) return
   app.setPath('userData', `${app.getPath('userData')}-${profile}`)
 }
+
+/**
+ * VMS recorder uploads waiting in the queue: the recording and its screenshots,
+ * written by the local recorder server and deleted once the upload driver has
+ * delivered them. Beside `data/`, not inside it — these are media files, not
+ * collections, and the Local Database page lists `data/`.
+ */
+export const vmsUploadsDirectory = (): string => join(app.getPath('userData'), 'vms-uploads')

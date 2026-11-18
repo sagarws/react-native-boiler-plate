@@ -7,6 +7,7 @@ import {
   setAutomationsOnAtLaunch,
   setMyntraHeadlessLogin,
   setShowLoginInfo,
+  setAppMode,
   setTheme
 } from '../services/preferences.service'
 import { disableDevMode, verifyDevMode } from '../services/devMode.service'
@@ -47,6 +48,11 @@ export const registerPreferencesIpc = (): void => {
 
     return ok(await setShowLoginInfo(enabled))
   })
+
+  // Anything but 'vms' is CMS — see toAppMode.
+  registerHandler(PREFERENCES_CHANNELS.setAppMode, async (payload) =>
+    ok(await setAppMode((payload as { mode?: unknown } | null)?.mode))
+  )
 
   registerHandler(PREFERENCES_CHANNELS.setAppearance, async (payload) => {
     // No validation here beyond taking the field: `setAppearance` sanitises

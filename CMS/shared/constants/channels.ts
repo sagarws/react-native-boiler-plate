@@ -74,7 +74,9 @@ export const PREFERENCES_CHANNELS = {
    * both sides had to agree on. Sanitised in the handler regardless of what the
    * renderer believes it sent.
    */
-  setAppearance: 'preferences:set-appearance'
+  setAppearance: 'preferences:set-appearance',
+  /** CMS or VMS — which half of the app opens. See VMS_MERGE_PLAN.md. */
+  setAppMode: 'preferences:set-app-mode'
 } as const
 
 /** Request/response channels for the updater. */
@@ -977,6 +979,79 @@ export const CLOSE_GUARD_EVENTS = {
   requested: 'close-guard:requested'
 } as const
 
+/**
+ * VMS MODE — the Argos Watch recorder, merged in (VMS_MERGE_PLAN.md).
+ *
+ * Namespaced `vms:` so nothing collides with the CMS's own `auth:`, `system:`
+ * and `update:` channels, which Argos Watch also used. The CMS session is the
+ * only login; a FEED session (the identity recordings upload under) is taken
+ * per chosen feed through `selectFeed` and held in the main process only.
+ */
+export const VMS_CHANNELS = {
+  /** The company's feeds, for the header picker (names + ids, never passwords). */
+  feeds: 'vms:feeds',
+  /** Take a feed's session for the signed-in admin. `{ feedId, force? }`. */
+  selectFeed: 'vms:select-feed',
+  /** The current feed session as the renderer may see it (no token). */
+  feedSession: 'vms:feed-session',
+  /** Give the feed back (feed-logout) — switching feed, leaving VMS mode. */
+  releaseFeed: 'vms:release-feed',
+  /** The local recorder server's port (uploads + RTSP preview). */
+  sidecarPort: 'vms:sidecar-port',
+  diskInfo: 'vms:disk-info',
+  istDate: 'vms:ist-date',
+  cameraDatePermission: 'vms:camera-date-permission',
+  mediaPermissions: 'vms:media-permissions',
+  requestMediaPermissions: 'vms:media-permissions-request',
+  openMediaPrivacySettings: 'vms:media-privacy-settings',
+  streamDiagnostics: 'vms:stream-diagnostics',
+  probeApi: 'vms:probe-api',
+  queueCounts: 'vms:queue-counts',
+  queueListFailed: 'vms:queue-list-failed',
+  queueListPending: 'vms:queue-list-pending',
+  queueRetry: 'vms:queue-retry',
+  queueDeleteFailed: 'vms:queue-delete-failed',
+  orderCheckExists: 'vms:order-check-exists',
+  orderProductDetails: 'vms:order-product-details',
+  usage: 'vms:usage'
+} as const
+
+export const VMS_EVENTS = {
+  queueCountsChanged: 'vms:queue-counts-changed',
+  feedSessionChanged: 'vms:feed-session-changed'
+} as const
+
+/**
+ * VMS MODE — the Flipkart VMS mirror ("partner VMS"), ported from TrackVid-App
+ * (PR #182). Flipkart's operator page runs in a main-owned WebContentsView; the
+ * renderer only shows / hides it, reports where to draw it, and asks for a
+ * mirror when a Flipkart or Myntra order starts recording. Every handler is
+ * best effort and answers a status or an outcome — nothing on the recording
+ * path may await these. Shapes: shared/vms/partnerVms.ts.
+ */
+export const PARTNER_VMS_CHANNELS = {
+  /** Bring the view up (idempotent). `{ cameraLabel?, format? }` → MirrorStatus. */
+  enable: 'partner-vms:enable',
+  /** Tear the view down. → MirrorStatus. */
+  disable: 'partner-vms:disable',
+  status: 'partner-vms:status',
+  /** Where to draw the view, in window content coordinates. `ViewRect`. */
+  setBounds: 'partner-vms:set-bounds',
+  show: 'partner-vms:show',
+  hide: 'partner-vms:hide',
+  /** Mirror one order. `MirrorRequest` → MirrorOutcome. */
+  startMirror: 'partner-vms:start',
+  /** End the mirrored recording. → MirrorOutcome. */
+  park: 'partner-vms:park',
+  /** Keep their page on the camera the recorder uses. `{ cameraLabel, format? }`. */
+  setPreferredCamera: 'partner-vms:set-camera'
+} as const
+
+export const PARTNER_VMS_EVENTS = {
+  /** Every probe / state change. `MirrorStatus`. */
+  statusChanged: 'partner-vms:status-changed'
+} as const
+
 export const IPC_CHANNELS: readonly string[] = [
   ...Object.values(SYSTEM_CHANNELS),
   ...Object.values(CLOSE_GUARD_CHANNELS),
@@ -1006,7 +1081,9 @@ export const IPC_CHANNELS: readonly string[] = [
   ...Object.values(AUTOMATION_SCHEDULE_CHANNELS),
   ...Object.values(TERMS_CHANNELS),
   ...Object.values(CLAIM_CREATE_CHANNELS),
-  ...Object.values(LOCAL_DB_CHANNELS)
+  ...Object.values(LOCAL_DB_CHANNELS),
+  ...Object.values(VMS_CHANNELS),
+  ...Object.values(PARTNER_VMS_CHANNELS)
 ]
 
 /** Channels the renderer may subscribe to. Deliberately disjoint from IPC_CHANNELS. */
@@ -1026,7 +1103,9 @@ export const EVENT_CHANNELS: readonly string[] = [
   ...Object.values(AUTOMATION_SCHEDULE_EVENTS),
   ...Object.values(PLATFORM_SESSION_EVENTS),
   ...Object.values(CLAIM_CREATE_EVENTS),
-  ...Object.values(CMS_LIST_EVENTS)
+  ...Object.values(CMS_LIST_EVENTS),
+  ...Object.values(VMS_EVENTS),
+  ...Object.values(PARTNER_VMS_EVENTS)
 ]
 
 export const isAllowedChannel = (channel: string): boolean => IPC_CHANNELS.includes(channel)

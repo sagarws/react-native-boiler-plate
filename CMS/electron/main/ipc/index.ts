@@ -28,6 +28,8 @@ import { registerEmailReplyIpc } from './emailReply.ipc'
 import { registerTermsIpc } from './terms.ipc'
 import { registerUpdateIpc } from './update.ipc'
 import { registerCloseGuardIpc } from './closeGuard.ipc'
+import { registerVmsIpc } from '../vms/vms.ipc'
+import { registerPartnerVmsIpc } from '../vms/partnerVms/partnerVms.ipc'
 
 /** Called once during startup, after the database is initialised. */
 export const registerIpcHandlers = (): void => {
@@ -60,5 +62,7 @@ export const registerIpcHandlers = (): void => {
   registerFlipkartBackupIpc()
   registerAutomationScheduleIpc()
   registerLocalDatabaseIpc()
+  registerVmsIpc()
+  registerPartnerVmsIpc()
   logger.info('IPC handlers registered')
 }

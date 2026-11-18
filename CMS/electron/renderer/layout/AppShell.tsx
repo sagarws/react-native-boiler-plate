@@ -108,6 +108,8 @@ export interface AppShellProps {
   navFooter?: ReactNode
   /** A warning pinned to the bottom of the rail. */
   navAlert?: ReactNode
+  /** The CMS | VMS switch, under the alert at the rail's very foot. */
+  modeToggle?: ReactNode
   /** Where the operator is — breadcrumb and title, left of the navbar. */
   title: ReactNode
   /** Identity, notifications and anything else that belongs to the account. */
@@ -123,6 +125,7 @@ export const AppShell = ({
   brand,
   navFooter,
   navAlert,
+  modeToggle,
   title,
   actions,
   notice,
@@ -135,7 +138,9 @@ export const AppShell = ({
     systemMode={systemMode}
     verticalLayout={
       <VerticalLayout
-        navigation={<Navigation items={navItems} brand={brand} footer={navFooter} alert={navAlert} />}
+        navigation={
+      <Navigation items={navItems} brand={brand} footer={navFooter} alert={navAlert} modeToggle={modeToggle} />
+    }
         navbar={
           <Navbar overrideStyles={navbarStyles}>
             <div
