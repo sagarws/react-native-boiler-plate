@@ -91,15 +91,6 @@ export interface Spec extends TurboModule {
   getTiltSupport(): Promise<string>;
   startTilt(): void;
   stopTilt(): void;
-
-  // ── Countdown timer ──
-  /** Arms the "time's up" alarm. Resolves 'exact' | 'inexact'. */
-  scheduleTimerAlarm(atMs: number, title: string, body: string): Promise<string>;
-  /** Cancels the alarm and clears a shown alert. */
-  cancelTimerAlarm(): void;
-  canScheduleExactAlarms(): Promise<boolean>;
-  /** Opens the system setting that allows exact alarms (Android 12+). */
-  openExactAlarmSettings(): void;
 }
 
 export default TurboModuleRegistry.get<Spec>('Utility');

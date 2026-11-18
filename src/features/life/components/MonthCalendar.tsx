@@ -35,6 +35,8 @@ export interface MonthCalendarProps {
   today: DayKey;
   /** Status dot per day (calendar view); omit for a plain date picker. */
   marks?: Record<DayKey, DayMark>;
+  /** Coloured dots per day (up to 3), e.g. reminder categories. */
+  dots?: Record<DayKey, string[]>;
   /** Progress shading per day; replaces the dots. Needs [shadeColor]. */
   shades?: Record<DayKey, DayShadeInfo>;
   /** Base colour the shades are drawn in (the task's / project's colour). */
@@ -52,6 +54,7 @@ export function MonthCalendar({
   onSelect,
   today,
   marks,
+  dots,
   shades,
   shadeColor,
   min,
@@ -227,15 +230,29 @@ export function MonthCalendar({
                       {Number(day.slice(8))}
                     </Text>
                   </View>
-                  <View
-                    style={[
-                      styles.mark,
-                      {
-                        backgroundColor: dot ?? 'transparent',
-                        borderRadius: radius.pill,
-                      },
-                    ]}
-                  />
+                  {dots?.[day]?.length ? (
+                    <View style={styles.dots} testID={`${testID}-dots-${day}`}>
+                      {dots[day].slice(0, 3).map((c, k) => (
+                        <View
+                          key={k}
+                          style={[
+                            styles.dot,
+                            { backgroundColor: c, borderRadius: radius.pill },
+                          ]}
+                        />
+                      ))}
+                    </View>
+                  ) : (
+                    <View
+                      style={[
+                        styles.mark,
+                        {
+                          backgroundColor: dot ?? 'transparent',
+                          borderRadius: radius.pill,
+                        },
+                      ]}
+                    />
+                  )}
                 </>
               )}
             </Pressable>
@@ -268,6 +285,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mark: { width: 6, height: 6, marginTop: 2 },
+  dots: { flexDirection: 'row', gap: 2, marginTop: 2 },
+  dot: { width: 6, height: 6 },
   shadeBox: {
     width: '92%',
     minHeight: 42,

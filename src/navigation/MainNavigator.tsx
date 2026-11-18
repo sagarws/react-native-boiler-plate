@@ -1,6 +1,11 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { ExtractedTextScreen } from '@/features/capture';
+import {
+  PhotoWidgetEditScreen,
+  PhotoWidgetsScreen,
+} from '@/features/photoWidget';
+import { ReminderFormScreen, RemindersScreen } from '@/features/reminders';
 import { DashboardScreen } from '@/features/dashboard';
 import { ExpenseTrackerScreen } from '@/features/expense';
 import { FileManagementScreen } from '@/features/files';
@@ -38,6 +43,7 @@ import {
   ScannerScreen,
   StopwatchScreen,
   TimerScreen,
+  TimerEditScreen,
   LevelScreen,
   ConverterScreen,
   UtilityHubScreen,
@@ -86,6 +92,19 @@ export default function MainNavigator() {
         />
         <Stack.Screen name={ROUTES.LIFE_TASK_FORM} component={TaskFormScreen} />
         <Stack.Screen name={ROUTES.LIFE_TASK} component={TaskDetailScreen} />
+        <Stack.Screen name={ROUTES.REMINDERS} component={RemindersScreen} />
+        <Stack.Screen
+          name={ROUTES.REMINDER_FORM}
+          component={ReminderFormScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.PHOTO_WIDGETS}
+          component={PhotoWidgetsScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.PHOTO_WIDGET_EDIT}
+          component={PhotoWidgetEditScreen}
+        />
         <Stack.Screen name={ROUTES.FOLLOW_UP} component={FollowUpScreen} />
         <Stack.Screen
           name={ROUTES.FOLLOW_UP_CONTACT}
@@ -116,6 +135,10 @@ export default function MainNavigator() {
           component={StopwatchScreen}
         />
         <Stack.Screen name={ROUTES.UTILITY_TIMER} component={TimerScreen} />
+        <Stack.Screen
+          name={ROUTES.UTILITY_TIMER_EDIT}
+          component={TimerEditScreen}
+        />
         <Stack.Screen name={ROUTES.UTILITY_LEVEL} component={LevelScreen} />
         <Stack.Screen
           name={ROUTES.UTILITY_CONVERTER}

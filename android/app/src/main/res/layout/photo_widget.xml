@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Photo widget: the photo is pre-rendered at the widget's size (fit / fill
+     / crop and rounded corners applied natively), so the ImageView just shows it. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/photo_widget_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ImageView
+        android:id="@+id/photo_widget_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="fitXY"
+        android:contentDescription="@string/photo_widget_label" />
+
+    <TextView
+        android:id="@+id/photo_widget_empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/photo_widget_empty_bg"
+        android:gravity="center"
+        android:padding="12dp"
+        android:text="@string/photo_widget_empty"
+        android:textColor="#FFFFFFFF"
+        android:textSize="14sp"
+        android:visibility="gone" />
+</FrameLayout>

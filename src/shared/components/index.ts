@@ -62,3 +62,5 @@ export { ExpandableCard, animateNextLayout } from './ExpandableCard';
 export type { ExpandableCardProps } from './ExpandableCard';
 export { TabBar } from './TabBar';
 export type { TabBarProps } from './TabBar';
+export { AlertSettings } from './AlertSettings';
+export type { AlertSettingsProps } from './AlertSettings';

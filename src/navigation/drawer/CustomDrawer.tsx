@@ -25,6 +25,8 @@ type DrawerTarget =
   | 'FileManagement'
   | 'ManageLife'
   | 'FollowUp'
+  | 'Reminders'
+  | 'PhotoWidgets'
   | 'Utility'
   | 'NetworkInspector'
   | 'Settings'
@@ -40,6 +42,8 @@ const ITEMS: readonly {
     | 'files'
     | 'life'
     | 'followUp'
+    | 'reminders'
+    | 'photoWidget'
     | 'utility'
     | 'network'
     | 'settings'
@@ -51,6 +55,8 @@ const ITEMS: readonly {
   { screen: ROUTES.DASHBOARD, icon: 'scanText', label: 'home' },
   { screen: ROUTES.FILE_MANAGEMENT, icon: 'folder', label: 'files' },
   { screen: ROUTES.FOLLOW_UP, icon: 'users', label: 'followUp' },
+  { screen: ROUTES.REMINDERS, icon: 'bell', label: 'reminders' },
+  { screen: ROUTES.PHOTO_WIDGETS, icon: 'image', label: 'photoWidget' },
   { screen: ROUTES.UTILITY, icon: 'wrench', label: 'utility' },
   { screen: ROUTES.NETWORK_INSPECTOR, icon: 'globe', label: 'network' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },

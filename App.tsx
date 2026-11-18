@@ -7,6 +7,7 @@ import { setAuthTokenProvider } from '@/services/api';
 import { useCaptureSync } from '@/features/capture';
 import { useReminderSync } from '@/features/followup';
 import { useLifeWidgetSync } from '@/features/life';
+import { useReminderAlarmSync } from '@/features/reminders';
 import { sessionStore } from '@/features/session';
 import { ThemeProvider, useTheme } from '@/theme';
 
@@ -21,6 +22,7 @@ function ThemedApp() {
   useCaptureSync();
   useLifeWidgetSync();
   useReminderSync();
+  useReminderAlarmSync();
 
   return (
     <>

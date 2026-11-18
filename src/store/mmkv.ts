@@ -49,6 +49,8 @@ export const StorageKeys = {
   UtilityPrefs: 'utility.prefs',
   /** Utility: stopwatch and countdown timer (timestamps only). */
   UtilityClock: 'utility.clock',
+  /** Reminders: every reminder with its alert settings. */
+  Reminders: 'reminders.items',
   /** Expense Tracker: schema version (drives migrations). */
   ExpenseMeta: 'expense.meta',
   /** Expense Tracker: the "expenses" table. */

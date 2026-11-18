@@ -1,6 +1,6 @@
 # Utility — tools hub
 
-Sidebar → **Utility**. Ten independent tools; opening the hub starts nothing
+Sidebar → **Utility**. Ten independent tools (including Multiple Stopwatch and Multiple Timer); opening the hub starts nothing
 (no camera, sensor or sound). Each tool fails on its own without affecting
 the others.
 
@@ -11,8 +11,8 @@ the others.
 | **Compass** | Rotation-vector sensor (fallback: accelerometer + magnetometer), corrected for screen rotation, smoothed on the unit circle, ~25 Hz. Sensors run only while the screen is focused and the app is in the foreground. Calibration prompt when magnetometer accuracy is low. Shows **magnetic** north. | Magnetometer |
 | **AR Measure** | ARCore (`MeasureActivity`): GL camera background, centre reticle hit-tested against planes / depth / oriented feature points. **Length** = 3D distance between two anchors; **Height** = vertical (gravity-axis) difference; **Distance** = camera to aimed surface. Live tracking-state messages; Save is enabled only while ARCore tracks the camera and every point. Units: cm / m / in / ft. Never derives a size from pixels. | ARCore-supported phone, camera |
 | **Screen Recorder** | Its own floating button (separate from OCR): screenshot with preview + annotation editor, screen / voice (system audio or mic) / screen + voice recording, automatic parts merged after Stop, recordings library, Settings → Recording. Native foreground service; see [SCREEN_RECORDER.md](./SCREEN_RECORDER.md). | Overlay permission, Android capture consent; microphone only for audio |
-| **Stopwatch** | Start / pause / resume / reset and up to 99 laps (split + total, fastest and slowest marked). Stores *when* it started (MMKV `utility.clock`), not a running counter, so it keeps counting in the background and after the app is closed. | Nothing |
-| **Countdown Timer** | h/m/s fields + presets, pause / resume, +1 min. Stored as an end time, so it keeps running when the app is closed. Start arms one Android alarm (`TimerAlarm`) that posts a high-priority "Time's up" notification with the alarm sound; pause / reset cancel it and clear the notification. Exact when the app may schedule exact alarms, otherwise inexact (the screen says so and links to the setting). In the app the end also vibrates. | Notifications (asked on Start); exact alarms optional |
+| **Multiple Stopwatch** | Up to 20 named stopwatches, each running on its own: start / pause / resume / reset, up to 99 laps each (split + total, fastest and slowest marked), rename, delete. Each one stores *when* it started (MMKV `utility.clock`), not a running counter, so all keep counting in the background and after the app is closed. The display ticks only while the screen is open. | Nothing |
+| **Multiple Timer** | Up to 20 named timers running at once. You set hours / minutes / seconds or a preset (1, 5, 10, 15, 30, 45, 60 min, plus your own saved presets), and there's a quick-start row. Each timer can start, pause, resume, reset (Dismiss when finished), +1 min, edit or delete. **Each timer has its own alert** (mode, ringtone with preview, volume, vibration) through the shared alarm engine (see [REMINDERS.md](./REMINDERS.md)): one native alarm per running timer, so it rings with the app closed, and finishing one never touches the others. Stored as end times, so they stay accurate in the background and survive restarts. Data from the earlier single stopwatch / timer is carried over. | Notifications; exact alarms optional |
 | **Bubble Level** | Gravity sensor (fallback: low-pass accelerometer), ~20 Hz, only while the screen is open. Flat: round bubble + left–right / front–back degrees. On an edge: one angle off level or plumb. Within ±0.5° shows "Level". Calibrate (flat and edge separately) is saved in prefs. | Accelerometer |
 | **Unit Converter** | Length, area (incl. square yards / gaj, acres, hectares), weight, volume (US cups, spoons, gallons), temperature, speed, data (1 KB = 1024 B). Type a value, pick a unit, see every other unit; tap a result to convert from it. Pure JS (`services/convert.ts`). | Nothing |
 | **Speaker Water Eject** | Generated tone (no audio asset): 165 Hz steady, 100–400 Hz sweep, or 165 Hz pulses at 80 % of full scale with fades; 15–90 s (hard cap 120 s). Optional gentle vibration (0.5 s on / 1 s off). Holds transient audio focus and stops if another app takes it; stops on Stop, when time is up, when the screen loses focus or the app goes to the background. Safety notice: no guarantee, don’t charge a wet phone, comfortable volume only. | Speaker; vibrator optional |
@@ -22,7 +22,7 @@ the others.
 - JS: `src/features/utility/` — `screens/`, `hooks/useUtility.ts` (screen-active,
   compass, water-eject lifecycles), `services/` (`native.service.ts`, `qr.ts`
   code parsing + link safety, `camera.ts` permission, `units.ts`), `store/utility.store.ts`.
-- Native: `android/.../utility/` — `UtilityModule.kt` (TurboModule), `CompassSensor`, `TiltSensor`, `SightActivity` (+ `SightMath`), `TimerAlarm` (+ `TimerAlarmReceiver`),
+- Native: `android/.../utility/` — `UtilityModule.kt` (TurboModule), `CompassSensor`, `TiltSensor`, `SightActivity` (+ `SightMath`),
   `TonePlayer` (+ `ToneShape`), `BarcodeScanActivity`, `DocumentPages` (+ `PageLayout`),
   `MeasureActivity`, `ArBackgroundRenderer`, `MeasureMath`. Shared helpers in
   `android/.../common/` (`DocumentSaver` for “Save to…”/folder export, `FileShare` for FileProvider).
@@ -74,7 +74,7 @@ existing `react-native-permissions`.
 
 ## Permissions
 
-`SCHEDULE_EXACT_ALARM` (countdown timer, optional — falls back to inexact), `POST_NOTIFICATIONS` (timer alert, existing), `CAMERA` (scanner, AR, angle sighting — requested on Start; `uses-feature` camera / camera.ar
+Timer alerts use the shared alarm engine's permissions (see [REMINDERS.md](./REMINDERS.md#permissions)). `CAMERA` (scanner, AR, angle sighting — requested on Start; `uses-feature` camera / camera.ar
 `required=false`), `VIBRATE` (water eject). The document scanner and file export
 need no permission (Play services UI + Storage Access Framework).
 
@@ -86,7 +86,7 @@ need no permission (Play services UI + Storage Access Framework).
 - Angle measuring is only as good as the known length and how steadily you aim. It
   assumes the camera stays at the same spot (and, for phone-height methods, the same
   height) for every point. There is no per-phone tilt-sensor calibration.
-- The countdown alarm doesn't survive a reboot. Without exact-alarm permission, Doze can
-  delay it by a few minutes. The stopwatch and timer use the wall clock, so changing the
-  phone's time shifts them.
+- Timer alarms are restored after a reboot (shared alarm engine). Without exact-alarm
+  permission, Doze can delay them a few minutes. Stopwatches and timers use the wall
+  clock, so changing the phone's time shifts them.
 - The water-eject tone can’t guarantee water removal or repair water damage.

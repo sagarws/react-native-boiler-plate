@@ -11,6 +11,8 @@ import type { RootStackParamList } from './types';
  * - rnboilerplate://life/today — the Manage Life home-screen widget.
  * - rnboilerplate://followup/contact/<id> · followup/view/<view> — Follow Up
  *   reminder notifications.
+ * - rnboilerplate://reminders · utility/timers — reminder / timer alarms.
+ * - rnboilerplate://photo-widgets/<id> — tapping a home-screen photo widget.
  */
 export const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['rnboilerplate://'],
@@ -26,6 +28,9 @@ export const linking: LinkingOptions<RootStackParamList> = {
             parse: { source: () => 'latest' as const },
           },
           [ROUTES.FOLLOW_UP_CONTACT]: { path: 'followup/contact/:contactId' },
+          [ROUTES.REMINDERS]: { path: 'reminders' },
+          [ROUTES.UTILITY_TIMER]: { path: 'utility/timers' },
+          [ROUTES.PHOTO_WIDGET_EDIT]: { path: 'photo-widgets/:widgetId' },
           [ROUTES.FOLLOW_UP]: {
             path: 'followup/view/:view',
             parse: {

@@ -247,31 +247,4 @@ export const utilityNative = {
       NativeUtility?.stopTilt();
     };
   },
-
-  // ── Countdown timer ──
-  /** 'unavailable' without the native module (or if arming failed). */
-  async scheduleTimerAlarm(
-    at: number,
-    title: string,
-    body: string,
-  ): Promise<'exact' | 'inexact' | 'unavailable'> {
-    if (!NativeUtility) return 'unavailable';
-    try {
-      return (await NativeUtility.scheduleTimerAlarm(at, title, body)) as
-        | 'exact'
-        | 'inexact';
-    } catch (error) {
-      logger.warn('timer alarm failed', errorCode(error));
-      return 'unavailable';
-    }
-  },
-  cancelTimerAlarm() {
-    NativeUtility?.cancelTimerAlarm();
-  },
-  async canScheduleExactAlarms(): Promise<boolean> {
-    return NativeUtility ? NativeUtility.canScheduleExactAlarms() : true;
-  },
-  openExactAlarmSettings() {
-    NativeUtility?.openExactAlarmSettings();
-  },
 };

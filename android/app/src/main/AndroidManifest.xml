@@ -14,10 +14,17 @@
     <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
     <!-- Utility: optional vibration in Speaker Water Eject. -->
     <uses-permission android:name="android.permission.VIBRATE" />
-    <!-- Utility countdown timer: on-time "time's up" alerts. The user can
-         deny it (Android 13+ default); the timer then falls back to an
-         inexact alarm and says so. -->
+    <!-- Reminders and Utility timers (shared alarm engine, alarms/):
+         on-time alarms; the user can deny exact alarms (Android 14+ default),
+         then alarms are inexact and the screens say so. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Ringing continues with the app closed: a foreground service of type
+         systemExempted (allowed with exact alarms) or mediaPlayback. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- High-priority alarms: lock-screen alarm screen (the user can revoke it). -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
     <!-- Follow Up: "fill from contacts" on the contact form (asked on tap;
          without it the system picker is offered instead). -->
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -97,6 +104,15 @@
             <category android:name="android.intent.category.DEFAULT" />
             <data android:scheme="rnboilerplate" android:host="followup" />
         </intent-filter>
+        <!-- Reminder / timer alarms and photo widgets open their screens.
+             Not BROWSABLE, so web pages cannot trigger them. -->
+        <intent-filter>
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:scheme="rnboilerplate" android:host="reminders" />
+            <data android:scheme="rnboilerplate" android:host="utility" />
+            <data android:scheme="rnboilerplate" android:host="photo-widgets" />
+        </intent-filter>
       </activity>
 
       <!-- AR Measure works where ARCore is available; elsewhere it explains why not. -->
@@ -113,15 +129,69 @@
         android:exported="false"
         android:screenOrientation="portrait"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
-      <!-- Utility countdown timer alert: fired by the app's own alarm only. -->
-      <receiver
-        android:name=".utility.TimerAlarmReceiver"
-        android:exported="false" />
       <activity
         android:name=".utility.MeasureActivity"
         android:exported="false"
         android:screenOrientation="portrait"
         android:configChanges="orientation|screenSize"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+
+      <!-- Photo Widget: home-screen photo widgets (any number, resizable).
+           Exported for the launcher only; settings come from the app. -->
+      <receiver
+        android:name=".photowidget.PhotoWidgetProvider"
+        android:exported="true"
+        android:label="@string/photo_widget_label">
+        <intent-filter>
+          <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+        </intent-filter>
+        <meta-data
+          android:name="android.appwidget.provider"
+          android:resource="@xml/photo_widget_info" />
+      </receiver>
+      <!-- The launcher opens this when a photo widget is added; must be exported. -->
+      <activity
+        android:name=".photowidget.PhotoWidgetConfigureActivity"
+        android:exported="true"
+        android:excludeFromRecents="true"
+        android:theme="@android:style/Theme.DeviceDefault.Dialog.NoActionBar">
+        <intent-filter>
+          <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+        </intent-filter>
+      </activity>
+      <receiver
+        android:name=".photowidget.PhotoWidgetPinReceiver"
+        android:exported="false" />
+
+      <!-- Shared alarm engine (Reminders, Utility timers). Fire / action
+           receivers are only reached through the app's own PendingIntents. -->
+      <receiver
+        android:name=".alarms.AlarmReceiver"
+        android:exported="false" />
+      <receiver
+        android:name=".alarms.AlarmActionReceiver"
+        android:exported="false" />
+      <receiver
+        android:name=".alarms.AlarmRestoreReceiver"
+        android:exported="false">
+        <intent-filter>
+          <action android:name="android.intent.action.BOOT_COMPLETED" />
+          <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+          <action android:name="android.intent.action.TIME_SET" />
+          <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+        </intent-filter>
+      </receiver>
+      <service
+        android:name=".alarms.AlarmRingService"
+        android:exported="false"
+        android:foregroundServiceType="systemExempted|mediaPlayback" />
+      <activity
+        android:name=".alarms.AlarmActivity"
+        android:exported="false"
+        android:excludeFromRecents="true"
+        android:launchMode="singleInstance"
+        android:showWhenLocked="true"
+        android:turnScreenOn="true"
         android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
 
       <!-- Follow Up reminders: fired by the app's own alarms only. -->

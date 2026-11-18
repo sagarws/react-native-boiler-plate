@@ -356,30 +356,6 @@ class UtilityModule(context: ReactApplicationContext) : NativeUtilitySpec(contex
     UiThreadUtil.runOnUiThread { tilt?.stop() }
   }
 
-  // ── Countdown timer ──
-
-  override fun scheduleTimerAlarm(atMs: Double, title: String, body: String, promise: Promise) {
-    try {
-      promise.resolve(TimerAlarm.schedule(reactApplicationContext, atMs.toLong(), title, body))
-    } catch (e: Exception) {
-      promise.reject("alarm_failed", e.message ?: "Could not set the alarm", e)
-    }
-  }
-
-  override fun cancelTimerAlarm() = TimerAlarm.cancel(reactApplicationContext)
-
-  override fun canScheduleExactAlarms(promise: Promise) =
-    promise.resolve(TimerAlarm.canScheduleExact(reactApplicationContext))
-
-  override fun openExactAlarmSettings() {
-    val intent = TimerAlarm.exactAlarmSettings(reactApplicationContext) ?: return
-    try {
-      reactApplicationContext.startActivity(intent)
-    } catch (_: ActivityNotFoundException) {
-      // Not on this Android version / OEM: nothing to open.
-    }
-  }
-
   companion object {
     const val NAME = NativeUtilitySpec.NAME
     const val EVENT_TILT = "UtilityTilt"

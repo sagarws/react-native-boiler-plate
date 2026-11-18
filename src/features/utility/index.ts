@@ -7,6 +7,7 @@ export { default as WaterEjectScreen } from './screens/WaterEjectScreen';
 export { default as MeasureScreen } from './screens/MeasureScreen';
 export { default as StopwatchScreen } from './screens/StopwatchScreen';
 export { default as TimerScreen } from './screens/TimerScreen';
+export { default as TimerEditScreen } from './screens/TimerEditScreen';
 export { default as LevelScreen } from './screens/LevelScreen';
 export { default as ConverterScreen } from './screens/ConverterScreen';
 export { default as RecorderScreen } from './screens/RecorderScreen';

@@ -1,17 +1,11 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from 'react';
-import { Vibration } from 'react-native';
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import { alarms, type AlarmEntry, type AlertConfig } from '@/services/alarms';
 import { requestNotificationPermission } from '@/shared/utils/permissions';
 import {
   extendTimer,
   formatClock,
-  idleTimer,
   lapRows,
   lapStopwatch,
   pauseStopwatch,
@@ -24,17 +18,24 @@ import {
   timerRemaining,
   type LapRow,
   type TimerPhase,
-  type TimerState,
 } from '../services/clock';
-import { utilityNative } from '../services/native.service';
-import { clockStore, type ClockData } from '../store/clock.store';
+import {
+  clockStore,
+  type ClockData,
+  type NamedStopwatch,
+  type NamedTimer,
+  type TimerPreset,
+} from '../store/clock.store';
 import { useScreenActive } from './useUtility';
 
 export function useClockData(): ClockData {
   return useSyncExternalStore(clockStore.subscribe, clockStore.read);
 }
 
-/** Date.now(), refreshed every [ms] while [running] and the screen is active. */
+/**
+ * Date.now(), refreshed every [ms] only while [running] and the screen is
+ * active — nothing ticks in the background (the times are timestamp based).
+ */
 export function useNow(running: boolean, ms: number): number {
   const active = useScreenActive();
   const [now, setNow] = useState(() => Date.now());
@@ -47,127 +48,163 @@ export function useNow(running: boolean, ms: number): number {
   return now;
 }
 
-export interface Stopwatch {
-  elapsedMs: number;
+// ── Stopwatches ──
+
+export interface StopwatchView extends NamedStopwatch {
+  elapsed: number;
   running: boolean;
-  laps: LapRow[];
-  start: () => void;
-  pause: () => void;
-  lap: () => void;
-  reset: () => void;
+  lapList: LapRow[];
 }
 
-export function useStopwatch(): Stopwatch {
-  const { stopwatch } = useClockData();
-  const running = stopwatch.startedAt !== null;
-  const now = useNow(running, 47);
+export function useStopwatches() {
+  const { stopwatches } = useClockData();
+  const anyRunning = stopwatches.some(s => s.startedAt !== null);
+  const now = useNow(anyRunning, 47);
+  const items: StopwatchView[] = stopwatches.map(s => ({
+    ...s,
+    elapsed: stopwatchElapsed(s, now),
+    running: s.startedAt !== null,
+    lapList: lapRows(s.laps),
+  }));
   return {
-    elapsedMs: stopwatchElapsed(stopwatch, now),
-    running,
-    laps: lapRows(stopwatch.laps),
-    start: () =>
-      clockStore.setStopwatch(
-        startStopwatch(clockStore.read().stopwatch, Date.now()),
-      ),
-    pause: () =>
-      clockStore.setStopwatch(
-        pauseStopwatch(clockStore.read().stopwatch, Date.now()),
-      ),
-    lap: () =>
-      clockStore.setStopwatch(
-        lapStopwatch(clockStore.read().stopwatch, Date.now()),
-      ),
-    reset: () => clockStore.resetStopwatch(),
+    items,
+    add: (name: string) => clockStore.addStopwatch(name),
+    start: (id: string) =>
+      clockStore.updateStopwatch(id, s => startStopwatch(s, Date.now())),
+    pause: (id: string) =>
+      clockStore.updateStopwatch(id, s => pauseStopwatch(s, Date.now())),
+    lap: (id: string) =>
+      clockStore.updateStopwatch(id, s => lapStopwatch(s, Date.now())),
+    reset: (id: string) =>
+      clockStore.updateStopwatch(id, () => ({
+        startedAt: null,
+        elapsedMs: 0,
+        laps: [],
+      })),
+    rename: clockStore.renameStopwatch,
+    remove: clockStore.deleteStopwatch,
   };
 }
 
-export type AlarmMode =
-  | 'exact'
-  | 'inexact'
-  | 'unavailable'
-  | 'no_notifications';
+// ── Timers ──
 
-export interface CountdownTimer {
-  state: TimerState;
-  remainingMs: number;
-  phase: TimerPhase;
-  /** How the running timer will alert; null until started. */
-  alarm: AlarmMode | null;
-  setDuration: (ms: number) => void;
-  start: () => Promise<void>;
-  pause: () => void;
-  reset: () => void;
-  addMinute: () => Promise<void>;
-  openExactSettings: () => void;
+export const BUILTIN_PRESET_MINUTES = [1, 5, 10, 15, 30, 45, 60] as const;
+
+export const timerKey = (id: string) => `timer:${id}`;
+
+/** The alarms for every running timer (pure, exported for tests). */
+export function timerAlarmEntries(
+  timers: readonly NamedTimer[],
+  now: number,
+  t: TFunction,
+): AlarmEntry[] {
+  return timers
+    .filter(x => x.endsAt !== null && x.endsAt > now)
+    .map(x => ({
+      key: timerKey(x.id),
+      title: t('utility.timerDoneTitleNamed', { name: x.name }),
+      body: t('utility.timerDoneBody', {
+        time: formatClock(x.durationMs, false),
+      }),
+      at: x.endsAt!,
+      date: '',
+      time: '',
+      repeat: 'never',
+      alert: x.alert,
+      link: 'rnboilerplate://utility/timers',
+    }));
 }
 
-/**
- * The countdown timer. Starting arms an Android alarm, so "time's up" is
- * shown as a notification even when the app is closed; pause / reset
- * cancel it. In the app, the end also vibrates the phone.
- */
-export function useCountdownTimer(): CountdownTimer {
+export type TimerAlarmState = 'exact' | 'inexact' | 'no_notifications' | null;
+
+/** Re-arms the timer group of the alarm engine from the stored timers. */
+async function syncTimers(t: TFunction): Promise<TimerAlarmState> {
+  const entries = timerAlarmEntries(clockStore.read().timers, Date.now(), t);
+  if (!entries.length) {
+    await alarms.sync('timer', []);
+    return null;
+  }
+  const allowed = await requestNotificationPermission();
+  const r = await alarms.sync('timer', entries);
+  if (!allowed) return 'no_notifications';
+  return r.kind === 'scheduled' ? (r.exact ? 'exact' : 'inexact') : null;
+}
+
+export interface TimerView extends NamedTimer {
+  remaining: number;
+  phase: TimerPhase;
+  /** 0–1 of the duration left. */
+  progress: number;
+}
+
+export function useTimers() {
   const { t } = useTranslation();
-  const { timer } = useClockData();
-  const now = useNow(timer.endsAt !== null, 250);
-  const phase = timerPhase(timer, now);
-  const [alarm, setAlarm] = useState<AlarmMode | null>(null);
-  const buzzedFor = useRef<number | null>(null);
-
-  const arm = useCallback(
-    async (next: TimerState) => {
-      if (next.endsAt === null) return;
-      const allowed = await requestNotificationPermission();
-      const mode = await utilityNative.scheduleTimerAlarm(
-        next.endsAt,
-        t('utility.timerDoneTitle'),
-        t('utility.timerDoneBody', {
-          time: formatClock(next.durationMs, false),
-        }),
-      );
-      setAlarm(allowed ? mode : 'no_notifications');
-    },
-    [t],
+  const { timers, presets } = useClockData();
+  const now = useNow(
+    timers.some(x => x.endsAt !== null),
+    250,
   );
+  const [alarmState, setAlarmState] = useState<TimerAlarmState>(null);
+  const sync = useCallback(() => syncTimers(t).then(setAlarmState), [t]);
 
-  // Ring in the app when it ends while the screen is open.
-  useEffect(() => {
-    if (phase !== 'finished' || timer.endsAt === null) return;
-    if (buzzedFor.current === timer.endsAt) return;
-    buzzedFor.current = timer.endsAt;
-    Vibration.vibrate([0, 500, 300, 500, 300, 500]);
-  }, [phase, timer.endsAt]);
+  const items: TimerView[] = timers.map(x => {
+    const remaining = timerRemaining(x, now);
+    return {
+      ...x,
+      remaining,
+      phase: timerPhase(x, now),
+      progress: x.durationMs ? remaining / x.durationMs : 0,
+    };
+  });
+
+  const change = async (
+    id: string,
+    fn: Parameters<typeof clockStore.updateTimer>[1],
+  ) => {
+    clockStore.updateTimer(id, fn);
+    await sync();
+  };
+  /** Stops the alert if this timer is ringing. */
+  const quiet = (id: string) => alarms.dismiss(timerKey(id));
 
   return {
-    state: timer,
-    remainingMs: timerRemaining(timer, now),
-    phase,
-    alarm,
-    setDuration: ms => {
-      if (timer.endsAt !== null) return;
-      clockStore.setTimer(idleTimer(ms));
+    items,
+    presets,
+    alarmState,
+    add: async (input: {
+      name: string;
+      durationMs: number;
+      alert: AlertConfig;
+    }) => {
+      const timer = clockStore.addTimer(input);
+      return timer;
     },
-    start: async () => {
-      const next = startTimer(clockStore.read().timer, Date.now());
-      clockStore.setTimer(next);
-      await arm(next);
+    edit: async (
+      id: string,
+      input: { name: string; durationMs: number; alert: AlertConfig },
+    ) => {
+      quiet(id);
+      clockStore.editTimer(id, input);
+      await sync();
     },
-    pause: () => {
-      utilityNative.cancelTimerAlarm();
-      clockStore.setTimer(pauseTimer(clockStore.read().timer, Date.now()));
+    start: (id: string) => change(id, x => startTimer(x, Date.now())),
+    pause: (id: string) => change(id, x => pauseTimer(x, Date.now())),
+    reset: (id: string) => {
+      quiet(id);
+      return change(id, x => resetTimer(x));
     },
-    reset: () => {
-      utilityNative.cancelTimerAlarm();
-      Vibration.cancel();
-      setAlarm(null);
-      clockStore.setTimer(resetTimer(clockStore.read().timer));
+    addMinute: (id: string) => {
+      quiet(id);
+      return change(id, x => extendTimer(x, 60_000, Date.now()));
     },
-    addMinute: async () => {
-      const next = extendTimer(clockStore.read().timer, 60_000, Date.now());
-      utilityNative.cancelTimerAlarm();
-      clockStore.setTimer(next);
-      await arm(next);
+    remove: async (id: string) => {
+      quiet(id);
+      clockStore.deleteTimer(id);
+      await sync();
     },
-    openExactSettings: utilityNative.openExactAlarmSettings,
+    savePreset: (name: string, durationMs: number): TimerPreset | null =>
+      clockStore.addPreset(name, durationMs),
+    deletePreset: clockStore.deletePreset,
+    openExactSettings: alarms.openExactAlarmSettings,
   };
 }

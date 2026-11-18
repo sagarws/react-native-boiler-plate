@@ -306,3 +306,91 @@ describe('unit converter', () => {
     expect(formatNumber(1e-9)).toBe('1.0000e-9');
   });
 });
+
+describe('multiple timers and stopwatches storage', () => {
+  // Imported lazily so the module-level mocks above stay untouched.
+  const { cleanClock, TIMER_ALERT } = jest.requireActual(
+    '../store/clock.store',
+  ) as typeof import('../store/clock.store');
+  const { timerAlarmEntries } = jest.requireActual(
+    '../hooks/useClock',
+  ) as typeof import('../hooks/useClock');
+
+  it('carries over the earlier single stopwatch and timer', () => {
+    const migrated = cleanClock({
+      stopwatch: { startedAt: 1000, elapsedMs: 500, laps: [200] },
+      timer: { durationMs: 60_000, endsAt: 5000, remainingMs: 60_000 },
+    });
+    expect(migrated.stopwatches).toHaveLength(1);
+    expect(migrated.stopwatches[0]).toMatchObject({
+      startedAt: 1000,
+      elapsedMs: 500,
+      laps: [200],
+    });
+    expect(migrated.timers[0]).toMatchObject({
+      durationMs: 60_000,
+      endsAt: 5000,
+      alert: TIMER_ALERT,
+    });
+    // An untouched old stopwatch isn't worth keeping.
+    expect(
+      cleanClock({ stopwatch: { startedAt: null, elapsedMs: 0, laps: [] } })
+        .stopwatches,
+    ).toHaveLength(0);
+  });
+
+  it('drops bad records and caps lists', () => {
+    const c = cleanClock({
+      stopwatches: [{ id: 'a', name: 'A', elapsedMs: -5 }, { name: 'no id' }],
+      timers: [{ id: 't', name: 'T', durationMs: 0 }],
+      presets: [{ id: 'p', name: 'Tea', durationMs: 180_000 }],
+    });
+    expect(c.stopwatches).toEqual([
+      expect.objectContaining({ id: 'a', elapsedMs: 0 }),
+    ]);
+    expect(c.timers).toEqual([]);
+    expect(c.presets).toEqual([{ id: 'p', name: 'Tea', durationMs: 180_000 }]);
+  });
+
+  it('gives each running timer its own alarm with its own alert', () => {
+    const t = ((k: string, o?: Record<string, unknown>) =>
+      `${k}${o ? JSON.stringify(o) : ''}`) as never;
+    const base = { ...TIMER_ALERT };
+    const entries = timerAlarmEntries(
+      [
+        {
+          id: 'a',
+          name: 'Tea',
+          durationMs: 60_000,
+          endsAt: 61_000,
+          remainingMs: 60_000,
+          alert: { ...base, mode: 'vibrate' },
+          createdAt: 0,
+        },
+        {
+          id: 'b',
+          name: 'Paused',
+          durationMs: 60_000,
+          endsAt: null,
+          remainingMs: 30_000,
+          alert: base,
+          createdAt: 0,
+        },
+        {
+          id: 'c',
+          name: 'Done',
+          durationMs: 60_000,
+          endsAt: 500,
+          remainingMs: 60_000,
+          alert: base,
+          createdAt: 0,
+        },
+      ],
+      1000,
+      t,
+    );
+    expect(entries.map(e => [e.key, e.at, e.alert.mode])).toEqual([
+      ['timer:a', 61_000, 'vibrate'],
+    ]);
+  });
+});

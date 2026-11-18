@@ -38,7 +38,9 @@ src/store/mmkv.ts     every storage key, in one place
 src/specs/            TurboModule codegen specs — each imported only by its owner's services/
                       (NativeScreenOcr → capture, NativeFollowUp → followup,
                       NativeUtility + NativeRecorder → utility, NativeExpense → expense,
-                      NativeNetInspector → network)
+                      NativeNetInspector → network, NativePhotoWidget → photoWidget,
+                      NativeAlarms → src/services/alarms)
+src/services/alarms/  shared alarm engine bridge (Reminders + Utility timers) — docs/REMINDERS.md
 src/features/
   expense/            Expense Tracker + Scan QR & Pay (UPI intents) — the start screen;
                       docs/EXPENSE_TRACKER.md
@@ -48,8 +50,13 @@ src/features/
   settings/           settings, appearance, about
   life/               Manage Life (projects, targets, widget)
   followup/           Follow Up CRM (contacts, follow-ups, reminders) — docs/FOLLOW_UP.md
-  utility/            Utility tools (scanner, documents, compass, AR measure, water eject,
+  utility/            Utility tools (scanner, documents, compass, AR + angle measure,
+                      multiple stopwatch / timer, level, converter, water eject,
                       screen recorder) — docs/UTILITY.md, docs/SCREEN_RECORDER.md
+  reminders/          Reminders & alarms (birthdays, events; snooze, ringtones,
+                      repeat, survives reboot) — docs/REMINDERS.md
+  photoWidget/        home-screen photo widgets (fit / fill / crop, resizable) —
+                      docs/PHOTO_WIDGET.md
   network/            Network Inspector: in-app browser (WebView) that records the
                       API calls of allowed sites; list, detail, cURL, JSON export —
                       docs/NETWORK_INSPECTOR.md

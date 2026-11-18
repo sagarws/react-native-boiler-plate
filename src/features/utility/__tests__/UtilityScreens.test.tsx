@@ -4,7 +4,7 @@ import {
   AppState,
   DeviceEventEmitter,
   Linking,
-  Vibration,
+  type AlertButton,
 } from 'react-native';
 import ReactTestRenderer from 'react-test-renderer';
 import { check, request } from 'react-native-permissions';
@@ -16,6 +16,8 @@ import ConverterScreen from '../screens/ConverterScreen';
 import LevelScreen from '../screens/LevelScreen';
 import StopwatchScreen from '../screens/StopwatchScreen';
 import TimerScreen from '../screens/TimerScreen';
+import TimerEditScreen from '../screens/TimerEditScreen';
+import { TIMER_ALERT } from '../store/clock.store';
 import CompassScreen from '../screens/CompassScreen';
 import MeasureScreen from '../screens/MeasureScreen';
 import ScannerScreen from '../screens/ScannerScreen';
@@ -24,8 +26,9 @@ import WaterEjectScreen from '../screens/WaterEjectScreen';
 
 let mockFocused = true;
 const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
 jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
+  useNavigation: () => ({ navigate: mockNavigate, goBack: mockGoBack }),
   useRoute: () => ({ params: undefined }),
   useIsFocused: () => mockFocused,
 }));
@@ -46,12 +49,29 @@ jest.mock('@/specs/NativeUtility', () => ({
     getTiltSupport: jest.fn(),
     startTilt: jest.fn(),
     stopTilt: jest.fn(),
-    scheduleTimerAlarm: jest.fn(),
-    cancelTimerAlarm: jest.fn(),
-    canScheduleExactAlarms: jest.fn(),
-    openExactAlarmSettings: jest.fn(),
   },
 }));
+jest.mock('@/specs/NativeAlarms', () => ({
+  __esModule: true,
+  default: {
+    sync: jest.fn(),
+    dismiss: jest.fn(),
+    getRinging: jest.fn(),
+    getArmed: jest.fn(),
+    pickRingtone: jest.fn(),
+    ringtoneTitle: jest.fn(),
+    previewRingtone: jest.fn(),
+    stopPreview: jest.fn(),
+    hasVibrator: jest.fn(),
+    canScheduleExactAlarms: jest.fn(),
+    openExactAlarmSettings: jest.fn(),
+    canUseFullScreenIntent: jest.fn(),
+    openFullScreenIntentSettings: jest.fn(),
+  },
+}));
+const alarmNative: Record<string, jest.Mock> = jest.requireMock(
+  '@/specs/NativeAlarms',
+).default;
 jest.mock('@/specs/NativeScreenOcr', () => ({
   __esModule: true,
   default: { copyToClipboard: jest.fn().mockResolvedValue(true) },
@@ -97,7 +117,14 @@ beforeEach(() => {
   native.getDocumentScannerSupport.mockResolvedValue('available');
   native.getArSupport.mockResolvedValue('supported');
   native.getTiltSupport.mockResolvedValue('gravity');
-  native.scheduleTimerAlarm.mockResolvedValue('exact');
+  alarmNative.sync.mockImplementation(async (_g: string, json: string) =>
+    JSON.stringify({ armed: JSON.parse(json).length, exact: true }),
+  );
+  alarmNative.hasVibrator.mockResolvedValue(true);
+  alarmNative.canUseFullScreenIntent.mockResolvedValue(true);
+  alarmNative.pickRingtone.mockResolvedValue(
+    JSON.stringify({ uri: 'content://media/alarm/7', title: 'Morning' }),
+  );
   (check as jest.Mock).mockResolvedValue('granted');
   (request as jest.Mock).mockResolvedValue('granted');
 });
@@ -355,98 +382,184 @@ describe('Angle measure', () => {
   });
 });
 
-describe('Stopwatch', () => {
+describe('Multiple Stopwatch', () => {
   afterEach(() => jest.useRealTimers());
 
-  it('starts, laps, pauses and resets from stored timestamps', async () => {
+  const ids = () => clockStore.read().stopwatches.map(s => s.id);
+
+  it('runs several stopwatches independently, with laps', async () => {
     jest.useFakeTimers({ now: 1_000_000 });
     const r = await render(<StopwatchScreen />);
-    await press(r, 'stopwatch-start');
+    expect(has(r, 'stopwatch-empty')).toBe(true);
+    await press(r, 'stopwatch-add');
+    await press(r, 'stopwatch-add');
+    await press(r, 'stopwatch-add');
+    const [a, b, c] = ids();
+    expect(text(r)).toContain('Stopwatch 3');
+
+    await press(r, `stopwatch-start-${a}`);
     await ReactTestRenderer.act(async () => {
-      jest.advanceTimersByTime(1500);
+      jest.advanceTimersByTime(1000);
     });
-    await press(r, 'stopwatch-lap');
-    expect(has(r, 'lap-1')).toBe(true);
+    await press(r, `stopwatch-start-${b}`);
+    await press(r, `stopwatch-lap-${a}`);
     await ReactTestRenderer.act(async () => {
       jest.advanceTimersByTime(2000);
     });
-    await press(r, 'stopwatch-pause');
-    expect(text(r)).toContain('00:03.50');
-    expect(clockStore.read().stopwatch).toMatchObject({
-      startedAt: null,
-      elapsedMs: 3500,
-      laps: [1500],
+    await press(r, `stopwatch-lap-${a}`);
+    await press(r, `stopwatch-pause-${b}`);
+    await press(r, `stopwatch-lap-${a}`);
+
+    const [sa, sb, sc] = clockStore.read().stopwatches;
+    expect(sa.laps).toEqual([1000, 3000, 3000]);
+    expect(sa.startedAt).not.toBeNull();
+    expect(sb).toMatchObject({ startedAt: null, elapsedMs: 2000 });
+    expect(sc).toMatchObject({ startedAt: null, elapsedMs: 0 });
+    expect(byId(r, `stopwatch-time-${b}`).props.children).toBe('00:02.00');
+    expect(has(r, `lap-${a}-3`)).toBe(true);
+    expect(has(r, `stopwatch-reset-${c}`)).toBe(true);
+
+    // Resuming keeps the banked time.
+    await press(r, `stopwatch-start-${b}`);
+    await ReactTestRenderer.act(async () => {
+      jest.advanceTimersByTime(500);
     });
-    await press(r, 'stopwatch-reset');
-    expect(text(r)).toContain('00:00.00');
-    expect(has(r, 'lap-1')).toBe(false);
+    await press(r, `stopwatch-pause-${b}`);
+    expect(clockStore.read().stopwatches[1].elapsedMs).toBe(2500);
+  });
+
+  it('keeps counting after the app was closed, renames and deletes', async () => {
+    clockStore.addStopwatch('Run');
+    const [id] = ids();
+    clockStore.updateStopwatch(id, () => ({
+      startedAt: Date.now() - 65_000,
+      elapsedMs: 0,
+      laps: [],
+    }));
+    const r = await render(<StopwatchScreen />);
+    expect(byId(r, `stopwatch-time-${id}`).props.children).toMatch(/^01:0[56]/);
+
+    await press(r, `stopwatch-rename-${id}`);
+    await ReactTestRenderer.act(async () => {
+      byId(r, 'stopwatch-rename-field').props.onChangeText('Morning run');
+    });
+    await press(r, 'stopwatch-rename-save');
+    expect(clockStore.read().stopwatches[0].name).toBe('Morning run');
+
+    const alert = jest.spyOn(Alert, 'alert');
+    await press(r, `stopwatch-delete-${id}`);
+    const buttons = alert.mock.calls[0][2] as AlertButton[];
+    await ReactTestRenderer.act(async () => {
+      buttons.find(x => x.style === 'destructive')?.onPress?.();
+    });
+    expect(clockStore.read().stopwatches).toHaveLength(0);
+    alert.mockRestore();
   });
 });
 
-describe('Timer', () => {
+describe('Multiple Timer', () => {
   afterEach(() => jest.useRealTimers());
 
-  it('arms the alarm on start and cancels it on pause and reset', async () => {
-    jest.useFakeTimers({ now: 2_000_000 });
-    const r = await render(<TimerScreen />);
-    await press(r, 'timer-preset-1');
-    await press(r, 'timer-start');
-    expect(native.scheduleTimerAlarm).toHaveBeenCalledWith(
-      2_060_000,
-      "Time's up",
-      'Your 01:00 timer has finished.',
-    );
-    await ReactTestRenderer.act(async () => {
-      jest.advanceTimersByTime(20_000);
-    });
-    expect(text(r)).toContain('00:40');
-    await press(r, 'timer-pause');
-    expect(native.cancelTimerAlarm).toHaveBeenCalled();
-    expect(text(r)).toContain('Paused');
-    await press(r, 'timer-reset');
-    expect(text(r)).toContain('01:00');
-  });
+  const synced = () => {
+    const calls = alarmNative.sync.mock.calls;
+    return JSON.parse(calls[calls.length - 1][1]) as {
+      key: string;
+      at: number;
+      alert: { mode: string; ringtone: string };
+    }[];
+  };
 
-  it('rings in the app when it ends, and warns about inexact alarms', async () => {
-    jest.useFakeTimers({ now: 3_000_000 });
-    native.scheduleTimerAlarm.mockResolvedValue('inexact');
-    const vibrate = jest
-      .spyOn(Vibration, 'vibrate')
-      .mockImplementation(() => {});
+  it('runs three timers at once; one finishing leaves the others running', async () => {
+    jest.useFakeTimers({ now: 5_000_000 });
     const r = await render(<TimerScreen />);
-    await press(r, 'timer-preset-1');
-    await press(r, 'timer-start');
-    expect(has(r, 'timer-inexact')).toBe(true);
-    // Its button opens Android's exact-alarm setting.
+    await press(r, 'timer-quick-1');
+    await press(r, 'timer-quick-5');
+    await press(r, 'timer-quick-10');
+    const [t1, t5, t10] = clockStore.read().timers;
+    expect(clockStore.read().timers).toHaveLength(3);
+    // One alarm per running timer, each at its own end time.
+    expect(synced().map(e => [e.key, e.at])).toEqual([
+      [`timer:${t1.id}`, 5_060_000],
+      [`timer:${t5.id}`, 5_300_000],
+      [`timer:${t10.id}`, 5_600_000],
+    ]);
+
     await ReactTestRenderer.act(async () => {
-      r.root
-        .findAll(
-          n =>
-            typeof n.props.onPress === 'function' &&
-            n.props.accessibilityLabel === 'Allow exact alarms',
-        )[0]
-        ?.props.onPress();
+      jest.advanceTimersByTime(1000);
     });
-    expect(native.openExactAlarmSettings).toHaveBeenCalled();
+    await press(r, `timer-pause-${t5.id}`);
+    expect(synced().map(e => e.key)).toEqual([
+      `timer:${t1.id}`,
+      `timer:${t10.id}`,
+    ]);
+
     await ReactTestRenderer.act(async () => {
-      jest.advanceTimersByTime(61_000);
+      jest.advanceTimersByTime(60_000);
     });
     expect(text(r)).toContain("Time's up");
-    expect(vibrate).toHaveBeenCalled();
-    await press(r, 'timer-add');
-    expect(text(r)).toContain('Running');
-    vibrate.mockRestore();
+    expect(byId(r, `timer-phase-${t10.id}`).props.label).toBe('Running');
+    expect(byId(r, `timer-phase-${t5.id}`).props.label).toBe('Paused');
+
+    // Dismissing the finished one stops only its alarm.
+    await press(r, `timer-reset-${t1.id}`);
+    expect(alarmNative.dismiss).toHaveBeenCalledWith(`timer:${t1.id}`);
+    expect(byId(r, `timer-phase-${t10.id}`).props.label).toBe('Running');
+
+    await press(r, `timer-start-${t5.id}`);
+    expect(synced().map(e => e.key)).toContain(`timer:${t5.id}`);
   });
 
-  it('keeps the remaining time after the app was closed', async () => {
-    clockStore.setTimer({
-      durationMs: 600_000,
-      endsAt: Date.now() + 300_000,
-      remainingMs: 600_000,
+  it('creates a named timer with its own ringtone, and saves presets', async () => {
+    jest.useFakeTimers({ now: 6_000_000 });
+    const r = await render(<TimerEditScreen />);
+    await ReactTestRenderer.act(async () => {
+      byId(r, 'timer-name').props.onChangeText('Tea');
+      byId(r, 'timer-h').props.onChangeText('0');
+      byId(r, 'timer-m').props.onChangeText('3');
+      byId(r, 'timer-s').props.onChangeText('30');
     });
+    await press(r, 'timer-save-preset');
+    expect(clockStore.read().presets[0]).toMatchObject({
+      name: 'Tea',
+      durationMs: 210_000,
+    });
+    await press(r, 'timer-alert-ringtone');
+    await ReactTestRenderer.act(async () => {
+      byId(r, 'timer-alert-mode').props.onChange('sound');
+    });
+    await press(r, 'timer-save');
+    const [tea] = clockStore.read().timers;
+    expect(tea).toMatchObject({
+      name: 'Tea',
+      durationMs: 210_000,
+      alert: { mode: 'sound', ringtone: 'content://media/alarm/7' },
+    });
+    expect(synced()[0]).toMatchObject({
+      key: `timer:${tea.id}`,
+      at: 6_210_000,
+      alert: { mode: 'sound', ringtone: 'content://media/alarm/7' },
+    });
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it('keeps the remaining time after the app was closed and warns about inexact alarms', async () => {
+    alarmNative.sync.mockResolvedValue(
+      JSON.stringify({ armed: 1, exact: false }),
+    );
+    const timer = clockStore.addTimer({
+      name: 'Laundry',
+      durationMs: 600_000,
+      alert: TIMER_ALERT,
+    })!;
+    clockStore.updateTimer(timer.id, x => ({
+      ...x,
+      endsAt: Date.now() + 300_000,
+    }));
     const r = await render(<TimerScreen />);
-    expect(text(r)).toMatch(/0[45]:[0-5]\d/);
-    expect(text(r)).toContain('Running');
+    expect(byId(r, `timer-time-${timer.id}`).props.children).toMatch(/^0[45]:/);
+    await press(r, `timer-pause-${timer.id}`);
+    await press(r, `timer-start-${timer.id}`);
+    expect(has(r, 'timer-inexact')).toBe(true);
   });
 });
 

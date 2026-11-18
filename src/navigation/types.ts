@@ -45,6 +45,11 @@ export type MainStackParamList = {
   LifeTaskForm: { projectId: string; taskId?: string };
   /** One task's details, calendar and chart. */
   LifeTask: { taskId: string };
+  Reminders: undefined;
+  /** No reminderId = new reminder (on [date] when given). */
+  ReminderForm: { reminderId?: string; date?: string } | undefined;
+  PhotoWidgets: undefined;
+  PhotoWidgetEdit: { widgetId: string };
   /** Follow Up; `view` opens a list directly (e.g. from a reminder). */
   FollowUp:
     | { view?: 'pending' | 'today' | 'overdue' | 'upcoming' | 'done' | 'all' }
@@ -61,6 +66,8 @@ export type MainStackParamList = {
   UtilityMeasure: undefined;
   UtilityStopwatch: undefined;
   UtilityTimer: undefined;
+  /** No timerId = new timer. */
+  UtilityTimerEdit: { timerId?: string } | undefined;
   UtilityLevel: undefined;
   UtilityConverter: undefined;
   UtilityRecorder: undefined;
