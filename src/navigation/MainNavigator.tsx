@@ -13,6 +13,7 @@ import {
   ManageLifeScreen,
   ProjectDetailScreen,
   ProjectFormScreen,
+  TaskDetailScreen,
   TaskFormScreen,
 } from '@/features/life';
 import {
@@ -80,6 +81,7 @@ export default function MainNavigator() {
           component={ProjectFormScreen}
         />
         <Stack.Screen name={ROUTES.LIFE_TASK_FORM} component={TaskFormScreen} />
+        <Stack.Screen name={ROUTES.LIFE_TASK} component={TaskDetailScreen} />
         <Stack.Screen name={ROUTES.FOLLOW_UP} component={FollowUpScreen} />
         <Stack.Screen
           name={ROUTES.FOLLOW_UP_CONTACT}

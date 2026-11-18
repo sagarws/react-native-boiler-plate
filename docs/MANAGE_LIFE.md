@@ -48,6 +48,39 @@ the app.
 - **Countdown:** the time left until local midnight after the period's last day.
   It refreshes every 30 s and whenever the app comes back to the foreground.
 
+## Task and project detail pages (`services/progress.ts`)
+
+Tap a task card on a project page to open **Task details** (`LifeTask` route). The
+project page (`LifeProject`) now also has a progress calendar and a progress chart.
+
+- **Calendar shading** (`taskDayCell`, `projectDayCell`, `levelFor`). Every day takes
+  the target period that contains it, so a weekly or every-N-days target shades the
+  whole period the same way.
+  - *No target*: before start, after end, paused, before tracking began, or in the
+    future. These days are neutral and never count as missed.
+  - *Not reported*: a target was scheduled but nothing was logged. Neutral fill with a
+    border and a "–" label.
+  - *Under 34% / 34–66% / 67–99% / Met (100%+)*: four strengths of the task's or
+    project's colour.
+  - Each cell also shows its % as text, so the scale doesn't rely on colour alone.
+- **Project day value:** the average, across the tasks that have a target scheduled
+  that day, of each task's own completed / target, capped at 100%. An unreported
+  period counts as 0%. Units are never added together.
+- **Task chart:** target vs actual for each period, in the task's own unit, 7 periods
+  per page. The % is shown as text, not on the axis.
+- **Project chart:** each task's line is the share of its *planned total* reported so
+  far.
+  - A task's schedule runs from its start to its end date, or to the project deadline
+    if it has no end date.
+  - The planned target builds up evenly through each period (a weekly target adds
+    1/7 per day). Paused periods plan nothing.
+  - *Average actual*: the mean of the task lines (each capped at 100%) for tasks that
+    have started.
+  - *Average target*: the mean of the planned shares.
+  - Every line can be shown or hidden. Task lines after the fifth start hidden.
+- **Task counts:** completed = marked completed. Overdue = not completed and past its
+  end date (or the project deadline). Pending = the rest.
+
 ## Gemini recommendations
 
 - The request only happens when you tap the button. There's a 15 s cooldown and
@@ -75,8 +108,10 @@ the app.
 - `__tests__/lifeStore.test.ts`: CRUD, validation, duplicates, reviews,
   analytics and target help.
 - `__tests__/recommendations.test.ts`: payload, parsing and local insights.
+- `__tests__/progress.test.ts`: calendar levels, period handling, unit-safe averages,
+  the target schedule, chart dates and line toggles.
 - `__tests__/ManageLifeScreens.test.tsx`: screens, log flow, review flow, forms,
-  AI flows, and history filters/CSV.
+  AI flows, history filters/CSV, the task details page and the project calendar/chart.
 - `android/.../LifeCoachTest.kt`: request body and schema.
 
 ## Known limitations
@@ -85,6 +120,8 @@ the app.
 - There are no reminders or notifications, because the project has no
   notification library.
 - Milestones aren't implemented.
-- Charts are simple view-based bars and heatmaps, not a charting library.
+- Charts are drawn with plain views (bars, heatmaps and rotated line segments), not a
+  charting library or SVG. Lines are straight between sampled dates (up to 10 per
+  project).
 - Data is only on the device. CSV export (History → Share) is the only way to
   get it out, and there's no import or cloud sync.

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
@@ -12,11 +12,16 @@ import type { MainStackParamList } from '@/navigation/types';
 import { Button, Card, EmptyState, Header, Notice } from '@/shared/components';
 import { categoryColor, useTheme } from '@/theme';
 import { LogProgressSheet } from '../components/LogProgressSheet';
+import {
+  ProjectCalendarCard,
+  ProjectChartCard,
+} from '../components/ProjectProgressCards';
 import { ReviewSheet } from '../components/ReviewSheet';
 import { TaskCard } from '../components/TaskCard';
-import { Avatar, ProgressBar } from '../components/visuals';
+import { Avatar, ProgressBar, StatCard } from '../components/visuals';
 import { lifeActions, useClock, useLifeData } from '../hooks/useLife';
 import { projectProgress } from '../services/analytics';
+import { projectOverall, projectTasks, taskCounts } from '../services/progress';
 import {
   currentState,
   pendingReviews,
@@ -40,6 +45,14 @@ export default function ProjectDetailScreen() {
     (PeriodState & { task: Task }) | null
   >(null);
   const project = data.projects.find(p => p.id === params.projectId);
+  const input = useMemo(
+    () => ({ reports: data.reports, reviews: data.reviews, today }),
+    [data.reports, data.reviews, today],
+  );
+  const tasks = useMemo(
+    () => projectTasks(data, params.projectId),
+    [data, params.projectId],
+  );
 
   if (!project) {
     return (
@@ -59,14 +72,14 @@ export default function ProjectDetailScreen() {
     );
   }
 
-  const tasks = data.tasks.filter(
-    x => x.projectId === project.id && x.status !== 'archived',
-  );
   const archivedTasks = data.tasks.filter(
     x => x.projectId === project.id && x.status === 'archived',
   );
   const progress = projectProgress(data, project, today);
-  const input = { reports: data.reports, reviews: data.reviews, today };
+  const overall = projectOverall(project, tasks, input);
+  const counts = taskCounts(tasks, project, today);
+  const openTask = (task: Task) =>
+    navigation.navigate(ROUTES.LIFE_TASK, { taskId: task.id });
   const pending = tasks.flatMap(task =>
     pendingReviews(task, input).map(s => ({ ...s, task })),
   );
@@ -197,7 +210,62 @@ export default function ProjectDetailScreen() {
               · {t('life.timeUsed', { percent: progress.timePercent })}
             </Text>
           </View>
+          {overall ? (
+            <View
+              style={{ gap: spacing.xs, marginTop: spacing.sm }}
+              testID="project-overall"
+            >
+              <Text style={[typography.label, { color: colors.textPrimary }]}>
+                {t('life.overallLine', {
+                  actual: Math.round(overall.actual),
+                  target: Math.round(overall.target),
+                })}
+              </Text>
+              <ProgressBar
+                percent={overall.actual}
+                color={categoryColor(project.color)}
+              />
+              <Text style={caption}>{t('life.projectOverallHint')}</Text>
+            </View>
+          ) : null}
+          {project.notes ? (
+            <Text style={[caption, { marginTop: spacing.sm }]}>
+              {`${t('life.notes')}: ${project.notes}`}
+            </Text>
+          ) : null}
         </Card>
+
+        <View style={[styles.wrap, { gap: spacing.sm }]}>
+          <StatCard
+            label={t('life.countCompleted')}
+            value={String(counts.completed)}
+            tone="success"
+            testID="project-count-completed"
+          />
+          <StatCard
+            label={t('life.countPending')}
+            value={String(counts.pending)}
+            testID="project-count-pending"
+          />
+          <StatCard
+            label={t('life.countOverdue')}
+            value={String(counts.overdue)}
+            tone={counts.overdue ? 'warning' : undefined}
+            testID="project-count-overdue"
+          />
+        </View>
+
+        {tasks.length ? (
+          <>
+            <ProjectCalendarCard
+              project={project}
+              tasks={tasks}
+              input={input}
+              onOpenTask={openTask}
+            />
+            <ProjectChartCard project={project} tasks={tasks} input={input} />
+          </>
+        ) : null}
 
         {pending.length ? (
           <Card>
@@ -266,6 +334,7 @@ export default function ProjectDetailScreen() {
               now={now}
               today={today}
               onLog={setLogging}
+              onOpen={openTask}
               onToggleFocus={x =>
                 lifeActions.setFocus(x.id, x.focusDay === today ? null : today)
               }

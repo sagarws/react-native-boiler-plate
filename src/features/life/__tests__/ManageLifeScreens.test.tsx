@@ -9,6 +9,7 @@ import ManageLifeScreen from '../screens/ManageLifeScreen';
 import ProjectFormScreen from '../screens/ProjectFormScreen';
 import TaskFormScreen from '../screens/TaskFormScreen';
 import ProjectDetailScreen from '../screens/ProjectDetailScreen';
+import TaskDetailScreen from '../screens/TaskDetailScreen';
 
 let mockParams: Record<string, unknown> | undefined;
 const mockNavigate = jest.fn();
@@ -342,5 +343,170 @@ describe('history', () => {
     const csv = toCsv(reasons, () => 'Learn, "daily"');
     expect(csv.split('\n')[0]).toContain('type');
     expect(csv).toContain('"Learn, ""daily"""');
+  });
+});
+
+/** The spoken label of the element with [id] (e.g. a StatCard). */
+const a11y = (r: Renderer, id: string) =>
+  r.root.findAll(
+    n =>
+      n.props.testID === id && typeof n.props.accessibilityLabel === 'string',
+  )[0]?.props.accessibilityLabel;
+
+describe('task details', () => {
+  const shade = (r: Renderer, day: string) =>
+    r.root
+      .findAll(
+        n =>
+          typeof n.props.testID === 'string' &&
+          n.props.testID.startsWith(`task-calendar-shade-${day}-`),
+      )
+      .map(n => n.props.testID.split('-').pop())[0];
+
+  it('opens from a task card in the project', async () => {
+    const { project, task } = seed();
+    mockParams = { projectId: project.id };
+    const r = await render(<ProjectDetailScreen />);
+    await press(r, `task-open-${task.id}`);
+    expect(mockNavigate).toHaveBeenCalledWith('LifeTask', { taskId: task.id });
+  });
+
+  it('shows the task, its numbers and a calendar shaded from real reports', async () => {
+    const { task } = seed();
+    mockParams = { taskId: task.id };
+    const r = await render(<TaskDetailScreen />);
+    const all = texts(r);
+    expect(all).toContain('Read');
+    expect(all).toContain('In Learn');
+    expect(all).toContain('Target: 30 minutes every day');
+    expect(a11y(r, 'task-stat-met')).toBe('Targets met: 3');
+    // 22, 23, 25 missed with a reason, 26 and 27 still need one.
+    expect(a11y(r, 'task-stat-missed')).toBe('Targets missed: 5');
+    expect(has(r, 'task-pending')).toBe(true);
+
+    expect(shade(r, '2026-10-19')).toBe('none'); // before the task starts
+    expect(shade(r, '2026-10-20')).toBe('full'); // 30 / 30
+    expect(shade(r, '2026-10-22')).toBe('low'); // 10 / 30
+    expect(shade(r, '2026-10-27')).toBe('noReport');
+    expect(shade(r, '2026-10-30')).toBe('none'); // future
+    expect(has(r, 'progress-legend')).toBe(true);
+  });
+
+  it("shows a tapped day's target, done, percent and incomplete reason", async () => {
+    const { task } = seed();
+    mockParams = { taskId: task.id };
+    const r = await render(<TaskDetailScreen />);
+    await press(r, 'task-calendar-day-2026-10-22');
+    const day = texts(r);
+    expect(day).toContain('Target 30 minutes · Done 10 minutes');
+    expect(day).toContain('33% complete');
+    expect(day).toContain('Reason: Busy with unexpected tasks');
+
+    await press(r, 'task-calendar-day-2026-10-19');
+    expect(has(r, 'task-day-empty')).toBe(true);
+  });
+
+  it('moves between months', async () => {
+    const { task } = seed();
+    mockParams = { taskId: task.id };
+    const r = await render(<TaskDetailScreen />);
+    await press(r, 'task-calendar-prev');
+    expect(has(r, 'task-calendar-day-2026-09-15')).toBe(true);
+    expect(shade(r, '2026-09-15')).toBe('none');
+    await press(r, 'task-calendar-next');
+    await press(r, 'task-calendar-next');
+    expect(has(r, 'task-calendar-day-2026-11-15')).toBe(true);
+    expect(shade(r, '2026-11-15')).toBe('none');
+  });
+
+  it('charts target vs actual per period and shows a tapped period', async () => {
+    const { task } = seed();
+    mockParams = { taskId: task.id };
+    const r = await render(<TaskDetailScreen />);
+    expect(has(r, 'task-chart')).toBe(true);
+    await press(r, 'task-chart-bar-2026-10-26');
+    expect(texts(r)).toContain('target 30 minutes, done 5 minutes (17%)');
+    await press(r, 'task-chart-older');
+    expect(has(r, 'task-chart-bar-2026-10-20')).toBe(true);
+  });
+
+  it('shows empty states when nothing is logged yet', async () => {
+    const { task } = seed({ history: false });
+    mockParams = { taskId: task.id };
+    const r = await render(<TaskDetailScreen />);
+    expect(has(r, 'task-history-empty')).toBe(true);
+    expect(shade(r, TODAY)).toBe('noReport');
+  });
+
+  it('handles a deleted task', async () => {
+    mockParams = { taskId: 'gone' };
+    const r = await render(<TaskDetailScreen />);
+    expect(has(r, 'task-missing')).toBe(true);
+  });
+});
+
+describe('project progress', () => {
+  /** Adds a second task in another unit to the seeded project. */
+  function seedTwo() {
+    const seeded = seed();
+    jest.setSystemTime(new Date('2026-10-14T09:00:00'));
+    const pages = lifeStore.createTask({
+      projectId: seeded.project.id,
+      name: 'Write',
+      icon: 'pencil',
+      color: 'teal',
+      unit: 'pages',
+      target: { quantity: 10, frequency: 'daily', intervalDays: 1 },
+      startDate: '2026-10-20',
+    });
+    if (!pages.ok) throw new Error(pages.error);
+    jest.setSystemTime(new Date(`${TODAY}T09:00:00`));
+    lifeStore.addReport(
+      { taskId: pages.value.id, day: '2026-10-20', quantity: 2 },
+      TODAY,
+    );
+    return { ...seeded, pages: pages.value };
+  }
+
+  it('shows task counts, overall progress and a calendar averaged per task', async () => {
+    const { project, task, pages } = seedTwo();
+    mockParams = { projectId: project.id };
+    const r = await render(<ProjectDetailScreen />);
+    expect(a11y(r, 'project-count-pending')).toBe('Tasks pending: 2');
+    expect(has(r, 'project-overall')).toBe(true);
+    await press(r, 'project-calendar-day-2026-10-20');
+    // Read 30/30 = 100%, Write 2/10 = 20% → 60%, not 32/40.
+    expect(texts(r)).toContain('60% average across 2 scheduled targets');
+    expect(has(r, `project-day-${task.id}`)).toBe(true);
+    expect(has(r, `project-day-${pages.id}`)).toBe(true);
+  });
+
+  it('shows and hides each chart line independently', async () => {
+    const { project, task, pages } = seedTwo();
+    mockParams = { projectId: project.id };
+    const r = await render(<ProjectDetailScreen />);
+    const col = () =>
+      byId(r, 'project-chart-col-0').props.accessibilityLabel as string;
+    const toggle = (id: string) => byId(r, `project-chart-toggle-${id}`);
+    for (const name of ['Read', 'Write', 'Average actual', 'Average target'])
+      expect(col()).toContain(name);
+
+    await press(r, 'project-chart-toggle-avgTarget');
+    expect(toggle('avgTarget').props.accessibilityState).toEqual({
+      checked: false,
+    });
+    expect(col()).not.toContain('Average target');
+    expect(col()).toContain('Average actual');
+
+    await press(r, `project-chart-toggle-${task.id}`);
+    await press(r, 'project-chart-toggle-avgActual');
+    expect(col()).not.toContain('Read');
+    expect(col()).toContain('Write');
+
+    await press(r, `project-chart-toggle-${pages.id}`);
+    expect(has(r, 'project-chart-empty')).toBe(true);
+
+    await press(r, 'project-chart-toggle-avgTarget');
+    expect(col()).toContain('Average target');
   });
 });

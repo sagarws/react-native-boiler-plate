@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Icon } from '@/shared/components';
 import { useTheme } from '@/theme';
 import type { DayMark } from '../services/analytics';
+import type { ProgressLevel } from '../services/progress';
 import type { DayKey } from '../types';
 import {
   addDays,
@@ -14,6 +15,16 @@ import {
   weekdayMon0,
 } from '../utils/dates';
 import { formatLongDay, formatMonth } from '../utils/format';
+import { shadeFor } from './progressShade';
+
+/** Progress shading for one day (detail pages). */
+export interface DayShadeInfo {
+  level: ProgressLevel;
+  /** Short value drawn under the date ("45%", "–"), or ''. */
+  label: string;
+  /** Read by screen readers after the date. */
+  a11y: string;
+}
 
 export interface MonthCalendarProps {
   /** Any day in the month to show. */
@@ -24,6 +35,10 @@ export interface MonthCalendarProps {
   today: DayKey;
   /** Status dot per day (calendar view); omit for a plain date picker. */
   marks?: Record<DayKey, DayMark>;
+  /** Progress shading per day; replaces the dots. Needs [shadeColor]. */
+  shades?: Record<DayKey, DayShadeInfo>;
+  /** Base colour the shades are drawn in (the task's / project's colour). */
+  shadeColor?: string;
   min?: DayKey;
   max?: DayKey;
   testID?: string;
@@ -37,6 +52,8 @@ export function MonthCalendar({
   onSelect,
   today,
   marks,
+  shades,
+  shadeColor,
   min,
   max,
   testID = 'calendar',
@@ -120,6 +137,13 @@ export function MonthCalendar({
           const isSelected = day === selected;
           const mark = marks?.[day];
           const dot = mark ? markColor[mark] : null;
+          const shadeInfo = shades?.[day];
+          const shade = shadeInfo
+            ? shadeFor(shadeInfo.level, shadeColor ?? colors.primary, colors)
+            : null;
+          const markText =
+            mark && mark !== 'none' ? `, ${t(`life.legend_${mark}`)}` : '';
+          const shadeText = shadeInfo?.a11y ? `, ${shadeInfo.a11y}` : '';
           return (
             <Pressable
               key={day}
@@ -130,48 +154,90 @@ export function MonthCalendar({
                 selected: isSelected,
                 disabled: !!disabled,
               }}
-              accessibilityLabel={`${formatLongDay(day)}${
-                mark && mark !== 'none' ? `, ${t(`life.legend_${mark}`)}` : ''
-              }`}
+              accessibilityLabel={`${formatLongDay(
+                day,
+              )}${markText}${shadeText}`}
               testID={`${testID}-day-${day}`}
               style={[styles.cell, styles.dayCell]}
             >
-              <View
-                style={[
-                  styles.dayCircle,
-                  { borderRadius: radius.pill },
-                  isSelected && { backgroundColor: colors.primary },
-                  !isSelected &&
-                    day === today && [
-                      styles.todayRing,
-                      { borderColor: colors.primary },
-                    ],
-                ]}
-              >
-                <Text
+              {shade ? (
+                <View
+                  testID={`${testID}-shade-${day}-${shadeInfo!.level}`}
                   style={[
-                    typography.body,
+                    styles.shadeBox,
                     {
-                      color: isSelected
-                        ? colors.primaryForeground
-                        : disabled
-                        ? colors.disabledForeground
-                        : colors.textPrimary,
+                      backgroundColor: shade.backgroundColor,
+                      borderColor: isSelected
+                        ? colors.textPrimary
+                        : day === today
+                        ? colors.primary
+                        : shade.borderColor,
+                      borderRadius: radius.md,
                     },
+                    isSelected && styles.shadeSelected,
                   ]}
                 >
-                  {Number(day.slice(8))}
-                </Text>
-              </View>
-              <View
-                style={[
-                  styles.mark,
-                  {
-                    backgroundColor: dot ?? 'transparent',
-                    borderRadius: radius.pill,
-                  },
-                ]}
-              />
+                  <Text
+                    style={[
+                      typography.label,
+                      {
+                        color: disabled
+                          ? colors.disabledForeground
+                          : shadeInfo!.level === 'none'
+                          ? colors.textPrimary
+                          : shade.color,
+                      },
+                    ]}
+                  >
+                    {Number(day.slice(8))}
+                  </Text>
+                  <Text
+                    style={[styles.shadeLabel, { color: shade.color }]}
+                    numberOfLines={1}
+                  >
+                    {shadeInfo!.label}
+                  </Text>
+                </View>
+              ) : (
+                <>
+                  <View
+                    style={[
+                      styles.dayCircle,
+                      { borderRadius: radius.pill },
+                      isSelected && { backgroundColor: colors.primary },
+                      !isSelected &&
+                        day === today && [
+                          styles.todayRing,
+                          { borderColor: colors.primary },
+                        ],
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        typography.body,
+                        {
+                          color: isSelected
+                            ? colors.primaryForeground
+                            : disabled
+                            ? colors.disabledForeground
+                            : colors.textPrimary,
+                        },
+                      ]}
+                    >
+                      {Number(day.slice(8))}
+                    </Text>
+                  </View>
+                  <View
+                    style={[
+                      styles.mark,
+                      {
+                        backgroundColor: dot ?? 'transparent',
+                        borderRadius: radius.pill,
+                      },
+                    ]}
+                  />
+                </>
+              )}
             </Pressable>
           );
         })}
@@ -202,4 +268,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   mark: { width: 6, height: 6, marginTop: 2 },
+  shadeBox: {
+    width: '92%',
+    minHeight: 42,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  // Below the caption scale on purpose: it must fit a seventh of the width.
+  shadeLabel: { fontSize: 9, lineHeight: 11 },
+  shadeSelected: { borderWidth: 2 },
 });
