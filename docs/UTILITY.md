@@ -16,6 +16,7 @@ the others.
 | **Bubble Level** | Gravity sensor (fallback: low-pass accelerometer), ~20 Hz, only while the screen is open. Flat: round bubble + left–right / front–back degrees. On an edge: one angle off level or plumb. Within ±0.5° shows "Level". Calibrate (flat and edge separately) is saved in prefs. | Accelerometer |
 | **Unit Converter** | Length, area (incl. square yards / gaj, acres, hectares), weight, volume (US cups, spoons, gallons), temperature, speed, data (1 KB = 1024 B). Type a value, pick a unit, see every other unit; tap a result to convert from it. Pure JS (`services/convert.ts`). | Nothing |
 | **Speaker Water Eject** | Generated tone (no audio asset): 165 Hz steady, 100–400 Hz sweep, or 165 Hz pulses at 80 % of full scale with fades; 15–90 s (hard cap 120 s). Optional gentle vibration (0.5 s on / 1 s off). Holds transient audio focus and stops if another app takes it; stops on Stop, when time is up, when the screen loses focus or the app goes to the background. Safety notice: no guarantee, don’t charge a wet phone, comfortable volume only. | Speaker; vibrator optional |
+| **YouTube Downloader** | Paste a YouTube link → title, channel, length and thumbnail → **Video** (every quality YouTube offers, up to 4K, with estimated size) or **Audio only**. Downloads in a foreground service (progress notification with Cancel; continues in the background), then saves to Movies/Akshar or Music/Akshar. Downloads list: open, share, remove from list or delete the file. See *YouTube Downloader* below. | Internet; notifications (optional, for progress) |
 
 ## Code
 
@@ -68,14 +69,43 @@ and offer “Copy password” (the app doesn’t join networks).
 | `com.google.mlkit:barcode-scanning` | 17.3.0 | Bundled (offline) barcode model |
 | `com.google.android.gms:play-services-mlkit-document-scanner` | 16.0.0 | Document scanner UI, edge detection, perspective correction |
 | `com.google.ar:core` | 1.57.0 | AR Measure; manifest marks ARCore **optional** |
+| `com.github.teamnewpipe:NewPipeExtractor` (JitPack) | v0.26.5 | YouTube Downloader: video details, stream URLs, solves YouTube’s signature/throttling challenges (Rhino). Needs the ProGuard keep rules in `proguard-rules.pro` |
+| `com.android.tools:desugar_jdk_libs_nio` (coreLibraryDesugaring) | 2.1.5 | Backports java.nio/java.time APIs NewPipeExtractor uses (minSdk 24 < 33) |
 
 No React Native packages were added. Camera permission is requested with the
 existing `react-native-permissions`.
 
+## YouTube Downloader (`ytdownload/`)
+
+Uses the internet, but only for a link the user pastes; nothing is uploaded. You may download only videos you own or have permission to save (YouTube’s terms of service), and the screen says so.
+
+| Step | Code |
+|---|---|
+| Link check (watch, youtu.be, shorts, live, embed, music) → canonical URL | `services/youtube.ts` `youTubeVideoId` |
+| Details + stream list | `YtExtractor.kt` (NewPipeExtractor over `HttpURLConnection`) |
+| Which qualities are offered | `YtFormats.kt` (JVM-tested in `YtFormatsTest.kt`) |
+| Download (10 MB Range chunks, resume, 4 retries) | `ChunkedFetcher.kt` in `YtDownloadService.kt` (foreground, `dataSync`) |
+| Join video + audio, no re-encoding | `StreamMuxer.kt` (MediaExtractor → MediaMuxer) |
+| Save | `DownloadOutput.kt`: MediaStore Movies/Akshar, Music/Akshar (Android 10+); app folder before 10 |
+| Downloads list | `DownloadStore.kt` (SharedPreferences, newest 100) |
+
+**Quality rules.** YouTube serves HD as separate video and audio streams, so every pick has to be something MediaMuxer can write (no ffmpeg in the app):
+
+- H.264 MP4 + AAC → `.mp4`. Preferred because it plays everywhere; YouTube offers it up to 1080p.
+- VP9 WebM + Opus → `.webm`. Used for 1440p/4K (works on every Android version).
+- AV1 MP4 + AAC → `.mp4`. Only on Android 14+, and only when no H.264 or VP9 exists at that height.
+- Audio only: best AAC → `.m4a`, best Opus → `.opus` (`.webm` before Android 10). There is no MP3, because that would need an encoder.
+
+The default selection is 1080p when offered. Only the original audio track is used (dubbed tracks are skipped).
+
+**Errors** come from native as stable codes (`invalid_url`, `network`, `private`, `age_restricted`, `geo_blocked`, `live_unsupported`, `rate_limited`, `link_expired`, `storage_full`, `busy`, …) and map to `utility.yt.error_*` strings.
+
+**Limitations.** One download at a time. Live streams, age-restricted, private and members-only videos can’t be downloaded. YouTube changes its player often; when downloads start failing, update NewPipeExtractor (`build.gradle`). Stream links expire after a few hours, so if a download fails with `link_expired`, get the video again. Android 15 caps `dataSync` services at about 6 h a day.
+
 ## Permissions
 
 Timer alerts use the shared alarm engine's permissions (see [REMINDERS.md](./REMINDERS.md#permissions)). `CAMERA` (scanner, AR, angle sighting — requested on Start; `uses-feature` camera / camera.ar
-`required=false`), `VIBRATE` (water eject). The document scanner and file export
+`required=false`), `VIBRATE` (water eject), `INTERNET` + `FOREGROUND_SERVICE_DATA_SYNC` (YouTube Downloader; both were already declared). The document scanner and file export
 need no permission (Play services UI + Storage Access Framework).
 
 ## Known limitations

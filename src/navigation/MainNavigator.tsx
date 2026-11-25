@@ -48,6 +48,7 @@ import {
   LevelScreen,
   ConverterScreen,
   UtilityHubScreen,
+  YouTubeDownloadScreen,
   WaterEjectScreen,
 } from '@/features/utility';
 import { DrawerHost } from './drawer';
@@ -182,6 +183,10 @@ export default function MainNavigator() {
           component={RemoteViewerScreen}
           // Full screen, no swipe-back: a stray edge swipe must reach the remote device.
           options={{ animation: 'fade', gestureEnabled: false, orientation: 'all' }}
+        />
+        <Stack.Screen
+          name={ROUTES.UTILITY_YOUTUBE}
+          component={YouTubeDownloadScreen}
         />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />

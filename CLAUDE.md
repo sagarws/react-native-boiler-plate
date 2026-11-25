@@ -8,7 +8,8 @@ on a React Native boilerplate. Native capture + ML Kit OCR live in
 boilerplate's login/session/API layers remain but are off (`FEATURES.auth = false`).
 Offline by design for screen text: no backend, and OCR text/screenshots never leave the
 device. The exceptions are opt-in features that exist to talk to other devices or services
-(Translation, Remote Access — `docs/REMOTE_ACCESS.md`).
+(Translation, Remote Access — `docs/REMOTE_ACCESS.md`, Utility → YouTube Downloader —
+`docs/UTILITY.md`).
 
 |  |  |
 |---|---|
@@ -85,8 +86,10 @@ src/shared/           assets/ components/ hooks/ utils/ — cross-feature only
 - **Do not lower `targetSdk` below 36 or the NDK below r28** — Play Store floor and 16KB
   page-size compliance.
 - **Do not commit secrets** — `.env`, keystores and signing passwords stay out of git.
-- **Do not add network access or log extracted text.** Screenshots and OCR text never
-  leave the device or reach logs/notifications.
+- **Do not add network access beyond the approved, user-started features** (Speak with
+  Translation, YouTube Downloader) **or log extracted text.** Screenshots and OCR text
+  never leave the device or reach logs/notifications. Any new network use needs the
+  user's explicit approval first.
 - **Do not bypass Android capture consent** or secure-screen (`FLAG_SECURE`) protection.
 
 ## Definition of done

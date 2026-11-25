@@ -3,10 +3,15 @@
 
     <!-- Network policy for release builds.
 
-         INTERNET is used by "Speak with Translation" (sends the extracted
-         text, never a screenshot, to the Google Gemini API with the user's
-         own key, after explicit opt-in) and by Remote Access (end-to-end
-         encrypted sessions with the user's own devices, through the relay).
+         INTERNET is kept for user-started features only:
+         - "Speak with Translation" sends the extracted text (never a
+           screenshot) to the Google Gemini API with the user's own key,
+           after explicit opt-in.
+         - Remote Access: end-to-end encrypted sessions with the user's own
+           devices, through the relay.
+         - Utility → YouTube Downloader fetches the video page and streams
+           for a link the user pastes (nothing is uploaded).
+         Every other mode is fully on-device.
 
          ML Kit bundles Google's datatransport usage-logging uploader. While
          the app had no INTERNET permission it could not send anything; now

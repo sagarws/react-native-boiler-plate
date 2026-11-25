@@ -14,6 +14,7 @@ import com.rnboilerplate.recorder.RecorderPackage
 import com.rnboilerplate.remote.RemoteControlPackage
 import com.rnboilerplate.screenocr.ScreenOcrPackage
 import com.rnboilerplate.utility.UtilityPackage
+import com.rnboilerplate.ytdownload.YouTubeDownloaderPackage
 
 class MainApplication : Application(), ReactApplication {
 
@@ -32,6 +33,7 @@ class MainApplication : Application(), ReactApplication {
           add(ExpensePackage())
           add(NetInspectorPackage())
           add(RemoteControlPackage())
+          add(YouTubeDownloaderPackage())
         },
     )
   }

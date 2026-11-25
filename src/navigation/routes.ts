@@ -44,6 +44,7 @@ export const ROUTES = {
   NETWORK_CALL: 'NetworkCall',
   REMOTE_ACCESS: 'RemoteAccess',
   REMOTE_VIEWER: 'RemoteViewer',
+  UTILITY_YOUTUBE: 'UtilityYouTube',
   SETTINGS: 'Settings',
   APPEARANCE: 'Appearance',
   ABOUT: 'About',

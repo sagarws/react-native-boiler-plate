@@ -95,6 +95,7 @@ export type MainStackParamList = {
   RemoteAccess: { tab?: 'connect' | 'phone' | 'history' } | undefined;
   /** The open remote session's screen (full screen). */
   RemoteViewer: undefined;
+  UtilityYouTube: undefined;
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
   Settings:
     | { tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' | 'remote' }
