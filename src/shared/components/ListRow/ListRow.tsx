@@ -6,6 +6,8 @@ import { Icon } from '../Icon';
 
 export interface ListRowProps {
   title: string;
+  /** Cap the title at this many lines (ends with "…"); unlimited by default. */
+  titleLines?: number;
   subtitle?: string;
   icon?: IconName;
   /** Accessory on the right: a switch, a value, a pill. */
@@ -25,6 +27,7 @@ export interface ListRowProps {
 /** One settings-style row: icon well, title + subtitle, accessory. */
 export function ListRow({
   title,
+  titleLines,
   subtitle,
   icon,
   right,
@@ -64,6 +67,7 @@ export function ListRow({
             typography.label,
             { color: destructive ? colors.error : colors.textPrimary },
           ]}
+          numberOfLines={titleLines}
         >
           {title}
         </Text>

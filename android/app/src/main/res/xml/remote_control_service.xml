@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Remote Access: performs the taps, swipes and typing of a remote session
+     the user allowed. Gestures + the focused text field only; no events are
+     acted on and nothing is read or kept. -->
+<accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/remote_service_description"
+    android:summary="@string/remote_service_summary"
+    android:accessibilityEventTypes="typeWindowStateChanged"
+    android:accessibilityFeedbackType="feedbackGeneric"
+    android:accessibilityFlags="flagDefault"
+    android:canRetrieveWindowContent="true"
+    android:canPerformGestures="true"
+    android:isAccessibilityTool="false"
+    android:notificationTimeout="1000" />

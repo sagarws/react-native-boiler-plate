@@ -17,6 +17,8 @@ module.exports = {
         '@react-navigation',
         'react-native-safe-area-context',
         'react-native-screens',
+        // Remote Access crypto: ESM-only.
+        '@noble',
       ].join('|') +
       ')/)',
   ],

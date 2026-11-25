@@ -45,6 +45,11 @@
     <!-- Screen recorder: merging a recording's parts after capture has ended
          runs as a short dataSync foreground service. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Remote Access: find other Featured App devices on this Wi-Fi (UDP
+         broadcast on port 47801) and show this phone's address. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 
     <!-- Android 11+ package visibility: lets the app list installed
          text-to-speech engines (to prefer Google Speech Services when present)
@@ -295,5 +300,27 @@
             android:name="android.accessibilityservice"
             android:resource="@xml/scroll_accessibility_service" />
       </service>
+
+      <!-- Remote Access: carries out the taps, swipes and typing of a remote
+           session the user allowed on this phone. Off until the user turns it
+           on in Android's accessibility settings; the app never enables it. -->
+      <service
+        android:name=".remote.RemoteControlService"
+        android:exported="true"
+        android:label="@string/remote_service_label"
+        android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+        <intent-filter>
+            <action android:name="android.accessibilityservice.AccessibilityService" />
+        </intent-filter>
+        <meta-data
+            android:name="android.accessibilityservice"
+            android:resource="@xml/remote_control_service" />
+      </service>
+      <!-- react-native-webrtc's screen-share foreground service (Remote Access
+           host). Declared here as well so it is explicitly not exported. -->
+      <service
+        android:name="com.oney.WebRTCModule.MediaProjectionService"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection" />
     </application>
 </manifest>

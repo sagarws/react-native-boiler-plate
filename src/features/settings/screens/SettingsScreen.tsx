@@ -16,6 +16,7 @@ import {
 } from '@/features/capture';
 import { FollowUpSettings } from '@/features/followup';
 import { RecordingSettings } from '@/features/utility';
+import { RemoteSettingsSection } from '@/features/remote';
 import { signOut } from '@/features/session';
 import { setLanguage } from '@/i18n';
 import { isSupportedLanguage, type LanguageCode } from '@/i18n/languages';
@@ -70,6 +71,7 @@ type SectionKey =
  *   (client, refresh token, folder) File Share uses without an account.
  * - Follow Up: reminders · defaults · categories & tags · export / delete.
  * - Recording: the screen recorder's button, folders, quality, segments.
+ * - Remote Access: controlling other devices, this phone, password, network.
  * The large groups are an accordion — one open at a time, each collapsed to
  * a one-line summary of its current state — so everything fits without long
  * scrolling.
@@ -148,6 +150,7 @@ export default function SettingsScreen() {
           { value: 'files', label: t('settings.tabFiles') },
           { value: 'followup', label: t('settings.tabFollowUp') },
           { value: 'recording', label: t('settings.tabRecording') },
+          { value: 'remote', label: t('settings.tabRemote') },
         ]}
       />
       <ScrollView
@@ -250,6 +253,8 @@ export default function SettingsScreen() {
           <FollowUpSettings />
         ) : tab === 'recording' ? (
           <RecordingSettings />
+        ) : tab === 'remote' ? (
+          <RemoteSettingsSection />
         ) : tab === 'files' ? (
           <>
             <SettingsSection title={t('settings.tabFiles')}>

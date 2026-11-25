@@ -6,10 +6,12 @@ import com.facebook.react.ReactApplication
 import com.facebook.react.ReactHost
 import com.facebook.react.ReactNativeApplicationEntryPoint.loadReactNative
 import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
+import com.oney.WebRTCModule.WebRTCModuleOptions
 import com.rnboilerplate.expense.ExpensePackage
 import com.rnboilerplate.followup.FollowUpPackage
 import com.rnboilerplate.netinspector.NetInspectorPackage
 import com.rnboilerplate.recorder.RecorderPackage
+import com.rnboilerplate.remote.RemoteControlPackage
 import com.rnboilerplate.screenocr.ScreenOcrPackage
 import com.rnboilerplate.utility.UtilityPackage
 
@@ -29,12 +31,16 @@ class MainApplication : Application(), ReactApplication {
           add(RecorderPackage())
           add(ExpensePackage())
           add(NetInspectorPackage())
+          add(RemoteControlPackage())
         },
     )
   }
 
   override fun onCreate() {
     super.onCreate()
+    // Remote Access host: getDisplayMedia runs the library's own
+    // mediaProjection foreground service (required on Android 10+).
+    WebRTCModuleOptions.getInstance().enableMediaProjectionService = true
     loadReactNative(this)
   }
 }

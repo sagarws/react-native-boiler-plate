@@ -65,4 +65,18 @@ export const StorageKeys = {
   NetworkIndex: 'network.index',
   /** Network Inspector (networkStorage): prefix + record id → full record. */
   NetworkRecordPrefix: 'network.record.',
+  /** Remote Access: viewer + host preferences. */
+  RemoteSettings: 'remote.settings',
+  /** Remote Access: this install's Ed25519 identity (the device ID derives from it). */
+  RemoteIdentity: 'remote.identity',
+  /** Remote Access: saved / recent devices (pinned key fingerprints). */
+  RemoteDevices: 'remote.devices',
+  /** Remote Access: devices that connected to this phone, and blocked ones. */
+  RemotePeers: 'remote.peers',
+  /** Remote Access: unattended-password verifier (Argon2id; never the password). */
+  RemoteUnattended: 'remote.unattended',
+  /** Remote Access: connection history, newest first. */
+  RemoteHistory: 'remote.history',
+  /** Remote Access: other devices' passwords, sealed with an Android Keystore key (never plain). */
+  RemoteSavedPasswords: 'remote.savedPasswords',
 } as const;

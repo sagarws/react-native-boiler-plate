@@ -6,7 +6,9 @@
 on a React Native boilerplate. Native capture + ML Kit OCR live in
 `android/app/src/main/java/com/rnboilerplate/screenocr/`; see `docs/SCREEN_OCR.md`. The
 boilerplate's login/session/API layers remain but are off (`FEATURES.auth = false`).
-Offline by design: no backend, no network calls, release builds strip `INTERNET`.
+Offline by design for screen text: no backend, and OCR text/screenshots never leave the
+device. The exceptions are opt-in features that exist to talk to other devices or services
+(Translation, Remote Access — `docs/REMOTE_ACCESS.md`).
 
 |  |  |
 |---|---|
@@ -39,6 +41,7 @@ src/specs/            TurboModule codegen specs — each imported only by its ow
                       (NativeScreenOcr → capture, NativeFollowUp → followup,
                       NativeUtility + NativeRecorder → utility, NativeExpense → expense,
                       NativeNetInspector → network, NativePhotoWidget → photoWidget,
+                      NativeRemoteControl → remote,
                       NativeAlarms → src/services/alarms)
 src/services/alarms/  shared alarm engine bridge (Reminders + Utility timers) — docs/REMINDERS.md
 src/features/
@@ -60,6 +63,9 @@ src/features/
   network/            Network Inspector: in-app browser (WebView) that records the
                       API calls of allowed sites; list, detail, cURL, JSON export —
                       docs/NETWORK_INSPECTOR.md
+  remote/             Remote Access: control a computer/phone running Featured App,
+                      or let one control this phone; desktop-compatible protocol
+                      (core/), WebRTC video, accessibility input — docs/REMOTE_ACCESS.md
   auth/  session/     boilerplate login (disabled)
 src/navigation/  src/i18n/  src/theme/  src/types/
 src/shared/           assets/ components/ hooks/ utils/ — cross-feature only

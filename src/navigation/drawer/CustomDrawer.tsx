@@ -29,6 +29,7 @@ type DrawerTarget =
   | 'PhotoWidgets'
   | 'Utility'
   | 'NetworkInspector'
+  | 'RemoteAccess'
   | 'Settings'
   | 'Appearance'
   | 'About';
@@ -46,6 +47,7 @@ const ITEMS: readonly {
     | 'photoWidget'
     | 'utility'
     | 'network'
+    | 'remote'
     | 'settings'
     | 'appearance'
     | 'about';
@@ -59,6 +61,7 @@ const ITEMS: readonly {
   { screen: ROUTES.PHOTO_WIDGETS, icon: 'image', label: 'photoWidget' },
   { screen: ROUTES.UTILITY, icon: 'wrench', label: 'utility' },
   { screen: ROUTES.NETWORK_INSPECTOR, icon: 'globe', label: 'network' },
+  { screen: ROUTES.REMOTE_ACCESS, icon: 'monitor', label: 'remote' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
   { screen: ROUTES.APPEARANCE, icon: 'palette', label: 'appearance' },
   { screen: ROUTES.ABOUT, icon: 'shieldCheck', label: 'about' },

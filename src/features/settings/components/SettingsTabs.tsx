@@ -6,7 +6,8 @@ export type SettingsTab =
   | 'ocr'
   | 'files'
   | 'followup'
-  | 'recording';
+  | 'recording'
+  | 'remote';
 
 export interface SettingsTabsProps {
   value: SettingsTab;

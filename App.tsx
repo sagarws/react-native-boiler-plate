@@ -8,6 +8,7 @@ import { useCaptureSync } from '@/features/capture';
 import { useReminderSync } from '@/features/followup';
 import { useLifeWidgetSync } from '@/features/life';
 import { useReminderAlarmSync } from '@/features/reminders';
+import { RemoteHostOverlay } from '@/features/remote';
 import { sessionStore } from '@/features/session';
 import { ThemeProvider, useTheme } from '@/theme';
 
@@ -31,6 +32,8 @@ function ThemedApp() {
         backgroundColor={colors.background}
       />
       <RootNavigator />
+      {/* Remote Access: incoming-request prompt and the "being controlled" bar, over every screen. */}
+      <RemoteHostOverlay />
     </>
   );
 }

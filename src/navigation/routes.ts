@@ -42,6 +42,8 @@ export const ROUTES = {
   NETWORK_BROWSER: 'NetworkBrowser',
   NETWORK_CALLS: 'NetworkCalls',
   NETWORK_CALL: 'NetworkCall',
+  REMOTE_ACCESS: 'RemoteAccess',
+  REMOTE_VIEWER: 'RemoteViewer',
   SETTINGS: 'Settings',
   APPEARANCE: 'Appearance',
   ABOUT: 'About',

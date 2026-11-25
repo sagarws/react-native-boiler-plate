@@ -16,6 +16,9 @@
     "clean": "watchman watch-del-all 2>/dev/null; rm -rf node_modules ios/Pods ios/build android/build android/.gradle android/app/build $TMPDIR/metro-* $TMPDIR/haste-map-*"
   },
   "dependencies": {
+    "@noble/ciphers": "2.4.0",
+    "@noble/curves": "2.4.0",
+    "@noble/hashes": "2.4.0",
     "@react-native-documents/picker": "12.0.2",
     "@react-native-google-signin/google-signin": "16.1.5",
     "@react-navigation/native": "7.2.5",
@@ -25,11 +28,15 @@
     "react-i18next": "17.0.8",
     "react-native": "0.85.3",
     "react-native-config": "1.6.1",
+    "react-native-get-random-values": "2.1.0",
     "react-native-localize": "3.7.0",
     "react-native-mmkv": "3.3.3",
     "react-native-permissions": "^5.6.1",
     "react-native-safe-area-context": "5.5.2",
     "react-native-screens": "4.25.2",
+    "react-native-tcp-socket": "6.4.3",
+    "react-native-udp": "4.1.7",
+    "react-native-webrtc": "155.0.1",
     "react-native-webview": "16.0.0",
     "socket.io-client": "^4.8.3"
   },

@@ -27,6 +27,7 @@ import {
   NetworkCallsScreen,
   NetworkInspectorScreen,
 } from '@/features/network';
+import { RemoteAccessScreen, RemoteViewerScreen } from '@/features/remote';
 import {
   AboutScreen,
   AppearanceScreen,
@@ -171,6 +172,16 @@ export default function MainNavigator() {
         <Stack.Screen
           name={ROUTES.NETWORK_CALL}
           component={NetworkCallDetailScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.REMOTE_ACCESS}
+          component={RemoteAccessScreen}
+        />
+        <Stack.Screen
+          name={ROUTES.REMOTE_VIEWER}
+          component={RemoteViewerScreen}
+          // Full screen, no swipe-back: a stray edge swipe must reach the remote device.
+          options={{ animation: 'fade', gestureEnabled: false, orientation: 'all' }}
         />
         <Stack.Screen name={ROUTES.SETTINGS} component={SettingsScreen} />
         <Stack.Screen name={ROUTES.APPEARANCE} component={AppearanceScreen} />

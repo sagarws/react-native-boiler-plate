@@ -7,7 +7,12 @@
 
 jest.mock('react-native-localize', () => ({
   getLocales: () => [
-    { countryCode: 'GB', languageTag: 'en-GB', languageCode: 'en', isRTL: false },
+    {
+      countryCode: 'GB',
+      languageTag: 'en-GB',
+      languageCode: 'en',
+      isRTL: false,
+    },
   ],
 }));
 
@@ -77,8 +82,9 @@ jest.mock('socket.io-client', () => ({
 // SafeAreaProvider renders nothing until the native layout reports insets,
 // which never happens under Jest — without this the whole navigation tree
 // mounts as `null` and screen tests silently assert against an empty render.
-jest.mock('react-native-safe-area-context', () =>
-  require('react-native-safe-area-context/jest/mock').default,
+jest.mock(
+  'react-native-safe-area-context',
+  () => require('react-native-safe-area-context/jest/mock').default,
 );
 
 // File Management: Google Sign-In and the system file picker are native.
@@ -87,12 +93,16 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
     configure: jest.fn(),
     hasPlayServices: jest.fn().mockResolvedValue(true),
     signIn: jest.fn().mockResolvedValue({ type: 'cancelled', data: null }),
-    signInSilently: jest.fn().mockResolvedValue({ type: 'noSavedCredentialFound', data: null }),
+    signInSilently: jest
+      .fn()
+      .mockResolvedValue({ type: 'noSavedCredentialFound', data: null }),
     signOut: jest.fn().mockResolvedValue(null),
     revokeAccess: jest.fn().mockResolvedValue(null),
     hasPreviousSignIn: jest.fn(() => false),
     getCurrentUser: jest.fn(() => null),
-    getTokens: jest.fn().mockResolvedValue({ accessToken: 'test-token', idToken: null }),
+    getTokens: jest
+      .fn()
+      .mockResolvedValue({ accessToken: 'test-token', idToken: null }),
     clearCachedAccessToken: jest.fn().mockResolvedValue(null),
     addScopes: jest.fn().mockResolvedValue(null),
   },
@@ -109,7 +119,11 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
 jest.mock('@react-native-documents/picker', () => ({
   pick: jest.fn().mockResolvedValue([]),
   types: { allFiles: '*/*', images: 'image/*' },
-  keepLocalCopy: jest.fn().mockResolvedValue([{ status: 'success', localUri: 'file:///copy.jpg', sourceUri: '' }]),
+  keepLocalCopy: jest
+    .fn()
+    .mockResolvedValue([
+      { status: 'success', localUri: 'file:///copy.jpg', sourceUri: '' },
+    ]),
   errorCodes: { OPERATION_CANCELED: 'OPERATION_CANCELED' },
   isErrorWithCode: error => Boolean(error && typeof error.code === 'string'),
 }));
@@ -131,3 +145,59 @@ jest.mock('react-native-webview', () => {
   });
   return { __esModule: true, default: WebView, WebView };
 });
+
+// Remote Access. Crypto keys use Node's own crypto.getRandomValues under Jest.
+jest.mock('react-native-get-random-values', () => ({}));
+
+// WebRTC: the video view renders a plain View; the rest is never reached in
+// screen tests (sessions are driven through the service with fakes).
+jest.mock('react-native-webrtc', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  class RTCPeerConnection {
+    addEventListener() {}
+    close() {}
+  }
+  return {
+    RTCView: props => React.createElement(View, { testID: props.testID }),
+    RTCPeerConnection,
+    RTCIceCandidate: class {
+      constructor(init) {
+        Object.assign(this, init);
+      }
+    },
+    RTCRtpReceiver: { getCapabilities: () => ({ codecs: [] }) },
+    RTCRtpSender: { getCapabilities: () => ({ codecs: [] }) },
+    mediaDevices: {
+      getDisplayMedia: jest
+        .fn()
+        .mockRejectedValue(new Error('no capture in tests')),
+    },
+  };
+});
+
+// LAN sockets: never opened in tests (the host service needs the Android module).
+jest.mock('react-native-tcp-socket', () => ({
+  __esModule: true,
+  default: {
+    createConnection: jest.fn(() => {
+      throw new Error('no sockets in tests');
+    }),
+    createServer: jest.fn(() => {
+      throw new Error('no sockets in tests');
+    }),
+  },
+}));
+
+jest.mock('react-native-udp', () => ({
+  __esModule: true,
+  default: {
+    createSocket: jest.fn(() => ({
+      on: jest.fn(),
+      bind: jest.fn(),
+      setBroadcast: jest.fn(),
+      send: jest.fn(),
+      close: jest.fn(),
+    })),
+  },
+}));

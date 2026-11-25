@@ -91,9 +91,13 @@ export type MainStackParamList = {
   NetworkBrowser: { url: string };
   NetworkCalls: undefined;
   NetworkCall: { callId: string };
+  /** Remote Access: connect, this phone, history; `tab` opens a section directly. */
+  RemoteAccess: { tab?: 'connect' | 'phone' | 'history' } | undefined;
+  /** The open remote session's screen (full screen). */
+  RemoteViewer: undefined;
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
   Settings:
-    | { tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' }
+    | { tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' | 'remote' }
     | undefined;
   Appearance: undefined;
   About: undefined;

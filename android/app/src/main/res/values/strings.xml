@@ -213,4 +213,11 @@
     <string name="rec_color_blue">Blue</string>
     <string name="rec_color_white">White</string>
     <string name="rec_color_black">Black</string>
+
+    <!-- Remote Access (native parts; the React Native UI uses i18next). -->
+    <string name="remote_service_label">Akshar Remote Access</string>
+    <string name="remote_service_summary">Lets a computer or phone you allowed tap, swipe and type on this phone during a remote session.</string>
+    <string name="remote_service_description">Used only while a Remote Access session that you accepted in the app is running with full control. It performs the taps, swipes, scrolls, Back/Home and typing sent by the other device, and reads only the text field you are typing into. Nothing is stored. Turn it off at any time; the other device can then only view.</string>
+    <string name="remote_channel_name">Remote Access requests</string>
+    <string name="remote_channel_description">A device asks to view or control this phone</string>
 </resources>
