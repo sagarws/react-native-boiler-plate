@@ -97,8 +97,8 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         // Play rejects any bundle whose versionCode is not strictly greater than
         // the highest already uploaded to this listing.
-        versionCode 1
-        versionName "0.1.0"
+        versionCode 3
+        versionName "2.0.0"
     }
     // Release key settings: `-P` / ~/.gradle/gradle.properties first, else the
     // project-local, gitignored android/keystore.properties (so one machine's
@@ -159,6 +159,11 @@ android {
 }
 
 dependencies {
+    // 8D Audio Studio: native DSP engine + Media3 player (media session,
+    // notification, lock screen, headset buttons, audio focus, pitch-preserving speed).
+    implementation(project(":spatialaudio"))
+    implementation("androidx.media3:media3-exoplayer:1.9.0")
+    implementation("androidx.media3:media3-session:1.9.0")
     // The version of react-native is set by the React Native Gradle Plugin
     implementation("com.facebook.react:react-android")
 
@@ -205,6 +210,9 @@ dependencies {
     // stream URLs and solves YouTube's player challenges. JitPack; needs the
     // nio desugaring below and the Rhino keep rules in proguard-rules.pro.
     implementation("com.github.teamnewpipe:NewPipeExtractor:v0.26.5")
+    // Share Live Camera (livecamera/): QR codes for the share link, drawn
+    // natively (encoder only; no camera or scanning code).
+    implementation("com.google.zxing:core:3.5.3")
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs_nio:2.1.5")
 
     // JVM unit tests for the pure OCR text assembly (src/test).

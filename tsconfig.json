@@ -9,12 +9,28 @@
     "noUnusedParameters": true,
     "exactOptionalPropertyTypes": false,
     "resolveJsonModule": true,
-    "types": ["jest"],
+    "types": [
+      "jest"
+    ],
     "baseUrl": ".",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": [
+        "src/*"
+      ]
     }
   },
-  "include": ["App.tsx", "index.js", "src/**/*", "**/*.ts", "**/*.tsx"],
-  "exclude": ["**/node_modules", "**/Pods", "android", "ios"]
+  "include": [
+    "App.tsx",
+    "index.js",
+    "src/**/*",
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "**/node_modules",
+    "**/Pods",
+    "android",
+    "ios",
+    "server"
+  ]
 }

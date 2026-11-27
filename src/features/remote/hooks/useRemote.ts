@@ -1,7 +1,7 @@
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import { remoteService, type RemoteState } from '../services/remote.service';
 import { remoteSettingsStore } from '../store/remoteSettings.store';
-import type { RemoteSettings } from '../types';
+import type { QualityPreset, RemoteSettings } from '../types';
 
 /** Everything Remote Access shows: identity, devices, the sessions. */
 export function useRemoteState(): RemoteState {
@@ -46,6 +46,7 @@ export const remoteActions = {
   refresh: () => remoteService.refreshDevices(),
   disconnect: () => remoteService.disconnect(),
   dismissViewer: () => remoteService.dismissViewer(),
+  setQuality: (preset: QualityPreset) => remoteService.setQuality(preset),
   viewer: () => remoteService.currentViewer(),
   updateDevice: remoteService.updateDevice.bind(remoteService),
   removeDevice: remoteService.removeDevice.bind(remoteService),

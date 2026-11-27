@@ -9,6 +9,7 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.oney.WebRTCModule.WebRTCModuleOptions
 import com.rnboilerplate.expense.ExpensePackage
 import com.rnboilerplate.followup.FollowUpPackage
+import com.rnboilerplate.livecamera.LiveCameraPackage
 import com.rnboilerplate.netinspector.NetInspectorPackage
 import com.rnboilerplate.recorder.RecorderPackage
 import com.rnboilerplate.remote.RemoteControlPackage
@@ -34,6 +35,9 @@ class MainApplication : Application(), ReactApplication {
           add(NetInspectorPackage())
           add(RemoteControlPackage())
           add(YouTubeDownloaderPackage())
+          add(LiveCameraPackage())
+          add(com.rnboilerplate.audiostudio.AudioStudioPackage())
+          add(com.rnboilerplate.systemaudio.SystemAudioPackage())
         },
     )
   }

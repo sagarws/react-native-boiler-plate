@@ -228,4 +228,14 @@
     <string name="yt_notif_done">Download complete</string>
     <string name="yt_notif_failed">Download failed</string>
     <string name="yt_action_cancel">Cancel</string>
+
+    <!-- Share Live Camera service notification -->
+    <string name="live_camera_channel_name">Live camera</string>
+    <string name="live_camera_title">Sharing live camera</string>
+    <string name="live_camera_action_stop">Stop</string>
+    <!-- 8D Audio Studio → Other apps: capture service notification -->
+    <string name="system_audio_channel_name">8D sound for other apps</string>
+    <string name="system_audio_notif_title">8D sound for other apps is on</string>
+    <string name="system_audio_notif_text">Playing other apps\' sound through the 8D engine</string>
+    <string name="system_audio_action_stop">Stop</string>
 </resources>

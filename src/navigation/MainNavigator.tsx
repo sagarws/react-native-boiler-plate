@@ -27,6 +27,8 @@ import {
   NetworkCallsScreen,
   NetworkInspectorScreen,
 } from '@/features/network';
+import { AudioStudioScreen } from '@/features/audioStudio';
+import { LiveCameraScreen } from '@/features/liveCamera';
 import { RemoteAccessScreen, RemoteViewerScreen } from '@/features/remote';
 import {
   AboutScreen,
@@ -52,6 +54,7 @@ import {
   WaterEjectScreen,
 } from '@/features/utility';
 import { DrawerHost } from './drawer';
+import { firstTab } from './drawer/tabAccess';
 import { ROUTES } from './routes';
 import type { MainStackParamList } from './types';
 
@@ -66,8 +69,9 @@ export default function MainNavigator() {
   return (
     <DrawerHost>
       <Stack.Navigator
-        // Expense Tracker is the start screen; OCR home is one drawer tap away.
-        initialRouteName={ROUTES.EXPENSE_TRACKER}
+        // The first side-menu tab that is switched on (Expense Tracker by
+        // default); see drawer/tabAccess.ts.
+        initialRouteName={firstTab()}
         screenOptions={{ headerShown: false, animation: 'slide_from_right' }}
       >
         <Stack.Screen
@@ -178,11 +182,20 @@ export default function MainNavigator() {
           name={ROUTES.REMOTE_ACCESS}
           component={RemoteAccessScreen}
         />
+        <Stack.Screen name={ROUTES.LIVE_CAMERA} component={LiveCameraScreen} />
+        <Stack.Screen
+          name={ROUTES.AUDIO_STUDIO}
+          component={AudioStudioScreen}
+        />
         <Stack.Screen
           name={ROUTES.REMOTE_VIEWER}
           component={RemoteViewerScreen}
           // Full screen, no swipe-back: a stray edge swipe must reach the remote device.
-          options={{ animation: 'fade', gestureEnabled: false, orientation: 'all' }}
+          options={{
+            animation: 'fade',
+            gestureEnabled: false,
+            orientation: 'all',
+          }}
         />
         <Stack.Screen
           name={ROUTES.UTILITY_YOUTUBE}

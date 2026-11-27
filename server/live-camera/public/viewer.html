@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#0b0f14" />
+    <title>Live camera</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/viewer.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="bar">
+        <div class="title-wrap">
+          <span id="live" class="badge" hidden>LIVE</span>
+          <h1 id="title">Live camera</h1>
+        </div>
+        <span id="status" class="status" role="status" aria-live="polite">Connecting…</span>
+      </header>
+
+      <section id="stage" class="stage">
+        <video id="video" playsinline autoplay muted></video>
+
+        <div id="overlay" class="overlay">
+          <div class="spinner" id="spinner" aria-hidden="true"></div>
+          <p id="message">Connecting…</p>
+          <p id="detail" class="detail"></p>
+        </div>
+
+        <form id="auth" class="auth" hidden>
+          <h2>This camera is private</h2>
+          <p>Enter the password the owner shared with you.</p>
+          <input id="password" type="password" autocomplete="off" maxlength="128" placeholder="Password" required />
+          <p id="authError" class="error" role="alert"></p>
+          <button type="submit">Watch</button>
+        </form>
+
+        <div class="controls" id="controls" hidden>
+          <button id="mute" type="button" aria-pressed="true">🔇 Unmute</button>
+          <button id="fullscreen" type="button">⛶ Fullscreen</button>
+        </div>
+      </section>
+    </main>
+    <script src="/viewer.js" defer></script>
+  </body>
+</html>

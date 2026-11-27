@@ -11,6 +11,8 @@ export const networkStorage = new MMKV({ id: 'app.networkInspector' });
 /** Every MMKV key the app uses, in one place so two features can't collide. */
 export const StorageKeys = {
   Language: 'app.language',
+  /** Side-menu tabs this phone shows (tab → true/false); see navigation/drawer/tabAccess.ts. */
+  TabAccess: 'app.tabAccess',
   Session: 'session.user',
   ThemePreference: 'app.themePreference',
   ThemePreset: 'app.themePreset',
@@ -67,6 +69,16 @@ export const StorageKeys = {
   NetworkRecordPrefix: 'network.record.',
   /** Remote Access: viewer + host preferences. */
   RemoteSettings: 'remote.settings',
+  /** 8D Audio Studio: last library scan + imported files. */
+  AudioStudioLibrary: 'audioStudio.library',
+  /** 8D Audio Studio: liked songs, playlists, recently played. */
+  AudioStudioCollections: 'audioStudio.collections',
+  /** 8D Audio Studio: DSP settings, custom presets / EQ profiles, player prefs. */
+  AudioStudioSettings: 'audioStudio.settings',
+  /** 8D Audio Studio: the queue to restore on next launch. */
+  AudioStudioSession: 'audioStudio.session',
+  /** Share Live Camera: preferences (never the stream password). */
+  LiveCameraSettings: 'liveCamera.settings',
   /** Remote Access: this install's Ed25519 identity (the device ID derives from it). */
   RemoteIdentity: 'remote.identity',
   /** Remote Access: saved / recent devices (pinned key fingerprints). */

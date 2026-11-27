@@ -512,8 +512,13 @@ class RemoteService {
     }
   }
 
+  /**
+   * Change the picture quality and remember it: the next session (after a
+   * disconnect, a reconnect or the phone's screen going off) starts with it.
+   */
   setQuality(preset: QualityPreset): void {
     this.viewer?.setQuality(preset);
+    remoteSettingsStore.update({ defaultQuality: preset });
   }
 
   // ── saved devices ──

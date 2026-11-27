@@ -1,0 +1,323 @@
+import type {
+  EqProfile,
+  RoomPreset,
+  SpatialPreset,
+  StudioSettings,
+} from '../types';
+
+/*
+ * Every preset is a set of real engine parameters (applied over DEFAULTS), not
+ * a label. Values were chosen to stay clean on ordinary headphones: the
+ * limiter is always on and boosts are paired with a lower preamp.
+ */
+
+export const DEFAULT_SETTINGS: StudioSettings = {
+  enabled: true,
+  quality: 1,
+  azimuth: 0,
+  elevation: 0,
+  distance: 0.35,
+  pattern: 'clockwise',
+  rpm: 8,
+  moveIntensity: 1,
+  sourceMode: 'stereoPair',
+  surround: 0.45,
+  hrtf: 0.85,
+  width: 1.1,
+  roomDepth: 0.35,
+  frontRear: 0.7,
+  speakers: [1, 1, 1, 1, 1, 1, 1, 1],
+  room: 'studio',
+  reverbMix: 0.18,
+  reverbDecay: 1.2,
+  roomSize: 0.45,
+  reverbDamp: 0.5,
+  echo: 0,
+  predelay: 12,
+  eqEnabled: true,
+  preamp: -2,
+  eq: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  bass: 2,
+  treble: 0,
+  vocal: 0.2,
+  warmth: 0.2,
+  harshness: 0.3,
+  smoothing: 0.15,
+  compressor: 0.25,
+  loudness: 0.2,
+  output: 0,
+  limiter: true,
+};
+
+/** Reverb / atmosphere rooms → reverb parameters. */
+export const ROOMS: Record<
+  Exclude<RoomPreset, 'custom'>,
+  Pick<
+    StudioSettings,
+    | 'reverbMix'
+    | 'reverbDecay'
+    | 'roomSize'
+    | 'reverbDamp'
+    | 'predelay'
+    | 'roomDepth'
+  >
+> = {
+  smallRoom: {
+    reverbMix: 0.14,
+    reverbDecay: 0.5,
+    roomSize: 0.2,
+    reverbDamp: 0.6,
+    predelay: 4,
+    roomDepth: 0.45,
+  },
+  studio: {
+    reverbMix: 0.18,
+    reverbDecay: 1.2,
+    roomSize: 0.45,
+    reverbDamp: 0.5,
+    predelay: 12,
+    roomDepth: 0.35,
+  },
+  concertHall: {
+    reverbMix: 0.3,
+    reverbDecay: 2.6,
+    roomSize: 0.75,
+    reverbDamp: 0.35,
+    predelay: 28,
+    roomDepth: 0.5,
+  },
+  largeHall: {
+    reverbMix: 0.34,
+    reverbDecay: 3.6,
+    roomSize: 0.85,
+    reverbDamp: 0.3,
+    predelay: 40,
+    roomDepth: 0.55,
+  },
+  cathedral: {
+    reverbMix: 0.42,
+    reverbDecay: 6.5,
+    roomSize: 1,
+    reverbDamp: 0.2,
+    predelay: 60,
+    roomDepth: 0.6,
+  },
+  cinema: {
+    reverbMix: 0.22,
+    reverbDecay: 1.6,
+    roomSize: 0.6,
+    reverbDamp: 0.55,
+    predelay: 20,
+    roomDepth: 0.4,
+  },
+  openSpace: {
+    reverbMix: 0.06,
+    reverbDecay: 0.6,
+    roomSize: 0.3,
+    reverbDamp: 0.8,
+    predelay: 0,
+    roomDepth: 0.05,
+  },
+};
+
+const p = (
+  id: string,
+  name: string,
+  settings: Partial<StudioSettings>,
+): SpatialPreset => ({ id, name, builtIn: true, settings });
+
+export const BUILT_IN_PRESETS: readonly SpatialPreset[] = [
+  p('ultra8d', 'Ultra 8D', {
+    pattern: 'clockwise',
+    rpm: 10,
+    moveIntensity: 1,
+    sourceMode: 'single',
+    hrtf: 1,
+    frontRear: 1,
+    distance: 0.35,
+    surround: 0.2,
+    width: 1,
+    room: 'studio',
+    ...ROOMS.studio,
+    reverbMix: 0.22,
+  }),
+  p('deepSurround', 'Deep Surround', {
+    pattern: 'static',
+    sourceMode: 'vocalBed',
+    surround: 0.9,
+    hrtf: 0.9,
+    width: 1.4,
+    distance: 0.45,
+    room: 'cinema',
+    ...ROOMS.cinema,
+    bass: 4,
+  }),
+  p('studioImmersion', 'Studio Immersion', {
+    pattern: 'clockwise',
+    rpm: 4,
+    moveIntensity: 0.5,
+    sourceMode: 'stereoPair',
+    surround: 0.6,
+    hrtf: 0.85,
+    room: 'studio',
+    ...ROOMS.studio,
+  }),
+  p('cinematic', 'Cinematic Surround', {
+    pattern: 'wave',
+    rpm: 3,
+    moveIntensity: 0.6,
+    sourceMode: 'vocalBed',
+    surround: 0.85,
+    width: 1.3,
+    room: 'cinema',
+    ...ROOMS.cinema,
+    bass: 5,
+    preamp: -3,
+  }),
+  p('concertHall', 'Concert Hall', {
+    pattern: 'static',
+    azimuth: 0,
+    distance: 0.7,
+    sourceMode: 'stereoPair',
+    surround: 0.55,
+    room: 'concertHall',
+    ...ROOMS.concertHall,
+  }),
+  p('dreamy', 'Dreamy Atmosphere', {
+    pattern: 'random',
+    rpm: 3,
+    moveIntensity: 0.8,
+    distance: 0.6,
+    room: 'largeHall',
+    ...ROOMS.largeHall,
+    echo: 0.25,
+    smoothing: 0.5,
+    warmth: 0.4,
+  }),
+  p('smoothVocal', 'Smooth Vocal', {
+    pattern: 'static',
+    sourceMode: 'vocalBed',
+    distance: 0.25,
+    vocal: 0.7,
+    warmth: 0.45,
+    harshness: 0.6,
+    smoothing: 0.35,
+    surround: 0.4,
+    room: 'smallRoom',
+    ...ROOMS.smallRoom,
+  }),
+  p('crystalClear', 'Crystal Clear', {
+    pattern: 'static',
+    hrtf: 0.6,
+    surround: 0.3,
+    treble: 3,
+    vocal: 0.5,
+    warmth: 0,
+    smoothing: 0,
+    harshness: 0.4,
+    room: 'openSpace',
+    ...ROOMS.openSpace,
+  }),
+  p('deepBass3d', 'Deep Bass 3D', {
+    pattern: 'clockwise',
+    rpm: 6,
+    sourceMode: 'vocalBed',
+    bass: 9,
+    preamp: -5,
+    eq: [5, 4, 2, 0, -1, 0, 0, 0, 0, 0],
+    compressor: 0.4,
+    room: 'cinema',
+    ...ROOMS.cinema,
+  }),
+  p('floatingVoice', 'Floating Voice', {
+    pattern: 'wave',
+    rpm: 4,
+    moveIntensity: 0.7,
+    elevation: 25,
+    sourceMode: 'vocalBed',
+    vocal: 0.6,
+    distance: 0.45,
+    room: 'concertHall',
+    ...ROOMS.concertHall,
+    reverbMix: 0.26,
+  }),
+  p('slowMotion8d', 'Slow Motion 8D', {
+    pattern: 'clockwise',
+    rpm: 2,
+    moveIntensity: 1,
+    sourceMode: 'single',
+    distance: 0.5,
+    room: 'largeHall',
+    ...ROOMS.largeHall,
+    smoothing: 0.4,
+  }),
+  p('headphoneSurround', 'Headphone Surround', {
+    pattern: 'static',
+    sourceMode: 'stereoPair',
+    surround: 0.8,
+    hrtf: 0.9,
+    width: 1.2,
+    distance: 0.4,
+    room: 'studio',
+    ...ROOMS.studio,
+  }),
+  p('wideStereo', 'Wide Stereo', {
+    pattern: 'static',
+    surround: 0.3,
+    hrtf: 0.5,
+    width: 1.8,
+    room: 'smallRoom',
+    ...ROOMS.smallRoom,
+  }),
+  p('naturalSpatial', 'Natural Spatial', {
+    pattern: 'static',
+    sourceMode: 'stereoPair',
+    surround: 0.4,
+    hrtf: 0.7,
+    width: 1,
+    distance: 0.4,
+    room: 'smallRoom',
+    ...ROOMS.smallRoom,
+    compressor: 0.1,
+    bass: 1,
+  }),
+  p('customStudio', 'Custom Studio', {}),
+];
+
+/** 10-band EQ presets (31 Hz … 16 kHz). Boosts come with a lower preamp. */
+const eq = (
+  id: string,
+  name: string,
+  bands: number[],
+  preamp: number,
+  extra: Partial<EqProfile> = {},
+): EqProfile => ({
+  id,
+  name,
+  builtIn: true,
+  preamp,
+  eq: bands,
+  bass: 0,
+  treble: 0,
+  vocal: 0,
+  ...extra,
+});
+
+export const BUILT_IN_EQ: readonly EqProfile[] = [
+  eq('flat', 'Flat', [0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 0),
+  eq('rock', 'Rock', [4, 3, 1, -1, -2, -1, 1, 3, 4, 4], -4),
+  eq('pop', 'Pop', [-1, 1, 3, 4, 3, 0, -1, -1, 1, 2], -4),
+  eq('jazz', 'Jazz', [3, 2, 1, 2, -1, -1, 0, 1, 2, 3], -3),
+  eq('classical', 'Classical', [4, 3, 2, 1, -1, -1, 0, 2, 3, 4], -4),
+  eq('edm', 'EDM', [6, 5, 2, 0, -1, 1, 0, 2, 4, 5], -6),
+  eq('vocal', 'Vocal', [-2, -2, -1, 1, 3, 4, 4, 2, 0, -1], -4, { vocal: 0.5 }),
+  eq('bassBoost', 'Bass Boost', [7, 6, 4, 2, 0, 0, 0, 0, 0, 0], -7, {
+    bass: 4,
+  }),
+  eq('acoustic', 'Acoustic', [3, 3, 2, 1, 1, 1, 2, 3, 2, 1], -3),
+];
+
+export const applyPreset = (
+  base: StudioSettings,
+  preset: SpatialPreset,
+): StudioSettings => ({ ...base, ...preset.settings });

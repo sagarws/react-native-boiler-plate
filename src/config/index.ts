@@ -1,4 +1,8 @@
-export { env } from './env';
+export {
+  env,
+  featureAccessPassword,
+  liveCameraServerDefault,
+} from './env';
 export { FEATURES } from './featureFlags';
 export {
   getApiBaseUrl,

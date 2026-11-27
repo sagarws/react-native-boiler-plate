@@ -43,6 +43,7 @@ src/specs/            TurboModule codegen specs — each imported only by its ow
                       NativeUtility + NativeRecorder → utility, NativeExpense → expense,
                       NativeNetInspector → network, NativePhotoWidget → photoWidget,
                       NativeRemoteControl → remote,
+                      NativeLiveCamera → liveCamera,
                       NativeAlarms → src/services/alarms)
 src/services/alarms/  shared alarm engine bridge (Reminders + Utility timers) — docs/REMINDERS.md
 src/features/
@@ -67,6 +68,9 @@ src/features/
   remote/             Remote Access: control a computer/phone running Featured App,
                       or let one control this phone; desktop-compatible protocol
                       (core/), WebRTC video, accessibility input — docs/REMOTE_ACCESS.md
+  liveCamera/         Share Live Camera: phone camera → WebRTC (WHIP) → own server
+                      (server/live-camera: Node + MediaMTX + Caddy, Docker) → public
+                      browser link; foreground service while live — server/live-camera/README.md
   auth/  session/     boilerplate login (disabled)
 src/navigation/  src/i18n/  src/theme/  src/types/
 src/shared/           assets/ components/ hooks/ utils/ — cross-feature only

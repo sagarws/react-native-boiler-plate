@@ -1,0 +1,17 @@
+# HTTPS in front of the signal server. {$SITE_ADDRESS} comes from .env:
+#   203-0-113-25.sslip.io   free name for a bare IP → real Let's Encrypt certificate
+#   live.example.com        your own domain
+#   :80                     plain HTTP (testing only; release Android apps refuse it)
+{$SITE_ADDRESS} {
+	encode gzip
+	# The MediaMTX auth hook is for the docker network only.
+	@internal path /internal/*
+	respond @internal 404
+	reverse_proxy signal:8080 {
+		header_up X-Forwarded-For {remote_host}
+	}
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+}

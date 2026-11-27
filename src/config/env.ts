@@ -38,7 +38,39 @@ function load(): Env {
   };
 }
 
-export const env: Env = load();
+let loaded: Env | null = null;
+const read = (): Env => (loaded ??= load());
+
+/**
+ * Validated on first use rather than at import, so a build without the
+ * backend values (auth is off) can still read the other settings below.
+ */
+export const env: Env = {
+  get apiBaseUrl() {
+    return read().apiBaseUrl;
+  },
+  get sentryDsn() {
+    return read().sentryDsn;
+  },
+  get appEnv() {
+    return read().appEnv;
+  },
+};
+
+/**
+ * The password for the hidden tab-access panel (tap the drawer logo 5 times).
+ * FEATURE_ACCESS_PASSWORD in .env; empty = the panel cannot be unlocked.
+ */
+export const featureAccessPassword = (): string =>
+  (Config.FEATURE_ACCESS_PASSWORD ?? '').trim();
+
+/**
+ * Share Live Camera: the streaming server the app starts with
+ * (LIVE_CAMERA_SERVER in .env, e.g. https://203-0-113-25.sslip.io). The
+ * user can change it in the feature's settings. Empty = asked in the app.
+ */
+export const liveCameraServerDefault = (): string =>
+  (Config.LIVE_CAMERA_SERVER ?? '').trim().replace(/\/+$/, '');
 
 // GOOGLE_DRIVE_CLIENT_ID / _CLIENT_SECRET / _REFRESH_TOKEN / _FOLDER_ID are
 // intentionally NOT read here: they are secrets the native

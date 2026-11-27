@@ -48,5 +48,7 @@ module.exports = {
     'android/build/',
     'android/app/build/',
     'public/crome-extension-dist/',
+    // Live camera server: its own package (server/live-camera).
+    'server/',
   ],
 };

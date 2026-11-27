@@ -45,11 +45,19 @@
     <!-- Screen recorder: merging a recording's parts after capture has ended
          runs as a short dataSync foreground service. -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <!-- Share Live Camera: keeps the camera (and microphone, when chosen)
+         streaming while the app is in the background. -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CAMERA" />
     <!-- Remote Access: find other Featured App devices on this Wi-Fi (UDP
          broadcast on port 47801) and show this phone's address. -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- 8D Audio Studio: reads the music library (asked when the library opens). -->
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission
+        android:name="android.permission.READ_EXTERNAL_STORAGE"
+        android:maxSdkVersion="32" />
 
     <!-- Android 11+ package visibility: lets the app list installed
          text-to-speech engines (to prefer Google Speech Services when present)
@@ -67,6 +75,11 @@
         <intent>
             <action android:name="android.intent.action.VIEW" />
             <data android:scheme="upi" android:host="pay" />
+        </intent>
+        <!-- 8D Audio Studio → Other apps: shows a music app's name (not just
+             its package) next to the audio session it announced. -->
+        <intent>
+            <action android:name="android.media.browse.MediaBrowserService" />
         </intent>
     </queries>
 
@@ -273,6 +286,51 @@
         android:name=".ytdownload.YtDownloadService"
         android:exported="false"
         android:foregroundServiceType="dataSync" />
+
+      <!-- Share Live Camera: holds the app in the foreground while the
+           WebRTC camera stream runs (ongoing notification with Stop). -->
+      <service
+        android:name=".livecamera.LiveCameraService"
+        android:exported="false"
+        android:foregroundServiceType="camera|microphone" />
+
+      <!-- 8D Audio Studio player: Media3 MediaSessionService (media
+           notification, lock screen, headset / Bluetooth controls). Exported
+           so system media controllers can connect, as Media3 requires. -->
+      <service
+        android:name=".audiostudio.AudioStudioService"
+        android:exported="true"
+        android:foregroundServiceType="mediaPlayback">
+        <intent-filter>
+          <action android:name="androidx.media3.session.MediaSessionService" />
+          <action android:name="android.media.browse.MediaBrowserService" />
+        </intent-filter>
+      </service>
+
+      <!-- 8D Audio Studio → Other apps. Session effects: players announce
+           their audio sessions with these broadcasts (exported: the senders
+           are other apps; only a session id and package name are read). -->
+      <receiver
+        android:name=".systemaudio.SessionEffectReceiver"
+        android:exported="true">
+        <intent-filter>
+          <action android:name="android.media.action.OPEN_AUDIO_EFFECT_CONTROL_SESSION" />
+          <action android:name="android.media.action.CLOSE_AUDIO_EFFECT_CONTROL_SESSION" />
+        </intent-filter>
+      </receiver>
+      <!-- Playback capture → 8D engine, only after Android's capture consent
+           (ongoing notification with Stop). microphone: Android 11+ needs it
+           for a background AudioRecord; the microphone is never recorded. -->
+      <service
+        android:name=".systemaudio.SystemAudioCaptureService"
+        android:exported="false"
+        android:foregroundServiceType="mediaProjection|microphone" />
+      <activity
+        android:name=".systemaudio.SystemAudioConsentActivity"
+        android:exported="false"
+        android:excludeFromRecents="true"
+        android:taskAffinity=""
+        android:theme="@android:style/Theme.Translucent.NoTitleBar" />
 
       <service
         android:name=".recorder.RecorderService"

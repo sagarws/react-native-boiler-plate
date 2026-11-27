@@ -1,0 +1,82 @@
+# Share Live Camera server: docker compose up -d
+#   caddy    HTTPS (80/443), the only web entry point
+#   signal   sessions, tokens, viewer page, WHIP/WHEP proxy (internal :8080)
+#   mediamtx WebRTC media; only its ICE port 8189 (UDP+TCP) is public
+#   coturn   optional TURN (profile "turn"); skip it if the VPS already runs coturn
+name: live-camera
+
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports: ["80:80", "443:443"]
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:?set SITE_ADDRESS in .env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on: [signal]
+
+  signal:
+    build: .
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      HOST: 0.0.0.0
+      PUBLIC_URL: ${PUBLIC_URL:?set PUBLIC_URL in .env}
+      TRUST_PROXY: "1"
+      TOKEN_SECRET: ${TOKEN_SECRET:?set TOKEN_SECRET in .env}
+      MTX_SECRET: ${MTX_SECRET:?set MTX_SECRET in .env}
+      MTX_WEBRTC_URL: http://mediamtx:8889
+      MTX_API_URL: http://mediamtx:9997
+      TURN_SECRET: ${TURN_SECRET:-}
+      TURN_URLS: ${TURN_URLS:-}
+      STUN_URLS: ${STUN_URLS:-}
+      MAX_STREAMS: ${MAX_STREAMS:-50}
+      MAX_STREAMS_PER_IP: ${MAX_STREAMS_PER_IP:-3}
+      MAX_VIEWERS_CAP: ${MAX_VIEWERS_CAP:-50}
+      VIEWER_TOKEN_TTL_SEC: ${VIEWER_TOKEN_TTL_SEC:-600}
+      STREAM_OFFLINE_TTL_SEC: ${STREAM_OFFLINE_TTL_SEC:-900}
+      STREAM_MAX_LIFETIME_SEC: ${STREAM_MAX_LIFETIME_SEC:-43200}
+
+  mediamtx:
+    image: bluenviron/mediamtx:1.21.4
+    restart: unless-stopped
+    ports:
+      - "8189:8189/udp"
+      - "8189:8189/tcp"
+    environment:
+      MTX_AUTHHTTPADDRESS: http://signal:8080/internal/mtx-auth?key=${MTX_SECRET}
+      MTX_WEBRTCADDITIONALHOSTS: ${PUBLIC_IP:?set PUBLIC_IP in .env}
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml:ro
+    depends_on: [signal]
+
+  coturn:
+    profiles: ["turn"]
+    image: coturn/coturn:4.6
+    restart: unless-stopped
+    network_mode: host
+    command:
+      - -n
+      - --listening-port=3478
+      - --min-port=49160
+      - --max-port=49200
+      - --use-auth-secret
+      - --static-auth-secret=${TURN_SECRET}
+      - --realm=${PUBLIC_IP}
+      - --external-ip=${PUBLIC_IP}
+      - --no-cli
+      - --no-tls
+      - --no-dtls
+      - --no-multicast-peers
+      - --denied-peer-ip=10.0.0.0-10.255.255.255
+      - --denied-peer-ip=172.16.0.0-172.31.255.255
+      - --denied-peer-ip=192.168.0.0-192.168.255.255
+      - --total-quota=100
+      - --user-quota=12
+
+volumes:
+  caddy_data:
+  caddy_config:

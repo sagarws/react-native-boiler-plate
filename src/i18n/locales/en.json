@@ -279,7 +279,20 @@
     "network": "Network Inspector",
     "reminders": "Reminders",
     "photoWidget": "Photo Widgets",
-    "remote": "Remote Access"
+    "remote": "Remote Access",
+    "access": {
+      "title": "Manage tab access",
+      "body": "Enter the access password to choose which tabs show in the side menu.",
+      "password": "Password",
+      "unlock": "Unlock",
+      "done": "Done",
+      "wrong": "Wrong password.",
+      "locked": "Too many attempts. Try again in {{seconds}} s.",
+      "notSet": "No access password is set in this build (FEATURE_ACCESS_PASSWORD in .env).",
+      "noneOn": "Every tab is off. Tap the logo 5 times again to turn one back on."
+    },
+    "liveCamera": "Share Live Camera",
+    "audioStudio": "8D Audio Studio"
   },
   "devSettings": {
     "title": "Developer settings",
@@ -2685,6 +2698,9 @@
       "primary": "Main",
       "keyboard": "Keyboard",
       "keys": "Keys",
+      "pcKeys": "PC keys",
+      "zoom": "Zoom in",
+      "scroll": "Scroll",
       "quality": "Quality",
       "touchDirect": "Touch",
       "touchTrackpad": "Trackpad",
@@ -2894,6 +2910,386 @@
       "savedPasswordsCount": "{{count}} saved",
       "forgetAllPasswords": "Forget all saved passwords",
       "forgetAllPasswordsConfirm": "Remove every saved password from this phone?"
+    }
+  },
+  "liveCamera": {
+    "title": "Share Live Camera",
+    "intro": "Turn this phone into a live webcam. Tap Start streaming to get a link; anyone who opens it in Chrome, Safari or any browser watches live — nothing to install. Works on Wi-Fi and mobile data.",
+    "start": "Start streaming",
+    "stop": "Stop streaming",
+    "starting": "Connecting to the streaming server…",
+    "switchCamera": "Switch camera",
+    "cameraOff": "Camera is off",
+    "permissionNeeded": "Camera permission is needed to stream.",
+    "openSettings": "Open app settings",
+    "backgroundWarning": "Background streaming could not start. Keep the app open while streaming.",
+    "phase": {
+      "idle": "Off",
+      "preview": "Ready",
+      "starting": "Starting…",
+      "live": "Live",
+      "reconnecting": "Reconnecting…"
+    },
+    "quality": {
+      "good": "Good",
+      "fair": "Fair",
+      "poor": "Poor",
+      "unknown": "—"
+    },
+    "info": {
+      "title": "Live",
+      "status": "Status",
+      "viewers": "Viewers",
+      "duration": "Duration",
+      "resolution": "Resolution",
+      "fps": "FPS",
+      "upload": "Upload",
+      "quality": "Connection",
+      "streamId": "Stream ID"
+    },
+    "share": {
+      "title": "Share",
+      "copy": "Copy link",
+      "copied": "Copied",
+      "share": "Share",
+      "qr": "QR code",
+      "open": "Open",
+      "regenerate": "New link",
+      "revoke": "Revoke link",
+      "revoked": "Link revoked — no one can watch. Tap New link to share again.",
+      "message": "Watch my live camera: {{url}}",
+      "qrHint": "Scan to watch live"
+    },
+    "settings": {
+      "title": "Stream settings",
+      "lockedWhileLive": "Resolution, frame rate, audio and server are fixed while live. Stop to change them.",
+      "resolution": "Video resolution",
+      "fps": "Frame rate",
+      "audio": "Send audio (microphone)",
+      "streamTitle": "Stream title",
+      "streamTitlePlaceholder": "Live camera",
+      "access": "Who can watch",
+      "public": "Anyone with the link",
+      "private": "Password",
+      "password": "Stream password (not saved)",
+      "passwordPlaceholder": "At least 4 characters",
+      "maxViewers": "Maximum viewers",
+      "fewerViewers": "Fewer viewers",
+      "moreViewers": "More viewers",
+      "server": "Streaming server",
+      "saveServer": "Save & test",
+      "server_ok": "Server reachable",
+      "server_bad": "Not reachable — check the address (https://…)"
+    },
+    "errors": {
+      "no_server": "Set the streaming server address in Stream settings first.",
+      "server_unreachable": "The streaming server is unreachable. Check the internet connection and the server address.",
+      "server_error": "The streaming server refused the request. Try again.",
+      "server_full": "The streaming server is full. Try again later.",
+      "rate_limited": "Too many streams from this connection. Wait a little and try again.",
+      "password": "A private stream needs a password of at least 4 characters.",
+      "camera_failed": "The camera could not be opened. Another app may be using it.",
+      "no_camera": "This phone has no camera available.",
+      "mic_denied": "Microphone permission is needed for audio. Turn audio off or allow it.",
+      "stream_ended": "The server ended this stream. Start again for a new link."
+    }
+  },
+  "audioStudio": {
+    "title": "8D Audio Studio",
+    "tabs": {
+      "library": "Library",
+      "player": "Now playing",
+      "studio": "Studio",
+      "eq": "Equalizer",
+      "system": "Other apps"
+    },
+    "common": {
+      "back": "Back",
+      "name": "Name",
+      "playAll": "Play all",
+      "save": "Save",
+      "shuffle": "Shuffle"
+    },
+    "song": {
+      "more": "More",
+      "playNext": "Play next",
+      "addToQueue": "Add to queue",
+      "like": "Like",
+      "unlike": "Unlike",
+      "addToPlaylist": "Add to playlist"
+    },
+    "library": {
+      "search": "Search songs, artists, albums",
+      "unknown": "Unknown",
+      "unknownArtist": "Unknown artist",
+      "empty": "No music found",
+      "noLiked": "No liked songs yet — tap ♥ on a song",
+      "songCount_one": "{{count}} song",
+      "songCount_other": "{{count}} songs",
+      "groupCount_one": "{{count}} group",
+      "groupCount_other": "{{count}} groups",
+      "playlistCount_one": "{{count}} playlist",
+      "playlistCount_other": "{{count}} playlists",
+      "import": "Import",
+      "rescan": "Rescan library",
+      "permissionWhy": "Allow access to music so the app can list the songs on this phone. You can also import files without it.",
+      "permissionBlocked": "Music access is turned off for this app. Turn it on in Settings, or import files instead.",
+      "allow": "Allow music access",
+      "openSettings": "Open Settings",
+      "sortBy": "Sort by",
+      "sort": {
+        "title": "Title",
+        "artist": "Artist",
+        "album": "Album",
+        "dateAdded": "Recently added",
+        "duration": "Length"
+      },
+      "views": {
+        "songs": "Songs",
+        "liked": "Liked",
+        "playlists": "Playlists",
+        "albums": "Albums",
+        "artists": "Artists",
+        "genres": "Genres",
+        "folders": "Folders",
+        "recent": "Recently played",
+        "added": "Recently added"
+      }
+    },
+    "playlists": {
+      "new": "New playlist",
+      "empty": "No playlists yet",
+      "noSongs": "No songs — add some from the song menu (⋯)",
+      "edit": "Edit",
+      "rename": "Rename",
+      "cover": "Change cover",
+      "removeCover": "Remove cover",
+      "delete": "Delete playlist",
+      "deleteTitle": "Delete this playlist?",
+      "removeSong": "Remove from playlist"
+    },
+    "player": {
+      "open": "Open player",
+      "play": "Play",
+      "pause": "Pause",
+      "next": "Next",
+      "previous": "Previous",
+      "seek": "Position",
+      "shuffle": "Shuffle",
+      "repeat_off": "Repeat off",
+      "repeat_all": "Repeat all",
+      "repeat_one": "Repeat one",
+      "nothing": "Nothing playing. Pick a song in the Library.",
+      "queue": "Queue",
+      "eightDOn": "8D on",
+      "eightDOff": "8D off",
+      "speed": "Playback speed (pitch kept)",
+      "sleep": "Sleep timer",
+      "sleepIn": "Sleep in {{min}} min",
+      "sleepEnd": "At end of song",
+      "sleepOff": "Turn off",
+      "minutes_one": "{{count}} minute",
+      "minutes_other": "{{count}} minutes",
+      "crossfade": "Fade between songs",
+      "seconds_one": "{{count}} second",
+      "seconds_other": "{{count}} seconds",
+      "off": "Off",
+      "error": "Playback problem: {{error}}"
+    },
+    "queue": {
+      "title_one": "Queue · {{count}} song",
+      "title_other": "Queue · {{count}} songs",
+      "save": "Save as playlist",
+      "clear": "Clear",
+      "remove": "Remove from queue",
+      "drag": "Drag to reorder"
+    },
+    "studio": {
+      "eightD": "8D spatial sound",
+      "headphones": "Use headphones: the 3D effect is rendered for two ears (binaural), not for a phone speaker.",
+      "position": "Sound position",
+      "direction": "Direction",
+      "height": "Height",
+      "distance": "Distance",
+      "movement": "Rotation & movement",
+      "rpm": "Rotation speed",
+      "moveIntensity": "Movement intensity",
+      "depth": "Spatial depth",
+      "roomDepth": "Virtual room depth",
+      "width": "Stereo width",
+      "surround": "Surround intensity",
+      "hrtf": "3D (HRTF) intensity",
+      "frontRear": "Front / rear separation",
+      "speakers": "Virtual speaker levels",
+      "reverb": "Reverb & atmosphere",
+      "reverbMix": "Reverb amount (wet/dry)",
+      "decay": "Decay time",
+      "roomSize": "Room size",
+      "damping": "Damping",
+      "predelay": "Pre-delay",
+      "echo": "Echo intensity",
+      "smoothness": "Sound smoothness",
+      "smoothing": "High-frequency smoothing",
+      "harshness": "Harshness reduction",
+      "compressor": "Dynamic compression",
+      "warmth": "Warmth",
+      "clarity": "Clarity",
+      "bassDepth": "Bass depth",
+      "quality": "Processing quality"
+    },
+    "positions": {
+      "front": "Front",
+      "rear": "Rear",
+      "left": "Left",
+      "right": "Right",
+      "top": "Top",
+      "bottom": "Bottom",
+      "around": "Around the head"
+    },
+    "distance": {
+      "extremelyNear": "Extremely near",
+      "near": "Near",
+      "medium": "Medium",
+      "far": "Far",
+      "veryFar": "Very far"
+    },
+    "speed": {
+      "verySlow": "Very slow",
+      "slow": "Slow",
+      "normal": "Normal",
+      "fast": "Fast",
+      "veryFast": "Very fast"
+    },
+    "patterns": {
+      "static": "Fixed",
+      "clockwise": "360° clockwise",
+      "anticlockwise": "Anticlockwise",
+      "leftRight": "Left → right",
+      "rightLeft": "Right → left",
+      "frontBack": "Front → back",
+      "backFront": "Back → front",
+      "random": "Random 3D",
+      "wave": "Wave",
+      "figure8": "Figure-eight"
+    },
+    "sourceModes": {
+      "single": "One source",
+      "stereoPair": "Stereo pair (2 sources)",
+      "vocalBed": "Voice moves, band surrounds"
+    },
+    "speakerNames": {
+      "FL": "Front left",
+      "FR": "Front right",
+      "SL": "Side left",
+      "SR": "Side right",
+      "RL": "Rear left",
+      "RR": "Rear right",
+      "UL": "Upper left",
+      "UR": "Upper right"
+    },
+    "rooms": {
+      "smallRoom": "Small room",
+      "studio": "Recording studio",
+      "concertHall": "Concert hall",
+      "largeHall": "Large hall",
+      "cathedral": "Cathedral",
+      "cinema": "Cinema",
+      "openSpace": "Open space",
+      "custom": "Custom"
+    },
+    "quality": {
+      "0": "Battery saver",
+      "1": "Balanced",
+      "2": "High quality",
+      "hint0": "Lighter 3D model (4 speakers, no pinna cues, smaller reverb): least battery.",
+      "hint1": "Full 3D with moderate reverb — the best everyday choice.",
+      "hint2": "Every cue and the largest reverb; uses a little more battery."
+    },
+    "presets": {
+      "save": "Save as preset",
+      "manage": "Edit preset",
+      "overwrite": "Save current sound into this preset",
+      "rename": "Rename preset",
+      "reset": "Reset to original",
+      "delete": "Delete",
+      "restore": "Restore defaults",
+      "restoreBody": "Built-in presets go back to their original sound. Your own presets are kept."
+    },
+    "stage": {
+      "label": "Virtual studio",
+      "hint": "Drag to move the sound around you",
+      "front": "FRONT",
+      "liveHint": "Showing where the engine is placing the sound right now. Drag to move it.",
+      "idleHint": "Play a song to see and hear the sound move. Drag to place it.",
+      "limiting": "Limiter {{db}} dB",
+      "modes": {
+        "around": "Around the head",
+        "distance": "Near / far",
+        "rotation": "Rotation",
+        "multi": "Multiple sources"
+      }
+    },
+    "eq": {
+      "title": "Equalizer",
+      "save": "Save EQ profile",
+      "preamp": "Preamp",
+      "tone": "Tone",
+      "bass": "Bass boost",
+      "treble": "Treble",
+      "vocal": "Vocal clarity",
+      "loudness": "Loudness",
+      "dynamics": "Output & protection",
+      "output": "Output gain",
+      "limiter": "Limiter",
+      "limiterHint": "Keeps the output below clipping however much you boost."
+    },
+    "system": {
+      "title": "Other apps",
+      "intro": "Android does not let an app freely change other apps' sound. Below are the two routes Android allows; each depends on the other app, and some apps (or protected/DRM content) will not work. Calls and the microphone are never touched.",
+      "unavailable": "System-wide audio is available on Android only.",
+      "effectsTitle": "Effects on music apps (reliable, no 8D movement)",
+      "effectsBody": "Players that announce their audio session (many music apps do; YouTube usually does not) get your equalizer, bass, virtual surround, reverb and loudness. Open the other app and start playing — it appears below when it announces itself.",
+      "supported": "This phone supports: {{list}}",
+      "effects": {
+        "equalizer": "equalizer",
+        "bassBoost": "bass boost",
+        "virtualizer": "virtual surround",
+        "reverb": "reverb",
+        "loudness": "loudness"
+      },
+      "noSessions": "No app has announced an audio session yet.",
+      "attached": "effects on",
+      "detected": "detected",
+      "captureTitle": "8D for other apps (experimental)",
+      "captureBody": "Records the sound other apps allow to be captured, runs it through the 8D engine and plays the result. Android keeps playing the original too, and the processing adds a short delay (video may look slightly out of sync).",
+      "captureUnsupported": "Needs Android 10 or newer.",
+      "outputTitle": "Play the 8D sound as",
+      "output": {
+        "media": "Music",
+        "accessibility": "Separate stream"
+      },
+      "outputHint": {
+        "media": "Simple, but you also hear the original app.",
+        "accessibility": "Plays on the accessibility volume: turn the media volume down to silence the original and keep only the 8D sound. Not every phone allows this."
+      },
+      "start": "Start 8D for other apps",
+      "stop": "Stop",
+      "startErrors": {
+        "unsupported": "This phone cannot capture other apps' sound.",
+        "denied": "Screen-capture permission was not given.",
+        "permission": "Microphone permission is needed by Android to capture app sound (the microphone itself is not recorded).",
+        "failed": "Could not start capturing."
+      },
+      "levels": "In {{input}} dB · out {{output}} dB · delay ~{{latency}} ms",
+      "silent": "No sound is arriving. The app playing may not allow capture (for example protected or DRM content), or nothing is playing.",
+      "flowing": "Sound is being captured and processed.",
+      "errors": {
+        "capture_unavailable": "Android refused to capture app sound on this phone.",
+        "capture_lost": "Capturing stopped (the screen-capture permission ended or another app took over).",
+        "output_failed": "Could not play the processed sound.",
+        "engine_unavailable": "The 8D engine could not start.",
+        "failed": "Something went wrong while capturing."
+      }
     }
   }
 }

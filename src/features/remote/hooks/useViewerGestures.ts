@@ -112,7 +112,11 @@ export function useViewerGestures(opts: GestureOptions) {
     return toRemotePoint(rect(), l.x, l.y);
   };
 
+  /** Where the user last worked on the remote screen (0–1): kept in view when the view area changes. */
+  const focusRef = useRef({ x: 0.5, y: 0.5 });
+
   const click = (b: 0 | 1 | 2, p: { x: number; y: number }) => {
+    focusRef.current = p;
     const { sendInput, sendMove } = optsRef.current;
     sendMove(p.x, p.y);
     sendInput({ k: 'md', b, x: p.x, y: p.y });
@@ -160,9 +164,43 @@ export function useViewerGestures(opts: GestureOptions) {
       ),
     };
     cursorRef.current = next;
+    focusRef.current = next;
     setCursor(next);
     optsRef.current.sendMove(next.x, next.y);
+    // Zoomed in: the view follows the cursor near its edges.
+    if (view.current.zoom > 1.01) {
+      const { container } = optsRef.current;
+      const margin = Math.min(48, container.width / 6);
+      const cx = r.left + next.x * r.width;
+      const cy = r.top + next.y * r.height;
+      let px = 0;
+      let py = 0;
+      if (cx < margin) px = margin - cx;
+      else if (cx > container.width - margin)
+        px = container.width - margin - cx;
+      if (cy < margin) py = margin - cy;
+      else if (cy > container.height - margin)
+        py = container.height - margin - cy;
+      if (px || py)
+        applyView(view.current.zoom, {
+          x: view.current.pan.x + px,
+          y: view.current.pan.y + py,
+        });
+    }
   };
+
+  /** Zoom to `z`, keeping the given remote point (0–1) in the middle of the view. */
+  const zoomTo = useCallback((z: number, at?: { x: number; y: number }) => {
+    const { container, video, alignTop } = optsRef.current;
+    const target = Math.min(MAX_ZOOM, Math.max(1, z));
+    const focus = at ?? { x: 0.5, y: 0.5 };
+    const base = videoRect(container, video, target, { x: 0, y: 0 }, alignTop);
+    applyView(target, {
+      x: container.width / 2 - focus.x * base.width - base.left,
+      y: container.height / 2 - focus.y * base.height - base.top,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const endOne = (g: One, cancelled: boolean) => {
     if (g.timer) clearTimeout(g.timer);
@@ -218,17 +256,36 @@ export function useViewerGestures(opts: GestureOptions) {
     const ratio =
       Math.hypot(a.pageX - b.pageX, a.pageY - b.pageY) / g.startDist;
     if (g.phase === 'pending') {
-      if (Math.abs(ratio - 1) > 0.12) g.phase = 'pinch';
+      if (Math.abs(ratio - 1) > 0.06) g.phase = 'pinch';
       else if (Math.hypot(cx - g.startCx, cy - g.startCy) > SLOP * 1.5)
-        g.phase = view.current.zoom > 1.01 ? 'pan' : 'scroll';
+        // Zoomed in: two fingers move the view (and can still zoom).
+        g.phase = view.current.zoom > 1.01 ? 'pinch' : 'scroll';
+    } else if (g.phase === 'scroll' && Math.abs(ratio - 1) > 0.2) {
+      // Fingers that drifted together first and then spread: a pinch after
+      // all. Start it from here, so the picture does not jump.
+      const r = rect();
+      const l = local(cx, cy);
+      g.startDist = Math.max(
+        1,
+        Math.hypot(a.pageX - b.pageX, a.pageY - b.pageY),
+      );
+      g.startZoom = view.current.zoom;
+      g.anchor = {
+        u: (l.x - r.left) / r.width,
+        v: (l.y - r.top) / r.height,
+      };
+      g.phase = 'pinch';
+      return;
     }
+    const pinchRatio =
+      Math.hypot(a.pageX - b.pageX, a.pageY - b.pageY) / g.startDist;
     const dx = cx - g.lastCx;
     const dy = cy - g.lastCy;
     g.lastCx = cx;
     g.lastCy = cy;
     if (g.phase === 'pinch') {
       const { container, video } = optsRef.current;
-      const z = Math.min(MAX_ZOOM, Math.max(1, g.startZoom * ratio));
+      const z = Math.min(MAX_ZOOM, Math.max(1, g.startZoom * pinchRatio));
       const base = videoRect(
         container,
         video,
@@ -370,11 +427,20 @@ export function useViewerGestures(opts: GestureOptions) {
     pan,
     opts.alignTop,
   );
+  /** The view area changed (keyboard opened or closed): keep the zoom, with the last-touched spot in view. */
+  const keepFocusInView = useCallback(() => {
+    if (view.current.zoom > 1.01) zoomTo(view.current.zoom, focusRef.current);
+    else applyView(1, { x: 0, y: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [zoomTo]);
+
   return {
     panHandlers: responder.panHandlers,
+    keepFocusInView,
     layout,
     zoom,
     cursor,
     resetView,
+    zoomTo,
   };
 }

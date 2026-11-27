@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
   Alert,
   Pressable,
@@ -16,6 +16,8 @@ import type { IconName } from '@/shared/assets';
 import { BrandLogo, Icon } from '@/shared/components';
 import { useTheme } from '@/theme';
 import { useDrawer } from './DrawerContext';
+import { TabAccessModal } from './TabAccessModal';
+import { useTabAccess } from './tabAccess';
 import { ROUTES } from '../routes';
 import type { MainStackParamList } from '../types';
 
@@ -30,9 +32,15 @@ type DrawerTarget =
   | 'Utility'
   | 'NetworkInspector'
   | 'RemoteAccess'
+  | 'LiveCamera'
+  | 'AudioStudio'
   | 'Settings'
   | 'Appearance'
   | 'About';
+
+/** Logo taps, each within this long of the last, that open the tab-access panel. */
+const SECRET_TAPS = 5;
+const SECRET_TAP_GAP_MS = 800;
 
 const ITEMS: readonly {
   screen: DrawerTarget;
@@ -48,6 +56,8 @@ const ITEMS: readonly {
     | 'utility'
     | 'network'
     | 'remote'
+    | 'liveCamera'
+    | 'audioStudio'
     | 'settings'
     | 'appearance'
     | 'about';
@@ -62,13 +72,16 @@ const ITEMS: readonly {
   { screen: ROUTES.UTILITY, icon: 'wrench', label: 'utility' },
   { screen: ROUTES.NETWORK_INSPECTOR, icon: 'globe', label: 'network' },
   { screen: ROUTES.REMOTE_ACCESS, icon: 'monitor', label: 'remote' },
+  { screen: ROUTES.LIVE_CAMERA, icon: 'camera', label: 'liveCamera' },
+  { screen: ROUTES.AUDIO_STUDIO, icon: 'headphones', label: 'audioStudio' },
   { screen: ROUTES.SETTINGS, icon: 'settings', label: 'settings' },
   { screen: ROUTES.APPEARANCE, icon: 'palette', label: 'appearance' },
   { screen: ROUTES.ABOUT, icon: 'shieldCheck', label: 'about' },
 ];
 
 /**
- * Side panel: the brand, the main destinations and — only when the
+ * Side panel: the brand, the main destinations (only the tabs switched on in
+ * tabAccess.ts — tap the logo 5 times to change them) and — only when the
  * boilerplate's auth is switched on — the signed-in user and sign out.
  */
 export function CustomDrawer() {
@@ -78,6 +91,23 @@ export function CustomDrawer() {
   const navigation = useNavigation();
   const { closeDrawer } = useDrawer();
   const session = useSession();
+  const access = useTabAccess();
+  const visibleItems = ITEMS.filter(item => access[item.screen]);
+
+  // Tapping the logo 5 times (each within 800 ms of the last) opens the
+  // hidden tab-access panel.
+  const [accessOpen, setAccessOpen] = useState(false);
+  const taps = useRef({ count: 0, last: 0 });
+  const onLogoPress = () => {
+    const now = Date.now();
+    const tp = taps.current;
+    tp.count = now - tp.last <= SECRET_TAP_GAP_MS ? tp.count + 1 : 1;
+    tp.last = now;
+    if (tp.count >= SECRET_TAPS) {
+      tp.count = 0;
+      setAccessOpen(true);
+    }
+  };
 
   // The drawer wraps the main stack rather than living inside it, so this
   // navigation object belongs to the ROOT navigator. Targeting main-stack
@@ -115,7 +145,14 @@ export function CustomDrawer() {
           padding: spacing.lg,
         }}
       >
-        <BrandLogo size={44} variant="lockupLight" />
+        <Pressable
+          onPress={onLogoPress}
+          testID="drawer-logo"
+          accessible={false}
+          style={styles.logo}
+        >
+          <BrandLogo size={44} variant="lockupLight" />
+        </Pressable>
         <Text
           style={[
             typography.caption,
@@ -146,7 +183,7 @@ export function CustomDrawer() {
         style={styles.items}
         contentContainerStyle={{ padding: spacing.sm, gap: spacing.xs }}
       >
-        {ITEMS.map(item => (
+        {visibleItems.map(item => (
           <Pressable
             key={item.screen}
             accessibilityRole="button"
@@ -188,12 +225,22 @@ export function CustomDrawer() {
           </Pressable>
         </View>
       ) : null}
+
+      <TabAccessModal
+        visible={accessOpen}
+        onClose={() => setAccessOpen(false)}
+        items={ITEMS.map(item => ({
+          ...item,
+          label: t(`drawer.${item.label}`),
+        }))}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  logo: { alignSelf: 'flex-start' },
   row: { flexDirection: 'row', alignItems: 'center', minHeight: 52 },
   items: { flexGrow: 1, flexShrink: 1 },
   footer: { justifyContent: 'flex-end' },

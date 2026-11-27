@@ -15,7 +15,28 @@ import { keyForChar, type Modifier } from '../utils/keys';
 
 export const SENTINEL = '••';
 
-export function useRemoteKeyboard(sendInput: (event: InputEvent) => void) {
+/** Old field text → new: how many characters were deleted from the end, and what was typed. */
+export function textDiff(
+  prev: string,
+  next: string,
+): { removed: number; added: string } {
+  let common = 0;
+  while (
+    common < prev.length &&
+    common < next.length &&
+    prev[common] === next[common]
+  )
+    common++;
+  return { removed: prev.length - common, added: next.slice(common) };
+}
+
+export function useRemoteKeyboard(
+  sendInput: (event: InputEvent) => void,
+  /** Send every character as a real key press (a locked Mac ignores text events). */
+  keysOnly = false,
+) {
+  const keysOnlyRef = useRef(keysOnly);
+  keysOnlyRef.current = keysOnly;
   const inputRef = useRef<TextInput>(null);
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(SENTINEL);
@@ -48,8 +69,9 @@ export function useRemoteKeyboard(sendInput: (event: InputEvent) => void) {
   const typeChars = useCallback(
     (text: string) => {
       if (!text) return;
-      if (modsRef.current.length) {
-        // With Ctrl/Alt/⌘ held, characters are keys (Ctrl+C, not "c").
+      if (modsRef.current.length || keysOnlyRef.current) {
+        // With Ctrl/Alt/⌘ held, characters are keys (Ctrl+C, not "c"). On a
+        // lock screen too: macOS ignores typed-text events there.
         for (const ch of Array.from(text)) {
           const key = keyForChar(ch);
           if (key) combo(key.shift ? ['ShiftLeft', key.code] : [key.code]);
@@ -65,18 +87,24 @@ export function useRemoteKeyboard(sendInput: (event: InputEvent) => void) {
     [combo, sendInput, tap],
   );
 
+  // What the hidden field holds right now. Every change is diffed against
+  // this (not against SENTINEL): putting SENTINEL back is a state change React
+  // may skip when it already equals the old state, and then the native text
+  // keeps the typed characters — the next key re-sent them ("ab" typed twice).
+  const lastRef = useRef(SENTINEL);
+
   const onChangeText = useCallback(
     (next: string) => {
-      if (next.length < SENTINEL.length && SENTINEL.startsWith(next)) {
-        for (let i = next.length; i < SENTINEL.length; i++)
-          combo(['Backspace']);
-      } else if (next.startsWith(SENTINEL)) {
-        typeChars(next.slice(SENTINEL.length));
-      } else {
-        // The keyboard replaced the text (e.g. a suggestion): type what is new.
-        typeChars(next.replace(/•/g, ''));
-      }
-      setValue(SENTINEL);
+      const prev = lastRef.current;
+      if (next === prev) return;
+      const { removed, added } = textDiff(prev, next);
+      for (let i = 0; i < removed; i++) combo(['Backspace']);
+      typeChars(added.replace(/•/g, ''));
+      // Back to the sentinel when it runs low (Backspace needs something to
+      // delete) or grows long; otherwise mirror the field exactly.
+      const reset = next.length < SENTINEL.length || next.length > 24;
+      lastRef.current = reset ? SENTINEL : next;
+      setValue(reset ? SENTINEL : next);
     },
     [combo, typeChars],
   );
@@ -90,6 +118,8 @@ export function useRemoteKeyboard(sendInput: (event: InputEvent) => void) {
   }, []);
 
   const show = useCallback(() => {
+    lastRef.current = SENTINEL;
+    setValue(SENTINEL);
     setOpen(true);
     setTimeout(() => inputRef.current?.focus(), 50);
   }, []);

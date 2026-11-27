@@ -12,6 +12,10 @@ declare module 'react-native-config' {
     GOOGLE_DRIVE_CLIENT_SECRET?: string;
     GOOGLE_DRIVE_REFRESH_TOKEN?: string;
     GOOGLE_DRIVE_FOLDER_ID?: string;
+    /** Password for the hidden tab-access panel (drawer logo tapped 5 times). */
+    FEATURE_ACCESS_PASSWORD?: string;
+    /** Share Live Camera's default streaming server (https://…). */
+    LIVE_CAMERA_SERVER?: string;
   }
   const Config: NativeConfig;
   export default Config;

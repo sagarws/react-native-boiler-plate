@@ -1,0 +1,32 @@
+// Spatial audio DSP engine (C++ via JNI): HRTF binaural renderer, virtual
+// 8-speaker surround, reverb, EQ, dynamics. Used by the app's 8D Audio Studio
+// (player and system-audio capture). No React Native code here.
+apply plugin: "com.android.library"
+apply plugin: "org.jetbrains.kotlin.android"
+
+android {
+    namespace "com.rnboilerplate.spatialaudio"
+    compileSdk rootProject.ext.compileSdkVersion
+    ndkVersion rootProject.ext.ndkVersion
+
+    defaultConfig {
+        minSdk rootProject.ext.minSdkVersion
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17 -O3 -ffast-math -fno-exceptions -fno-rtti"
+                arguments "-DANDROID_STL=c++_static"
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+    kotlinOptions { jvmTarget = "17" }
+}

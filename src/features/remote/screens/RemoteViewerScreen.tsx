@@ -4,7 +4,6 @@ import {
   Alert,
   BackHandler,
   Keyboard,
-  Image,
   Pressable,
   ScrollView,
   StatusBar,
@@ -23,6 +22,9 @@ import { useTheme } from '@/theme';
 import { ScreenSheet, QualitySheet } from '../components/viewer/ChoiceSheets';
 import { KeyChip } from '../components/viewer/KeyChip';
 import { KeysSheet } from '../components/viewer/KeysSheet';
+import { LockFrameView } from '../components/viewer/LockFrameView';
+import { PcKeyboard } from '../components/viewer/PcKeyboard';
+import { ScrollWheel } from '../components/viewer/ScrollWheel';
 import { FloatingToolButton } from '../components/viewer/FloatingToolButton';
 import { ToolButton, ViewerToolbar } from '../components/viewer/ViewerToolbar';
 import { displayDeviceId, formatRemaining } from '../core/ids';
@@ -120,8 +122,22 @@ export default function RemoteViewerScreen() {
     (x: number, y: number) => session?.sendMove(x, y),
     [session],
   );
-  const keyboard = useRemoteKeyboard(sendInput);
+  const keyboard = useRemoteKeyboard(sendInput, !!snap?.locked);
   keyboardOpenRef.current = keyboard.setOpen;
+  // The computer-keys panel (Esc, F1–F12, Enter, arrows, Ctrl/Alt/⌘…), shown
+  // in place of the phone keyboard, like AnyDesk's key layout.
+  const [pcKeys, setPcKeys] = useState(false);
+  const openPcKeys = useCallback(() => {
+    keyboard.hide();
+    setPcKeys(true);
+  }, [keyboard]);
+  const openPhoneKeyboard = useCallback(() => {
+    setPcKeys(false);
+    keyboard.show();
+  }, [keyboard]);
+  const panelOpen = keyboard.open || pcKeys;
+  // The mouse scroll wheel on the left edge (▲ / ▼ and a drag strip).
+  const [scrollWheel, setScrollWheel] = useState(false);
 
   const host = snap?.host.platform ?? 'linux';
   const phoneHost = isPhone(host);
@@ -143,10 +159,17 @@ export default function RemoteViewerScreen() {
     mode: settings.touchMode,
     phoneHost,
     enabled: canControl,
-    alignTop: keyboard.open,
+    alignTop: panelOpen,
     sendInput,
     sendMove,
   });
+
+  // The picture area changed (keyboard or PC keys opened/closed): when zoomed
+  // in, keep the spot being worked on visible instead of behind the keys.
+  useEffect(() => {
+    gestures.keepFocusInView();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [container.width, container.height]);
 
   // A new screen size (screen switch / rotation) → fit again.
   useEffect(() => {
@@ -194,6 +217,10 @@ export default function RemoteViewerScreen() {
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (pcKeys) {
+        setPcKeys(false);
+        return true;
+      }
       if (keyboard.open) {
         keyboard.hide();
         return true;
@@ -202,7 +229,7 @@ export default function RemoteViewerScreen() {
       return true;
     });
     return () => sub.remove();
-  }, [keyboard, confirmClose]);
+  }, [keyboard, pcKeys, confirmClose]);
 
   if (!snap) return null;
 
@@ -263,14 +290,14 @@ export default function RemoteViewerScreen() {
       <StatusBar hidden />
       <View
         style={
-          keyboard.open
+          panelOpen
             ? [
                 styles.layer,
                 {
                   left: 0,
                   right: 0,
                   top: toolbar ? toolbarBottom : insets.top,
-                  bottom: keyboardLift + bottomBarHeight,
+                  bottom: (keyboard.open ? keyboardLift : 0) + bottomBarHeight,
                 },
               ]
             : StyleSheet.absoluteFill
@@ -298,28 +325,30 @@ export default function RemoteViewerScreen() {
             ]}
             onDimensionsChange={e => {
               const { width, height } = e.nativeEvent;
+              // Only a new shape re-fits the picture. Auto quality changes the
+              // video's size (same shape) every few seconds at the start;
+              // re-laying out the video view for each made it blink.
               if (
                 width > 0 &&
                 height > 0 &&
-                (width !== videoSize?.width || height !== videoSize?.height)
+                Math.abs(width / height - video.width / video.height) >
+                  0.01 * (video.width / video.height)
               )
                 setVideoSize({ width, height });
             }}
           />
         ) : null}
         {snap.locked && snap.lockFrame ? (
-          <Image
-            source={{ uri: snap.lockFrame }}
-            resizeMode="contain"
-            style={[
-              styles.layer,
-              {
-                left: layout.left,
-                top: layout.top,
-                width: layout.width,
-                height: layout.height,
-              },
-            ]}
+          <LockFrameView
+            uri={snap.lockFrame}
+            style={{
+              position: 'absolute',
+              left: layout.left,
+              top: layout.top,
+              width: layout.width,
+              height: layout.height,
+              backgroundColor: VIDEO_BACKDROP,
+            }}
           />
         ) : null}
         {settings.touchMode === 'trackpad' && canControl ? (
@@ -385,6 +414,22 @@ export default function RemoteViewerScreen() {
                   testID="remote-tool-keyboard"
                 />
                 <ToolButton
+                  icon="menu"
+                  label={t('remote.viewer.pcKeys')}
+                  active={pcKeys}
+                  onPress={pick(() =>
+                    pcKeys ? setPcKeys(false) : openPcKeys(),
+                  )}
+                  testID="remote-tool-pc-keys"
+                />
+                <ToolButton
+                  icon="arrowDown"
+                  label={t('remote.viewer.scroll')}
+                  active={scrollWheel}
+                  onPress={pick(() => setScrollWheel(v => !v))}
+                  testID="remote-tool-scroll"
+                />
+                <ToolButton
                   icon="layers"
                   label={t('remote.viewer.keys')}
                   onPress={pick(() => setSheet('keys'))}
@@ -422,7 +467,21 @@ export default function RemoteViewerScreen() {
                 label={t('remote.viewer.fit')}
                 onPress={pick(gestures.resetView)}
               />
-            ) : null}
+            ) : (
+              <ToolButton
+                icon="search"
+                label={t('remote.viewer.zoom')}
+                onPress={pick(() =>
+                  gestures.zoomTo(
+                    2.5,
+                    settings.touchMode === 'trackpad'
+                      ? gestures.cursor
+                      : undefined,
+                  ),
+                )}
+                testID="remote-tool-zoom"
+              />
+            )}
           </ViewerToolbar>
         </View>
       ) : null}
@@ -432,6 +491,17 @@ export default function RemoteViewerScreen() {
           attention={warn}
           onPress={() => setToolbar(v => !v)}
           accessibilityLabel={t('remote.viewer.tools')}
+        />
+      ) : null}
+
+      {scrollWheel && canControl && !ended ? (
+        <ScrollWheel
+          top={
+            panelOpen
+              ? insets.top + 8
+              : Math.max(insets.top + 8, (screenHeight - 236) / 2)
+          }
+          onScroll={dy => sendInput({ k: 'wh', dx: 0, dy: Math.round(dy) })}
         />
       ) : null}
 
@@ -456,7 +526,7 @@ export default function RemoteViewerScreen() {
         </Pressable>
       ) : null}
 
-      {!ended && (keyboard.open || (phoneHost && canControl)) ? (
+      {!ended && (panelOpen || (phoneHost && canControl)) ? (
         <View
           onLayout={e => setBottomBarHeight(e.nativeEvent.layout.height)}
           style={[
@@ -466,6 +536,10 @@ export default function RemoteViewerScreen() {
               paddingBottom: keyboard.open
                 ? spacing.xs
                 : insets.bottom + spacing.xs,
+              // The computer-keys panel is solid, like a keyboard.
+              ...(pcKeys && !keyboard.open
+                ? { backgroundColor: colors.background }
+                : null),
               backgroundColor: colors.overlay,
               paddingHorizontal: spacing.sm,
               paddingTop: spacing.xs,
@@ -473,6 +547,16 @@ export default function RemoteViewerScreen() {
             },
           ]}
         >
+          {pcKeys && !keyboard.open ? (
+            <PcKeyboard
+              host={host}
+              mods={keyboard.mods}
+              onToggleModifier={keyboard.toggleModifier}
+              onCombo={keyboard.combo}
+              onAbc={openPhoneKeyboard}
+              onClose={() => setPcKeys(false)}
+            />
+          ) : null}
           {keyboard.open ? (
             <ScrollView
               horizontal
@@ -480,6 +564,19 @@ export default function RemoteViewerScreen() {
               keyboardShouldPersistTaps="always"
               contentContainerStyle={[styles.keyRow, { gap: spacing.xs }]}
             >
+              <KeyChip
+                compact
+                active
+                label="⌨ PC"
+                accessibilityLabel={t('remote.viewer.pcKeys')}
+                onPress={openPcKeys}
+              />
+              <KeyChip
+                compact
+                label="⏎"
+                accessibilityLabel="Enter"
+                onPress={() => keyboard.combo(['Enter'])}
+              />
               {phoneHost
                 ? null
                 : MODIFIERS.map(m => (
@@ -576,7 +673,8 @@ export default function RemoteViewerScreen() {
                 // Dismissing the ended session navigates back (effect above).
                 const id = snap.host.id;
                 remoteActions.dismissViewer();
-                void remoteActions.connect(id);
+                // With a saved password: a locked computer cannot accept a request.
+                void remoteActions.reconnect(id);
               }}
             />
             <Button
@@ -610,7 +708,7 @@ export default function RemoteViewerScreen() {
         visible={sheet === 'quality'}
         onClose={() => setSheet(null)}
         value={snap.quality}
-        onPick={q => session?.setQuality(q)}
+        onPick={q => remoteActions.setQuality(q)}
       />
     </View>
   );

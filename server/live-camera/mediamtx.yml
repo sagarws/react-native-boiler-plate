@@ -1,0 +1,61 @@
+# MediaMTX for Share Live Camera — WebRTC only, reachable only from the
+# signal server (docker network). Settings not listed keep MediaMTX defaults.
+#
+# Set from the environment (docker-compose.yml), never written here:
+#   MTX_AUTHHTTPADDRESS        http://signal:8080/internal/mtx-auth?key=<MTX_SECRET>
+#   MTX_WEBRTCADDITIONALHOSTS  the VPS public IP (so phones / browsers get a
+#                              reachable ICE candidate)
+#   MTX_WEBRTCICESERVERS2_0_URL / _USERNAME / _PASSWORD  optional TURN
+
+logLevel: info
+logDestinations: [stdout]
+
+readTimeout: 10s
+writeTimeout: 10s
+
+# Every publish / read / API call is checked by the signal server, which only
+# allows its own requests (basic auth user "signal" + MTX_SECRET). Viewers and
+# phones never talk to MediaMTX's HTTP port directly.
+authMethod: http
+authHTTPAddress: http://signal:8080/internal/mtx-auth
+authHTTPExclude: []
+
+# Control API: inside the docker network only (port not published).
+api: true
+apiAddress: :9997
+
+metrics: false
+moq: false
+pprof: false
+playback: false
+
+# Only WebRTC. RTSP / RTMP / HLS / SRT are off so no extra port is open.
+rtsp: false
+rtmp: false
+hls: false
+srt: false
+
+webrtc: true
+# WHIP / WHEP HTTP: inside the docker network only (the signal server proxies it).
+webrtcAddress: :8889
+webrtcEncryption: false
+webrtcAllowOrigins: ['*']
+# Media (ICE): published on the VPS. UDP first; TCP for networks that block UDP.
+webrtcLocalUDPAddress: :8189
+webrtcLocalTCPAddress: :8189
+# Inside docker the interface IPs are private; the public IP comes from
+# MTX_WEBRTCADDITIONALHOSTS.
+webrtcIPsFromInterfaces: true
+webrtcAdditionalHosts: []
+webrtcICEServers2: []
+webrtcHandshakeTimeout: 10s
+webrtcTrackGatherTimeout: 2s
+webrtcSTUNGatherTimeout: 5s
+
+pathDefaults:
+  # A phone that reconnects (network switch) replaces its own old session.
+  overridePublisher: true
+
+paths:
+  # Stream paths are random ids created by the signal server ("s_…").
+  '~^s_[A-Za-z0-9_-]{16,40}$': {}

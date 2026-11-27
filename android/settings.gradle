@@ -3,4 +3,6 @@ plugins { id("com.facebook.react.settings") }
 extensions.configure(com.facebook.react.ReactSettingsExtension){ ex -> ex.autolinkLibrariesFromCommand() }
 rootProject.name = 'RNBoilerplate'
 include ':app'
+// 8D Audio Studio's native DSP engine (C++).
+include ':spatialaudio'
 includeBuild('../node_modules/@react-native/gradle-plugin')

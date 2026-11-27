@@ -4,6 +4,8 @@ module.exports = {
   // so Android-only branches would never run under test. Switch to 'ios' (or
   // add a second project) if iOS-specific code needs coverage.
   haste: { defaultPlatform: 'android', platforms: ['android', 'native'] },
+  // The live camera server has its own tests (node --test).
+  testPathIgnorePatterns: ['/node_modules/', '<rootDir>/server/'],
   setupFiles: ['<rootDir>/jest.setup.js'],
   // The RN preset only transforms `react-native` / `@react-native` packages.
   // React Navigation and the other libraries below ship untranspiled ESM, so

@@ -6,6 +6,7 @@ import { onboardingStore } from '@/features/onboarding';
 import { storage } from '@/store/mmkv';
 import { themePresetPreference, typographyPreference } from '@/theme';
 import App from '../../../App';
+import { tabAccessStore } from '../drawer/tabAccess';
 
 /**
  * End-to-end app flow under Jest: onboarding, home, settings, appearance and
@@ -94,6 +95,7 @@ afterEach(async () => {
   storage.clearAll();
   captureSettingsStore.resetCacheForTest();
   historyStore.resetCacheForTest();
+  tabAccessStore.resetCacheForTest();
 });
 
 describe('first launch', () => {
@@ -420,7 +422,7 @@ describe('after onboarding', () => {
     expect(flat.some(s => s?.fontFamily === 'serif')).toBe(true);
   });
 
-  it('opens on Expense Tracker and lists it first in the drawer', async () => {
+  it('opens on Expense Tracker; the drawer shows only Expense Tracker, OCR and Settings by default', async () => {
     const renderer = await renderApp();
     expect(textsOf(renderer.root)).toContain('Expense Tracker');
     await pressLabel(renderer, 'Open menu');
@@ -434,11 +436,21 @@ describe('after onboarding', () => {
       .map(n => n.props.accessibilityLabel as string);
     const first = drawerLabels.indexOf('Expense Tracker');
     expect(first).toBeGreaterThanOrEqual(0);
-    expect(first).toBeLessThan(drawerLabels.indexOf('Manage Life'));
     expect(first).toBeLessThan(drawerLabels.indexOf('OCR'));
+    expect(drawerLabels).toContain('Settings');
+    expect(drawerLabels).not.toContain('Manage Life');
+    expect(drawerLabels).not.toContain('Remote Access');
+  });
+
+  it('shows a tab once it is switched on', async () => {
+    tabAccessStore.set('ManageLife', true);
+    const renderer = await renderApp();
+    await pressLabel(renderer, 'Open menu');
+    await pressLabel(renderer, 'Manage Life');
   });
 
   it('reaches every main screen from the drawer', async () => {
+    tabAccessStore.set('About', true);
     const renderer = await renderApp();
     await pressLabel(renderer, 'Open menu');
     await pressLabel(renderer, 'Privacy & help');

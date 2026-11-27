@@ -93,12 +93,18 @@ export type MainStackParamList = {
   NetworkCall: { callId: string };
   /** Remote Access: connect, this phone, history; `tab` opens a section directly. */
   RemoteAccess: { tab?: 'connect' | 'phone' | 'history' } | undefined;
+  /** Share Live Camera: the phone's camera as a browser-viewable live stream. */
+  LiveCamera: undefined;
+  /** 8D Audio Studio: music player + spatial audio engine. */
+  AudioStudio: undefined;
   /** The open remote session's screen (full screen). */
   RemoteViewer: undefined;
   UtilityYouTube: undefined;
   /** `tab` opens a Settings tab directly (e.g. from File Management). */
   Settings:
-    | { tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' | 'remote' }
+    | {
+        tab?: 'general' | 'ocr' | 'files' | 'followup' | 'recording' | 'remote';
+      }
     | undefined;
   Appearance: undefined;
   About: undefined;
