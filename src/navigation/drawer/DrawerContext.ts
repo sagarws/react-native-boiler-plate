@@ -1,6 +1,8 @@
 import { createContext, useContext } from 'react';
 
 export interface DrawerControls {
+  /** False outside `DrawerHost` (e.g. the sign-in screens): no side panel. */
+  available: boolean;
   isOpen: boolean;
   openDrawer: () => void;
   closeDrawer: () => void;
@@ -9,6 +11,7 @@ export interface DrawerControls {
 const noop = () => undefined;
 
 export const DrawerContext = createContext<DrawerControls>({
+  available: false,
   isOpen: false,
   openDrawer: noop,
   closeDrawer: noop,

@@ -199,6 +199,29 @@ void Limiter::reset() {
 void Limiter::process(float* L, float* R, int n, bool enabled) {
   float minGain = 1.f;
   const uint32_t look = uint32_t(look_);
+  const uint32_t mask = uint32_t(mask_);
+  float blockPeak = 0;
+  for (int i = 0; i < n; ++i) blockPeak = std::fmax(blockPeak, std::fmax(std::fabs(L[i]), std::fabs(R[i])));
+  if (boxSum_ == double(look_) && (!enabled || blockPeak <= kCeiling)) {
+    // Fully released (every gain in the window is exactly 1) and nothing to
+    // catch: the output is just the delayed input. The window minimum is 1,
+    // so the queue collapses to the newest sample.
+    for (int i = 0; i < n; ++i) {
+      delayL_[n_ & mask] = L[i];
+      delayR_[n_ & mask] = R[i];
+      const uint32_t r = (n_ - (look - 1u)) & mask;
+      L[i] = delayL_[r];
+      R[i] = delayR_[r];
+      ++n_;
+    }
+    minVal_[0] = 1.f;
+    minIdx_[0] = n_ - 1u;
+    head_ = 0;
+    tail_ = 1;
+    env_ = 1.f;
+    grDb_ = 0.f;
+    return;
+  }
   for (int i = 0; i < n; ++i) {
     const float peak = std::fmax(std::fabs(L[i]), std::fabs(R[i]));
     const float req = enabled && peak > kCeiling ? kCeiling / peak : 1.f;

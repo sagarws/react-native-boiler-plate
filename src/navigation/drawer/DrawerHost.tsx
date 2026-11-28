@@ -77,7 +77,7 @@ export function DrawerHost({ children }: PropsWithChildren) {
   }, [isOpen]);
 
   const controls = useMemo<DrawerControls>(
-    () => ({ isOpen, openDrawer, closeDrawer }),
+    () => ({ available: true, isOpen, openDrawer, closeDrawer }),
     [closeDrawer, isOpen, openDrawer],
   );
 

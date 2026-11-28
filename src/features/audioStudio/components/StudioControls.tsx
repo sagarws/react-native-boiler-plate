@@ -10,7 +10,11 @@ import {
   SPEED_STEPS,
 } from '../dsp/params';
 import { ROOMS } from '../dsp/presets';
-import { usePlayer, useStudio } from '../hooks/useAudioStudio';
+import {
+  useCaptureRunning,
+  usePlayer,
+  useStudio,
+} from '../hooks/useAudioStudio';
 import { studioService } from '../services/studio.service';
 import type {
   MovementPattern,
@@ -53,6 +57,7 @@ export function StudioControls({ visible }: { visible: boolean }) {
   const data = useStudio();
   const s = data.settings;
   const player = usePlayer();
+  const captureRunning = useCaptureRunning();
   const [mode, setMode] = useState<StageMode>('around');
   const [saveOpen, setSaveOpen] = useState(false);
   const [renameId, setRenameId] = useState<string | null>(null);
@@ -139,7 +144,7 @@ export function StudioControls({ visible }: { visible: boolean }) {
         </ChipRow>
         <SpatialStage
           settings={s}
-          active={visible && player.playing && s.enabled}
+          active={visible && (player.playing || captureRunning) && s.enabled}
           mode={mode}
           onPlace={(azimuth, distance) =>
             set(

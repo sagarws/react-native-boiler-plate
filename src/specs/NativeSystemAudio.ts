@@ -57,6 +57,24 @@ export interface Spec extends TurboModule {
    */
   setCaptureOutput(mode: string): void;
 
+  /**
+   * "Hear only the 8D sound": silences the original (media volume 0, saved
+   * and restored on stop) and plays the 8D version on the accessibility
+   * stream. Resolves 'ok' | 'helper_off' (the 8D volume helper accessibility
+   * service must be on, or accessibility volume follows media) |
+   * 'bt_shared_volume' (Bluetooth with absolute volume: one volume for the
+   * whole headset, so the original cannot be silenced) | 'refused'.
+   * Status gains capture.hearOnly8D, capture.helperOn, capture.eightDVolume
+   * (0–1), capture.btSharedVolume, capture.hearOnlyEnded ('bt_shared_volume'
+   * when the mode ended itself because such an output connected).
+   */
+  setHearOnly8D(enabled: boolean): Promise<string>;
+  /** Opens Developer options ("Disable absolute volume" for Bluetooth). */
+  openDeveloperSettings(): void;
+  /** Opens Android's accessibility settings (the user turns the helper on). */
+  openVolumeHelperSettings(): void;
+  /** 8D volume (accessibility stream), 0–1. */
+  setEightDVolume(fraction: number): void;
   addListener(eventName: string): void;
   removeListeners(count: number): void;
 }

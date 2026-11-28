@@ -128,6 +128,9 @@
     <string name="life_widget_setup">Open Akshar → Manage Life to add tasks.</string>
 
     <!-- Accessibility service (shown in Android settings) -->
+    <string name="eightd_service_label">8D Audio volume helper</string>
+    <string name="eightd_service_summary">Lets 8D Audio Studio play only the 8D version of other apps\' sound</string>
+    <string name="eightd_service_description">Used only by 8D Audio Studio\'s \"Hear only the 8D sound\" mode. It gives the 8D sound its own volume, so the original app can be silenced (media volume 0) while you hear the 8D version, and while that mode is on the volume keys change the 8D volume. It reads no screen content and no keys other than volume up/down, stores and sends nothing, and does nothing while the mode is off. Turn it off here at any time.</string>
     <string name="scroll_service_label">Akshar page turner</string>
     <string name="scroll_service_summary">Scrolls or turns the page while Akshar reads it aloud</string>
     <string name="scroll_service_description">Used only by Akshar\'s read-aloud modes: \"Speak with auto-scroll\" scrolls the app you are reading after a section is read, and \"Speak with pagination\" presses the Next Page button you pinned after a page is read. It looks only for that scrollable area or button, does not read, store or send screen content, and does nothing while you are not using these modes. Turn it off here at any time.</string>

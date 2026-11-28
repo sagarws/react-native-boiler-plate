@@ -36,6 +36,8 @@ class SystemAudioModule(context: ReactApplicationContext) : NativeSystemAudioSpe
 
   override fun initialize() {
     super.initialize()
+    // A previous run that died with the original silenced: give the volume back.
+    if (!CaptureStatus.running) HearOnly8D.restore(reactApplicationContext)
     SystemAudioEvents.add(reactApplicationContext, relay)
     // Implicit session broadcasts only reach a runtime receiver (see SessionEffectReceiver).
     SessionEffectReceiver.registerRuntime(reactApplicationContext)
@@ -90,6 +92,46 @@ class SystemAudioModule(context: ReactApplicationContext) : NativeSystemAudioSpe
   }
 
   // Events go out through emitDeviceEvent; NativeEventEmitter only needs these to exist.
+  override fun setHearOnly8D(enabled: Boolean, promise: Promise) {
+    if (!enabled) {
+      HearOnly8D.stop(reactApplicationContext)
+      return promise.resolve("ok")
+    }
+    promise.resolve(
+      when (HearOnly8D.start(reactApplicationContext)) {
+        HearOnly8D.StartResult.OK -> "ok"
+        HearOnly8D.StartResult.HELPER_OFF -> "helper_off"
+        HearOnly8D.StartResult.REFUSED -> "refused"
+      },
+    )
+  }
+
+  override fun openDeveloperSettings() {
+    val intent =
+      android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+    try {
+      reactApplicationContext.startActivity(intent)
+    } catch (e: android.content.ActivityNotFoundException) {
+      // Developer options not unlocked yet: open the phone's main settings instead.
+      reactApplicationContext.startActivity(
+        android.content.Intent(android.provider.Settings.ACTION_DEVICE_INFO_SETTINGS)
+          .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK),
+      )
+    }
+  }
+
+  override fun openVolumeHelperSettings() {
+    val intent =
+      android.content.Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS)
+        .addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+    reactApplicationContext.startActivity(intent)
+  }
+
+  override fun setEightDVolume(fraction: Double) {
+    HearOnly8D.setVolume(reactApplicationContext, fraction.toFloat())
+  }
+
   override fun addListener(eventName: String) = Unit
 
   override fun removeListeners(count: Double) = Unit

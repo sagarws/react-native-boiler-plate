@@ -48,5 +48,8 @@ class MainApplication : Application(), ReactApplication {
     // mediaProjection foreground service (required on Android 10+).
     WebRTCModuleOptions.getInstance().enableMediaProjectionService = true
     loadReactNative(this)
+    // A fresh process means no capture is running: give back a media volume
+    // left muted by "Hear only the 8D sound" if the app was killed mid-way.
+    com.rnboilerplate.systemaudio.HearOnly8D.init(this)
   }
 }

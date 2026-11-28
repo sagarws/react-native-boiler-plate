@@ -83,6 +83,7 @@ class PlaybackRenderer(
     var trackMode = ""
     var appliedParams: FloatArray? = null
     var underruns = 0
+    var lastStateMs = 0L
     try {
       rec.startRecording()
       if (rec.recordingState != AudioRecord.RECORDSTATE_RECORDING) return fail("capture_unavailable")
@@ -107,6 +108,13 @@ class PlaybackRenderer(
         }
         engine.process(input, CHANNELS, output, frames, float)
         meter.add(frames)
+        // The studio stage shows the engine's live source position (L/R
+        // movement) — from this engine while other apps' sound is converted.
+        val now = SystemClock.elapsedRealtime()
+        if (now - lastStateMs >= STATE_INTERVAL_MS) {
+          lastStateMs = now
+          SpatialDsp.state = engine.state()
+        }
 
         output.position(0)
         val written = track.write(output, frames * CHANNELS * sampleBytes, AudioTrack.WRITE_BLOCKING)
@@ -138,6 +146,7 @@ class PlaybackRenderer(
         it.release()
       }
       engine.close()
+      SpatialDsp.state = FloatArray(SpatialDsp.state.size)
     }
   }
 
@@ -283,6 +292,7 @@ class PlaybackRenderer(
   }
 
   companion object {
+    private const val STATE_INTERVAL_MS = 50L
     private const val TAG = "PlaybackRenderer"
     const val RATE = 48_000
     private const val CHANNELS = 2

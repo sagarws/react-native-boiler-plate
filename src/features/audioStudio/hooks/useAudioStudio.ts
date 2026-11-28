@@ -3,6 +3,7 @@ import { audioNative } from '../services/native.service';
 import { libraryService } from '../services/library.service';
 import { playerService } from '../services/player.service';
 import { studioService } from '../services/studio.service';
+import { systemAudio } from '../services/systemAudio.service';
 import { collectionsStore, libraryStore, studioStore } from '../store/stores';
 import type { PlayerState, Song } from '../types';
 
@@ -101,4 +102,22 @@ export const useAudioStudioInit = () => {
     const { scannedAt } = libraryStore.read();
     if (scannedAt === null) libraryService.scan();
   }, []);
+};
+
+/**
+ * True while "8D for other apps" converts other apps' sound — the studio
+ * stage then follows that engine's movement, like it does for the player.
+ */
+export const useCaptureRunning = (): boolean => {
+  const [running, setRunning] = useState(false);
+  useEffect(() => {
+    let live = true;
+    systemAudio.status().then(s => live && setRunning(s.capture.running));
+    const off = systemAudio.onStatus(s => setRunning(s.capture.running));
+    return () => {
+      live = false;
+      off();
+    };
+  }, []);
+  return running;
 };

@@ -2,6 +2,9 @@ import React, { type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
+// The context module only (not the drawer's index, which renders shared
+// components itself — that would be an import cycle).
+import { useDrawer } from '@/navigation/drawer/DrawerContext';
 import { useTheme } from '@/theme';
 import { Icon } from '../Icon';
 
@@ -17,7 +20,11 @@ export interface HeaderProps {
   onMenuPress?: () => void;
 }
 
-/** Screen header: back button, title, optional actions. */
+/**
+ * Screen header: back button, side-menu button, title, optional actions.
+ * Every screen under the side panel gets the menu button, so the side menu
+ * opens from any sub-screen without going back first.
+ */
 export function Header({
   label,
   onBackPress,
@@ -27,6 +34,9 @@ export function Header({
   const { t } = useTranslation();
   const { colors, typography, spacing } = useTheme();
   const navigation = useNavigation();
+  const drawer = useDrawer();
+  // Root screens pass onMenuPress (menu only); sub-screens get back + menu.
+  const showMenu = !onMenuPress && drawer.available;
 
   const handleBack = () => {
     if (onBackPress) {
@@ -60,6 +70,20 @@ export function Header({
           color={colors.textPrimary}
         />
       </Pressable>
+      {showMenu ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('common.openMenu')}
+          onPress={drawer.openDrawer}
+          testID="header-menu"
+          style={({ pressed }) => [
+            styles.back,
+            pressed && { backgroundColor: colors.surfaceMuted },
+          ]}
+        >
+          <Icon name="menu" size={22} color={colors.textPrimary} />
+        </Pressable>
+      ) : null}
       <Text
         accessibilityRole="header"
         numberOfLines={1}

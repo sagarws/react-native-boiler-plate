@@ -29,6 +29,16 @@ export interface SystemStatus {
     silentMs: number;
     latencyMs: number;
     error: string | null;
+    /** The original is silenced; only the 8D version is heard. */
+    hearOnly8D: boolean;
+    /** The 8D volume helper (accessibility service) is switched on. */
+    helperOn: boolean;
+    /** 8D volume, 0–1. */
+    eightDVolume: number;
+    /** Media plays to Bluetooth with absolute volume: the original cannot be silenced. */
+    btSharedVolume: boolean;
+    /** Set when hear-only ended by itself ('bt_shared_volume'). */
+    hearOnlyEnded: string | null;
   };
 }
 
@@ -51,6 +61,11 @@ export const EMPTY_SYSTEM: SystemStatus = {
     silentMs: 0,
     latencyMs: 0,
     error: null,
+    hearOnly8D: false,
+    helperOn: false,
+    eightDVolume: 0,
+    btSharedVolume: false,
+    hearOnlyEnded: null,
   },
 };
 
@@ -71,6 +86,12 @@ export const parseStatus = (json: string): SystemStatus => {
     return EMPTY_SYSTEM;
   }
 };
+
+export type HearOnlyResult =
+  | 'ok'
+  | 'helper_off'
+  | 'bt_shared_volume'
+  | 'refused';
 
 export type CaptureStart =
   | 'ok'
@@ -123,6 +144,16 @@ export const systemAudio = {
     }
   },
   stopCapture: () => M?.stopCapture(),
+  async setHearOnly8D(on: boolean): Promise<HearOnlyResult> {
+    if (!M) return 'refused';
+    const r = await M.setHearOnly8D(on);
+    return r === 'ok' || r === 'helper_off' || r === 'bt_shared_volume'
+      ? r
+      : 'refused';
+  },
+  openVolumeHelperSettings: () => M?.openVolumeHelperSettings(),
+  openDeveloperSettings: () => M?.openDeveloperSettings(),
+  setEightDVolume: (v: number) => M?.setEightDVolume(v),
   setCaptureOutput: (mode: 'media' | 'accessibility') =>
     M?.setCaptureOutput(mode),
 };

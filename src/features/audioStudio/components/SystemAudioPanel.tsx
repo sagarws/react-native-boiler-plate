@@ -9,9 +9,10 @@ import {
   EMPTY_SYSTEM,
   systemAudio,
   type CaptureStart,
+  type HearOnlyResult,
   type SystemStatus,
 } from '../services/systemAudio.service';
-import { Chip, ChipRow, Section } from './ui';
+import { Knob, Section } from './ui';
 
 /**
  * Other apps (Mode B): Android's effects on players that announce their
@@ -25,6 +26,7 @@ export function SystemAudioPanel() {
   const studio = useStudio();
   const [status, setStatus] = useState<SystemStatus>(EMPTY_SYSTEM);
   const [startResult, setStartResult] = useState<CaptureStart | null>(null);
+  const [hearResult, setHearResult] = useState<HearOnlyResult | null>(null);
 
   useEffect(() => {
     let live = true;
@@ -135,23 +137,68 @@ export function SystemAudioPanel() {
           />
         ) : (
           <>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>
-              {t('audioStudio.system.outputTitle')}
-            </Text>
-            <ChipRow>
-              {(['media', 'accessibility'] as const).map(m => (
-                <Chip
-                  key={m}
-                  label={t(`audioStudio.system.output.${m}`)}
-                  active={c.outputMode === m}
-                  onPress={() => systemAudio.setCaptureOutput(m)}
-                  testID={`system-output-${m}`}
-                />
-              ))}
-            </ChipRow>
-            <Text style={[typography.caption, { color: colors.textSecondary }]}>
-              {t(`audioStudio.system.outputHint.${c.outputMode}`)}
-            </Text>
+            <View style={[styles.row, { gap: spacing.sm }]}>
+              <View style={styles.flex}>
+                <Text style={[typography.body, { color: colors.textPrimary }]}>
+                  {t('audioStudio.system.hearOnly')}
+                </Text>
+                <Text
+                  style={[typography.caption, { color: colors.textSecondary }]}
+                >
+                  {t('audioStudio.system.hearOnlyHint')}
+                </Text>
+              </View>
+              <Switch
+                value={c.hearOnly8D}
+                onValueChange={async on =>
+                  setHearResult(await systemAudio.setHearOnly8D(on))
+                }
+                trackColor={{ false: colors.disabled, true: colors.primary }}
+                thumbColor={colors.surface}
+                accessibilityLabel={t('audioStudio.system.hearOnly')}
+                testID="system-hear-only"
+              />
+            </View>
+            {!c.helperOn ? (
+              <Notice
+                tone={hearResult === 'helper_off' ? 'warning' : 'info'}
+                message={t('audioStudio.system.helperOff')}
+                action={{
+                  label: t('audioStudio.system.openHelper'),
+                  onPress: systemAudio.openVolumeHelperSettings,
+                }}
+              />
+            ) : null}
+            {c.btSharedVolume &&
+            (hearResult === 'bt_shared_volume' ||
+              c.hearOnlyEnded === 'bt_shared_volume') ? (
+              <Notice
+                tone="warning"
+                message={t('audioStudio.system.btSharedVolume')}
+                action={{
+                  label: t('audioStudio.system.openDeveloper'),
+                  onPress: systemAudio.openDeveloperSettings,
+                }}
+              />
+            ) : null}
+            {hearResult === 'refused' ? (
+              <Notice
+                tone="error"
+                message={t('audioStudio.system.hearRefused')}
+              />
+            ) : null}
+            {c.hearOnly8D ? (
+              <Knob
+                label={t('audioStudio.system.eightDVolume')}
+                value={c.eightDVolume}
+                min={0}
+                max={1}
+                step={0.05}
+                format={v => `${Math.round(v * 100)}%`}
+                onChange={systemAudio.setEightDVolume}
+                testID="system-8d-volume"
+              />
+            ) : null}
             {c.running ? (
               <Button
                 label={t('audioStudio.system.stop')}

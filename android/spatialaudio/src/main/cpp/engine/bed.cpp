@@ -97,6 +97,8 @@ void SpeakerBed::process(const float* bedL, const float* bedR, const Ramp* gains
   applied_ = cues;
   for (int e = 0; e < 2; ++e)
     for (int i = 0; i < n; ++i) plain_[e][i] = rear_[e][i] = 0.f;
+  // Battery saver (or FRONT_REAR 0 with no shoulder) has no echoes at all.
+  const bool echoes = pin0 != 0.f || cues.pinna != 0.f || sh0 != 0.f || cues.shoulder != 0.f;
 
   for (int s = 0; s < kSpeakers; ++s) {
     if (gains[s].idle()) continue;
@@ -112,13 +114,12 @@ void SpeakerBed::process(const float* bedL, const float* bedR, const Ramp* gains
       const float t = float(i + 1);
       const float pg = pin0 + dPin * t, sg = sh0 + dSh * t;
       float acc = u_[i];
-      for (int k = 0; k < kEchoes; ++k) {
+      for (int k = 0; echoes && k < kEchoes; ++k) {
         const float x0 = sp.in.readInt(sp.echoInt[k] + age), x1 = sp.in.readInt(sp.echoInt[k] + age + 1);
         acc += sp.echoGain[k] * (k < kPinnaEchoes ? pg : sg) * (x0 + sp.echoFrac[k] * (x1 - x0));
       }
-      p_[i] = acc;
+      sp.itd.write(acc);
     }
-    for (int i = 0; i < n; ++i) sp.itd.write(p_[i]);
     for (int e = 0; e < 2; ++e) {
       const float* w = sp.itdW[e];
       const float b0 = sp.b0[e], b1 = sp.b1[e];

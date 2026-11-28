@@ -52,6 +52,9 @@ class Reverb {
   DelayLine predelay_, echo_[2];
   OnePole echoLp_[2], echoHp_[2];
   int echoDelay_[2] = {0, 0};
+  // Lengths use two cascaded smoothers (the *1_ stage first) so a glide
+  // starts with zero speed: no corner in the read position.
+  float predelay1_ = 0, size1_ = 0.5f;
   float predelayS_ = 0, size_ = 0.5f, decay_ = 1.8f, damp_ = 0.5f, mixS_ = 0, echoS_ = 0;
   Ramp mix_, echoMix_, echoFb_, dryR_;
   // Both sections sleep (and drop their tails) once their mix has reached 0;

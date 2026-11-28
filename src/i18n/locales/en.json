@@ -3261,17 +3261,8 @@
       "attached": "effects on",
       "detected": "detected",
       "captureTitle": "8D for other apps (experimental)",
-      "captureBody": "Records the sound other apps allow to be captured, runs it through the 8D engine and plays the result. Android keeps playing the original too, and the processing adds a short delay (video may look slightly out of sync).",
+      "captureBody": "Records the sound other apps allow to be captured, runs it through the 8D engine and plays the result. Android always keeps playing the original too — switch on \"Hear only the 8D sound\" below to silence it. The processing adds a short delay (video may look slightly out of sync).",
       "captureUnsupported": "Needs Android 10 or newer.",
-      "outputTitle": "Play the 8D sound as",
-      "output": {
-        "media": "Music",
-        "accessibility": "Separate stream"
-      },
-      "outputHint": {
-        "media": "Simple, but you also hear the original app.",
-        "accessibility": "Plays on the accessibility volume: turn the media volume down to silence the original and keep only the 8D sound. Not every phone allows this."
-      },
       "start": "Start 8D for other apps",
       "stop": "Stop",
       "startErrors": {
@@ -3289,7 +3280,15 @@
         "output_failed": "Could not play the processed sound.",
         "engine_unavailable": "The 8D engine could not start.",
         "failed": "Something went wrong while capturing."
-      }
+      },
+      "hearOnly": "Hear only the 8D sound",
+      "hearOnlyHint": "Silences the original app (media volume to 0, given back when you stop) and plays the 8D version on its own volume. While on, the volume keys change the 8D volume.",
+      "helperOff": "One-time setup: in Accessibility settings, open \"Installed apps\" → \"8D Audio volume helper\" and turn it on. Android needs it to give the 8D sound its own volume; it reads no screen content.",
+      "openHelper": "Open Accessibility settings",
+      "hearRefused": "Android did not allow the volume change. Make sure the 8D Audio volume helper is on.",
+      "eightDVolume": "8D volume",
+      "btSharedVolume": "Bluetooth headsets share one volume for all sound, so the original can't be silenced. Fix (one time): in Developer options, turn on \"Disable absolute volume\", then turn Bluetooth off and on. To unlock Developer options: Settings → About phone → Software information → tap \"Build number\" 7 times.",
+      "openDeveloper": "Open Developer options"
     }
   }
 }

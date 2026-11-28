@@ -42,7 +42,8 @@ void computeEar(const Dir& d, int ear, float fs, const Cues& cues, EarParams& ou
 
   // Woodworth-style per-ear delay (paper eq. 3), offset by a/c to stay causal.
   const float t = theta < 0.5f * kPi ? -kHeadDelay * cosT : kHeadDelay * (theta - 0.5f * kPi);
-  out.delay = (t + kHeadDelay) * fs + 1.f;
+  // Clamped: rounding at cosT = 1 must not take the Hermite tap below 1 sample.
+  out.delay = std::fmax((t + kHeadDelay) * fs, 0.f) + 1.f;
   out.gain = clampf(1.f + cues.ildBoost * cosT, 0.3f, 2.f);
   // The head barely shadows lows, so the model alone gives almost no bass
   // ILD; a sinusoidal-in-azimuth term split +-half per ear makes movement
@@ -116,33 +117,30 @@ void BinauralVoice::process(const float* in, float* outL, float* outR, int n) {
   const float invN = 1.f / float(n);
   for (int i = 0; i < n; ++i) in_.write(in[i]);
 
-  // Pinna + shoulder echoes, shared by both ears. Echo delays move far less
-  // than a sample per block, so they are held per block (integer + fraction
-  // precomputed); only their gains ramp.
+  // Pinna + shoulder echoes, shared by both ears (computed once, not per ear).
+  // Delays and gains ramp per sample: during fast moves a held delay steps audibly.
   const EarParams& a = ears_[0].cur;
   const EarParams& b = ears_[0].tgt;
   constexpr int kTaps = kPinnaEchoes + 1;
-  int ti[kTaps];
-  float tf[kTaps], g0[kTaps], dg[kTaps];
+  float d0[kTaps], dd[kTaps], g0[kTaps], dg[kTaps];
   int taps = 0;
   for (int k = 0; k < kTaps; ++k) {
     const float ga = k < kPinnaEchoes ? a.pinnaGain[k] : a.shoulderGain;
     const float gb = k < kPinnaEchoes ? b.pinnaGain[k] : b.shoulderGain;
     if (ga == 0.f && gb == 0.f) continue;
-    const float d = k < kPinnaEchoes ? b.pinnaDelay[k] : b.shoulderDelay;
-    ti[taps] = int(d);
-    tf[taps] = d - float(ti[taps]);
+    const float da = k < kPinnaEchoes ? a.pinnaDelay[k] : a.shoulderDelay;
+    const float db = k < kPinnaEchoes ? b.pinnaDelay[k] : b.shoulderDelay;
+    d0[taps] = da;
+    dd[taps] = (db - da) * invN;
     g0[taps] = ga;
     dg[taps] = (gb - ga) * invN;
     ++taps;
   }
   for (int i = 0; i < n; ++i) {
-    const int age = n - 1 - i;  // the whole block was written first
+    const float age = float(n - 1 - i);  // the whole block was written first
+    const float t = float(i + 1);
     float acc = in[i];
-    for (int k = 0; k < taps; ++k) {
-      const float x0 = in_.readInt(ti[k] + age), x1 = in_.readInt(ti[k] + age + 1);
-      acc += (g0[k] + dg[k] * float(i + 1)) * (x0 + tf[k] * (x1 - x0));
-    }
+    for (int k = 0; k < taps; ++k) acc += (g0[k] + dg[k] * t) * in_.readLinear(age + d0[k] + dd[k] * t);
     pin_[i] = acc;
   }
   for (int i = 0; i < n; ++i) line_.write(pin_[i]);

@@ -79,9 +79,17 @@ object SystemAudioEvents {
           .put("outputDb", round1(CaptureStatus.outputDb))
           .put("silentMs", CaptureStatus.silentMs)
           .put("latencyMs", CaptureStatus.latencyMs)
-          .put("error", CaptureStatus.error ?: JSONObject.NULL),
+          .put("error", CaptureStatus.error ?: JSONObject.NULL)
+          .put("hearOnly8D", HearOnly8D.active)
+          .put("helperOn", EightDVolumeService.isEnabled(context))
+          .put("eightDVolume", round1(HearOnly8D.volume(context).toDouble()))
+          .put("btSharedVolume", HearOnly8D.sharedVolumeOutput(context))
+          .put("hearOnlyEnded", HearOnly8D.endedReason ?: JSONObject.NULL),
       ).toString()
   }
+
+  /** A status refresh from outside the capture loop (mode / volume changes). */
+  fun publish() = changed()
 
   private fun round1(v: Double) = Math.round(v * 10) / 10.0
 }

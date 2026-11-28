@@ -45,10 +45,10 @@ void Reverb::reset(const float* p) {
   clearWet();
   clearEcho();
   wetOn_ = echoOn_ = false;
-  size_ = p[kRoomSize];
+  size_ = size1_ = p[kRoomSize];
   decay_ = p[kReverbDecay];
   damp_ = p[kReverbDamp];
-  predelayS_ = p[kPredelay] * 1e-3f * fs_;
+  predelayS_ = predelay1_ = p[kPredelay] * 1e-3f * fs_;
   mixS_ = p[kReverbMix];
   echoS_ = p[kEcho];
   for (int c = 0; c < 2; ++c)
@@ -60,11 +60,13 @@ void Reverb::process(float* L, float* R, const float* send, int n, const float* 
   const bool snap = fresh_;
   fresh_ = false;
   // Lengths glide slowly (a brief pitch bend of the tail instead of a jump).
-  const float kSlow = snap ? 1.f : blockCoef(0.6f, n, fs_);
+  const float kSlow = snap ? 1.f : blockCoef(0.3f, n, fs_);
   const float kFast = snap ? 1.f : blockCoef(0.05f, n, fs_);
-  size_ = approach(size_, p[kRoomSize], kSlow);
+  size1_ = approach(size1_, p[kRoomSize], kSlow);
+  size_ = approach(size_, size1_, kSlow);
   const float predelayStart = predelayS_;
-  predelayS_ = approach(predelayS_, p[kPredelay] * 1e-3f * fs_, kSlow);
+  predelay1_ = approach(predelay1_, p[kPredelay] * 1e-3f * fs_, kSlow);
+  predelayS_ = approach(predelayS_, predelay1_, kSlow);
   const float predelayStep = (predelayS_ - predelayStart) / float(n);
   decay_ = approach(decay_, p[kReverbDecay], kFast);
   damp_ = approach(damp_, p[kReverbDamp], kFast);

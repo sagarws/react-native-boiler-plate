@@ -353,6 +353,20 @@
       <!-- Optional, for "Speak with auto-scroll" only: scrolls the app being
            read. Off until the user turns it on in Android's accessibility
            settings; the app never enables it. Reads no content. -->
+      <!-- 8D Audio Studio: independent "8D volume" for the hear-only-8D mode. -->
+      <service
+        android:name=".systemaudio.EightDVolumeService"
+        android:exported="true"
+        android:label="@string/eightd_service_label"
+        android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+        <intent-filter>
+            <action android:name="android.accessibilityservice.AccessibilityService" />
+        </intent-filter>
+        <meta-data
+            android:name="android.accessibilityservice"
+            android:resource="@xml/eightd_volume_service" />
+      </service>
+
       <service
         android:name=".screenocr.ScrollAccessibilityService"
         android:exported="true"

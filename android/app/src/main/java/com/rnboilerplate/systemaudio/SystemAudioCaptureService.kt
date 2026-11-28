@@ -112,6 +112,8 @@ class SystemAudioCaptureService : Service() {
   private fun shutdown() {
     renderer?.stop()
     renderer = null
+    // Media volume back before anything else can fail.
+    HearOnly8D.stop(this)
     projection?.let {
       runCatching { it.unregisterCallback(projectionCallback) }
       runCatching { it.stop() }

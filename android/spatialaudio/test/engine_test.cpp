@@ -248,19 +248,35 @@ void testDistance() {
          res[0].tail, res[1].tail, res[0].level - res[0].tail, res[1].level - res[1].tail);
 }
 
-// Largest |second difference| relative to the peak: a sine has ~(2 pi f / fs)^2,
-// a click or step shows up orders of magnitude larger.
-double roughness(const std::vector<float>& st, int from, int to, double* maxStep) {
-  double d2 = 0, peak = 1e-9, step = 0;
-  for (int c = 0; c < 2; ++c)
-    for (int i = from + 2; i < to; ++i) {
-      const double y0 = st[size_t(i) * 2 + size_t(c)], y1 = st[size_t(i - 1) * 2 + size_t(c)], y2 = st[size_t(i - 2) * 2 + size_t(c)];
-      d2 = std::max(d2, std::fabs(y0 - 2 * y1 + y2));
-      step = std::max(step, std::fabs(y0 - y1));
-      peak = std::max(peak, std::fabs(y0));
+// Size of the worst discontinuity, relative to the local signal peak. A
+// value step of s (as a share of the peak) puts a +-s doublet into the
+// second difference; smooth signals, distortion, reverb or the "corner" where
+// a glide starts only raise its local level. So: |d2| minus 3x its RMS over
+// +-5 ms, divided by the peak over +-10 ms. 0.003 is a -50 dB step.
+double stepSize(const std::vector<float>& st, int from, int to, double* at) {
+  const int half = kFs / 200, wide = kFs / 100;
+  double worst = 0;
+  for (int c = 0; c < 2; ++c) {
+    const auto y = [&](int i) { return double(st[size_t(i) * 2 + size_t(c)]); };
+    std::vector<double> sq(size_t(to - from) + 1, 0.0);
+    for (int i = from; i < to; ++i) {
+      const double v = i >= 2 ? y(i) - 2 * y(i - 1) + y(i - 2) : 0.0;
+      sq[size_t(i - from + 1)] = sq[size_t(i - from)] + v * v;
     }
-  *maxStep = step;
-  return d2 / peak;
+    for (int i = from + wide; i + wide < to; ++i) {
+      const int j = i - from;
+      const double rmsLocal = std::sqrt((sq[size_t(j + half + 1)] - sq[size_t(j - half)]) / (2 * half + 1));
+      const double excess = std::fabs(y(i) - 2 * y(i - 1) + y(i - 2)) - 3 * rmsLocal;
+      if (excess <= 0) continue;
+      double peak = 1e-6;
+      for (int k = i - wide; k <= i + wide; k += 8) peak = std::max(peak, std::fabs(y(k)));
+      if (excess / peak > worst) {
+        worst = excess / peak;
+        *at = double(i) / kFs;
+      }
+    }
+  }
+  return worst;
 }
 
 void testRotationAndClicks() {
@@ -325,11 +341,21 @@ void testRotationAndClicks() {
   });
   report(minAdvance > 0 && maxAdvance < 2.0, "rotation: azimuth advances", "per-block advance %.3f..%.3f deg (30 RPM = %.3f)", minAdvance,
          maxAdvance, 180.0 * kBlock / kFs);
-  double stepBase, stepChange;
-  const double base = roughness(out, kFs, changeAt, &stepBase);
-  const double change = roughness(out, changeAt, frames, &stepChange);
-  report(change < 3 * base && stepChange < 0.05, "no clicks while params change",
-         "%d changes of ~40 params; max|d2|/peak %.5f vs steady %.5f, max|step| %.4f vs %.4f", changes, change, base, stepChange, stepBase);
+  double atBase = 0, atChange = 0;
+  const double base = stepSize(out, kFs, changeAt, &atBase), change = stepSize(out, changeAt, frames, &atChange);
+  // The detector must see what it is meant to catch: a 0.5 % value step and a
+  // one-sample bump of 1 % (the kind of glitch a bad delay tap produces).
+  auto stepped = out;
+  for (size_t i = size_t(2 * kFs) * 2; i < size_t(changeAt) * 2; i += 2) stepped[i] += 0.005f * 0.4f;
+  auto bumped = out;
+  bumped[size_t(3 * kFs) * 2 + 1] += 0.01f * 0.3f;
+  double atS = 0, atB = 0;
+  const double seenStep = stepSize(stepped, kFs, changeAt, &atS), seenBump = stepSize(bumped, kFs, changeAt, &atB);
+  report(seenStep > 0.003 && seenBump > 0.003, "click detector sensitivity", "injected 0.5%% step -> %.4f, 1%% one-sample bump -> %.4f",
+         seenStep, seenBump);
+  report(change < 0.003 && base < 0.003, "no clicks while params change",
+         "%d changes of ~40 params; worst step %.5f of local peak at %.2f s (steady %.5f; limit 0.003 = -50 dB)", changes, change, atChange,
+         base);
 }
 
 void testEq() {

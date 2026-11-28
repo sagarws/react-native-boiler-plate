@@ -46,7 +46,7 @@ class SpeakerBed {
   OnePole rearLp_[2];
   Cues applied_;  // cue strengths at the end of the last block (ramp start)
   bool primed_ = false;
-  float u_[kChunk], p_[kChunk], plain_[2][kChunk], rear_[2][kChunk];
+  float u_[kChunk], plain_[2][kChunk], rear_[2][kChunk];
 };
 
 }  // namespace sa

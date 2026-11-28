@@ -24,6 +24,48 @@ using Clock = std::chrono::steady_clock;
 enum Stage { kIo, kEq, kSpatial, kWidth, kReverb, kTone, kLimit, kStages };
 const char* kStageNames[kStages] = {"io", "eq", "spatial", "width", "reverb", "tone", "limiter"};
 
+uint64_t readFpcr() {
+#if defined(__aarch64__)
+  uint64_t fpcr;
+  asm volatile("mrs %0, fpcr" : "=r"(fpcr));
+  return fpcr;
+#else
+  return 0;
+#endif
+}
+
+// Run before anything sets FTZ for the thread, so only the engine's own
+// guard is active: reverb and filter tails decay through the denormal range
+// during the silence; without flush-to-zero those blocks would cost far more.
+void denormalCheck() {
+  float p[kParamCount];
+  defaultParams(p);
+  p[kQuality] = 2;
+  p[kReverbMix] = 0.6f;
+  p[kReverbDecay] = 0.2f;
+  p[kEcho] = 0.6f;
+  p[kSurround] = 1;
+  p[kRoomDepth] = 1;
+  const int frames = 16 * kFs;
+  std::vector<int16_t> in(size_t(frames) * 2, 0), out(in.size());
+  Lcg rng;
+  for (int i = 0; i < kFs * 2; ++i) in[size_t(i)] = int16_t(rng.next() * 8000.f);
+  auto e = std::make_unique<Engine>(kFs);
+  e->setParams(p, kParamCount);
+  const uint64_t before = readFpcr();
+  double loud = 0, tail = 0;
+  for (int off = 0; off < frames; off += kBlock) {
+    const auto t0 = Clock::now();
+    e->process(&in[size_t(off) * 2], 2, &out[size_t(off) * 2], kBlock, false);
+    const double ns = double((Clock::now() - t0).count());
+    if (off < kFs) loud += ns;
+    if (off >= 11 * kFs) tail += ns;
+  }
+  const double blocksLoud = double(kFs) / kBlock, blocksTail = 5.0 * kFs / kBlock;
+  std::printf("FTZ check: FPCR.FZ while idle=%d (restored after process: %s); us/block loud %.1f, silent decayed tail %.1f\n",
+              int((before >> 24) & 1), readFpcr() == before ? "yes" : "NO", loud / 1e3 / blocksLoud, tail / 1e3 / blocksTail);
+}
+
 void setFtz() {
 #if defined(__aarch64__)
   uint64_t fpcr;
@@ -120,6 +162,7 @@ void runConfig(const Config& c, const std::vector<int16_t>& in) {
 }  // namespace
 
 int main() {
+  denormalCheck();
   setFtz();
   // Music-like level: pink-ish noise at about -18 dBFS RMS.
   std::vector<int16_t> in(size_t(kFs) * kSeconds * 2);
