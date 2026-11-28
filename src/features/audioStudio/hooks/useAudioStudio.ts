@@ -24,6 +24,16 @@ export const useSongs = (): Song[] => {
 export const useLibraryInfo = () =>
   useSyncExternalStore(libraryStore.subscribe, libraryStore.read);
 
+/**
+ * Only the playing song's id: unlike usePlayer, a component using this does
+ * not re-render on every state event (position, buffering, …).
+ */
+export const useCurrentSongId = (): string | null =>
+  useSyncExternalStore(playerService.subscribe, () => {
+    const s = playerService.snapshot;
+    return s.queue[s.index] ?? null;
+  });
+
 export const useCurrentSong = (): Song | null => {
   const s = usePlayer();
   return playerService.song(s.queue[s.index]);

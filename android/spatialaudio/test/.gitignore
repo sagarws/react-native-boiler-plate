@@ -1,3 +1,5 @@
 # Rendered demo audio and the host test binary.
 out/
 engine_test
+bench_host
+bench_arm64

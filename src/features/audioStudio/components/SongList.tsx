@@ -3,7 +3,7 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { Icon } from '@/shared/components';
 import { useTheme } from '@/theme';
-import { useCollections, useCurrentSong } from '../hooks/useAudioStudio';
+import { useCollections, useCurrentSongId } from '../hooks/useAudioStudio';
 import { collectionsService } from '../services/collections.service';
 import { formatDuration } from '../services/library.service';
 import { playerService } from '../services/player.service';
@@ -12,7 +12,7 @@ import { ActionSheet, Artwork, NameDialog } from './ui';
 
 export const ROW_HEIGHT = 64;
 
-export function SongRow({
+export const SongRow = React.memo(function SongRow({
   song,
   onPress,
   onMore,
@@ -76,7 +76,7 @@ export function SongRow({
       ) : null}
     </Pressable>
   );
-}
+});
 
 /** Song actions: play next, queue, like, add to playlist. */
 export function useSongActions() {
@@ -151,6 +151,7 @@ export function useSongActions() {
       />
     </>
   );
+  // setTarget is stable, so the list's renderItem does not change on every render.
   return { open: setTarget, sheet };
 }
 
@@ -167,22 +168,23 @@ export function SongList({
   /** Default: play this list from the tapped song. */
   onPlay?: (index: number) => void;
 }) {
-  const current = useCurrentSong();
+  const currentId = useCurrentSongId();
   const { liked } = useCollections();
   const actions = useSongActions();
+  const open = actions.open;
   const renderItem = useCallback(
     ({ item, index }: { item: Song; index: number }) => (
       <SongRow
         song={item}
-        active={current?.id === item.id}
+        active={currentId === item.id}
         liked={item.id in liked}
         onPress={() =>
           onPlay ? onPlay(index) : playerService.playSongs(songs, index)
         }
-        onMore={() => actions.open(item)}
+        onMore={() => open(item)}
       />
     ),
-    [current?.id, liked, onPlay, songs, actions],
+    [currentId, liked, onPlay, songs, open],
   );
   return (
     <>

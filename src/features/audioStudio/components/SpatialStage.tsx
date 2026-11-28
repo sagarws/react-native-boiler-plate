@@ -310,19 +310,19 @@ function SourceDot({
     }).start();
   }, [target.x, target.y, xy]);
 
+  // One short pulse per engine sample (≈7/s), sized by the real output
+  // level — no endless loop, which would redraw the window at full refresh
+  // rate for as long as the stage is visible.
   useEffect(() => {
     if (!active) return;
-    const loop = Animated.loop(
-      Animated.timing(wave, {
-        toValue: 1,
-        duration: 1400,
-        easing: Easing.out(Easing.quad),
-        useNativeDriver: true,
-      }),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [active, wave]);
+    wave.setValue(0);
+    Animated.timing(wave, {
+      toValue: 1,
+      duration: 140,
+      easing: Easing.out(Easing.quad),
+      useNativeDriver: true,
+    }).start();
+  }, [active, level, wave]);
 
   const size = 22 * Math.max(0.6, target.scale);
   return (

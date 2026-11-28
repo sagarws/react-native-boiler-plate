@@ -3,20 +3,6 @@
 namespace sa {
 namespace {
 
-struct SpeakerSpec {
-  float az, el;
-  int side;  // 0 fed by input L, 1 by input R
-  float delayMs, apMs, apGain;
-};
-
-// FL FR SL SR RL RR UL UR — the order of SPEAKER_0..7.
-constexpr SpeakerSpec kSpeakerSpecs[kSpeakers] = {
-    {-30, 0, 0, 0, 0, 0},          {30, 0, 1, 0, 0, 0},
-    {-90, 0, 0, 0, 0, 0},          {90, 0, 1, 0, 0, 0},
-    {-150, 0, 0, 7.1f, 4.3f, 0.5f}, {150, 0, 1, 8.3f, 5.1f, 0.5f},
-    {-45, 45, 0, 2.3f, 3.1f, 0.4f}, {45, 45, 1, 2.9f, 3.7f, 0.4f},
-};
-
 // Battery saver keeps only FL/FR/RL/RR.
 bool speakerInQuality(int s, int quality) { return quality >= 1 || s == 0 || s == 1 || s == 4 || s == 5; }
 
@@ -26,14 +12,6 @@ constexpr float kStereoSpread = 30.f;
 // rather than 6 so the swing still reaches +-5 dB under the default bed.
 constexpr float kLowIldDb = 8.f;
 
-EarParams withCues(const EarParams& base, const Cues& c) {
-  EarParams e = base;
-  for (float& g : e.pinnaGain) g *= c.pinna;
-  e.shoulderGain *= c.shoulder;
-  e.rearCut *= c.rear;
-  return e;
-}
-
 // One-pole toward target that lands exactly, so idle checks can use == 0.
 float approach(float cur, float target, float k) {
   cur += k * (target - cur);
@@ -42,34 +20,12 @@ float approach(float cur, float target, float k) {
 
 }  // namespace
 
-float SpatialStage::Decorrelator::process(float x) {
-  if (delay == 0) return x;
-  pre.write(x);
-  // Schroeder allpass: w[n] = v[n] + g w[n-D], y[n] = -g w[n] + w[n-D].
-  const float wd = ap.readInt(apDelay - 1);
-  const float w = pre.readInt(delay) + g * wd;
-  ap.write(w);
-  return -g * w + wd;
-}
-
 void SpatialStage::prepare(float fs) {
   fs_ = fs;
   motion_.prepare(fs);
   for (BinauralVoice& v : voices_) v.prepare(fs);
   er_.prepare(fs);
-  const Cues unit;
-  for (int s = 0; s < kSpeakers; ++s) {
-    speakers_[s].prepare(fs);
-    const Dir d = dirFromAngles(kSpeakerSpecs[s].az, kSpeakerSpecs[s].el);
-    computeEar(d, -1, fs, unit, speakerEars_[s][0]);
-    computeEar(d, 1, fs, unit, speakerEars_[s][1]);
-    Decorrelator& dc = deco_[s];
-    dc.delay = int(kSpeakerSpecs[s].delayMs * 1e-3f * fs);
-    dc.apDelay = int(kSpeakerSpecs[s].apMs * 1e-3f * fs);
-    dc.g = kSpeakerSpecs[s].apGain;
-    dc.pre.allocate(dc.delay + 4);
-    dc.ap.allocate(dc.apDelay + 4);
-  }
+  bed_.prepare(fs);
 }
 
 void SpatialStage::reset(const float* p) {
@@ -81,25 +37,10 @@ void SpatialStage::reset(const float* p) {
 
 void SpatialStage::clearAudio() {
   for (BinauralVoice& v : voices_) v.reset();
-  for (BinauralVoice& v : speakers_) v.reset();
-  for (Decorrelator& d : deco_) {
-    d.pre.clear();
-    d.ap.clear();
-  }
+  bed_.reset();
   er_.reset();
   for (OnePole& f : air_) f.reset();
   for (OnePole& f : nearBass_) f.reset();
-}
-
-void SpatialStage::renderBed(const float* bedL, const float* bedR, float* outL, float* outR, int n, const Cues& cues) {
-  for (int s = 0; s < kSpeakers; ++s) {
-    if (speakerR_[s].idle()) continue;
-    speakers_[s].setTarget(withCues(speakerEars_[s][0], cues), withCues(speakerEars_[s][1], cues));
-    const float* src = kSpeakerSpecs[s].side == 0 ? bedL : bedR;
-    // Gain first: an idle speaker's decorrelator then holds silence, not a stale signal.
-    for (int i = 0; i < n; ++i) bufA_[i] = deco_[s].process(speakerR_[s].at(i) * src[i]);
-    speakers_[s].process(bufA_, outL, outR, n);
-  }
 }
 
 void SpatialStage::process(float* L, float* R, float* send, int n, const float* p) {
@@ -207,7 +148,7 @@ void SpatialStage::process(float* L, float* R, float* send, int n, const float* 
       bedL_[i] = sr * L[i] + am * side;
       bedR_[i] = sr * R[i] - am * side;
     }
-    renderBed(bedL_, bedR_, binL_, binR_, n, cues);
+    bed_.process(bedL_, bedR_, speakerR_, cues, binL_, binR_, n);
   }
 
   for (int i = 0; i < n; ++i) {

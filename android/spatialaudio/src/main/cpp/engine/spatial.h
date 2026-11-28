@@ -3,6 +3,7 @@
 // original stereo by HRTF strength.
 #pragma once
 
+#include "bed.h"
 #include "hrtf.h"
 #include "motion.h"
 #include "room.h"
@@ -19,17 +20,8 @@ class SpatialStage {
   const Position& position() const { return pos_; }
 
  private:
-  // Short delay + Schroeder allpass so rear/upper speakers don't fuse with the front.
-  struct Decorrelator {
-    DelayLine pre, ap;
-    int delay = 0, apDelay = 0;
-    float g = 0;
-    float process(float x);
-  };
-
   // Drops all audio history (delay lines, filters) but keeps the motion.
   void clearAudio();
-  void renderBed(const float* bedL, const float* bedR, float* outL, float* outR, int n, const Cues& cues);
 
   float fs_ = 48000;
   bool active_ = false;
@@ -37,9 +29,7 @@ class SpatialStage {
   Motion motion_;
   Position pos_;
   BinauralVoice voices_[2];
-  BinauralVoice speakers_[kSpeakers];
-  EarParams speakerEars_[kSpeakers][2];  // fixed geometry, cue gains applied per block
-  Decorrelator deco_[kSpeakers];
+  SpeakerBed bed_;
   EarlyReflections er_;
   OnePole air_[3], nearBass_[2];  // [0..1] voices, [2] mono send / reflections
 

@@ -42,19 +42,9 @@ void Reverb::prepare(float fs) {
 }
 
 void Reverb::reset(const float* p) {
-  for (auto& side : combs_)
-    for (Comb& cb : side) {
-      cb.line.clear();
-      cb.store = 0;
-    }
-  for (auto& side : allpasses_)
-    for (Allpass& ap : side) ap.line.clear();
-  predelay_.clear();
-  for (int c = 0; c < 2; ++c) {
-    echo_[c].clear();
-    echoLp_[c].reset();
-    echoHp_[c].reset();
-  }
+  clearWet();
+  clearEcho();
+  wetOn_ = echoOn_ = false;
   size_ = p[kRoomSize];
   decay_ = p[kReverbDecay];
   damp_ = p[kReverbDamp];
@@ -85,54 +75,26 @@ void Reverb::process(float* L, float* R, const float* send, int n, const float* 
   echoMix_.to(0.45f * echoS_, n, snap);
   echoFb_.to(0.2f + 0.4f * echoS_, n, snap);
 
-  const bool saver = p[kQuality] < 0.5f;
-  const float d = damp_ * kScaleDamp;
-  float gain[2][kCombs], norm[2][kCombs], delayStep[2][kCombs];
-  for (int c = 0; c < 2; ++c)
-    for (int k = 0; k < kCombs; ++k) {
-      Comb& cb = combs_[c][k];
-      delayStep[c][k] = (cb.base * (0.6f + 0.8f * size_) - cb.delay) / float(n);
-      // Feedback from the requested RT60: -60 dB after decay_ seconds.
-      gain[c][k] = std::pow(10.f, -3.f * (cb.delay + delayStep[c][k] * float(n)) / (fs_ * decay_));
-      const bool on = !saver || (k & 1) == 0;
-      const float level = approach(cb.level, on ? (saver ? 1.41421356f : 1.f) : 0.f, kFast);
-      if (level == 0.f && cb.level != 0.f) {  // just faded out: drop its stale tail
-        cb.line.clear();
-        cb.store = 0;
-      }
-      cb.level = level;
-      if (level == 0.f) {  // skipped this block: jump its length instead of gliding
-        cb.delay += delayStep[c][k] * float(n);
-        delayStep[c][k] = 0;
-      }
-      // Partial energy normalisation keeps long decays from swamping the mix.
-      norm[c][k] = level * std::sqrt(std::sqrt(1.f - gain[c][k] * gain[c][k])) * 0.35f;
-    }
+  wetOn_ = updateSleep(wetOn_, mixS_ != 0.f || p[kReverbMix] != 0.f, wetWake_, n, [this] { clearWet(); });
+  echoOn_ = updateSleep(echoOn_, echoS_ != 0.f || p[kEcho] != 0.f, echoWake_, n, [this] { clearEcho(); });
+  if (wetOn_) renderWet(send, n, p[kQuality] < 0.5f, kFast, predelayStart, predelayStep);
 
-  const bool wetIdle = mix_.idle();
-  for (int i = 0; i < n; ++i) {
-    predelay_.write(send[i]);
-    const float x = predelay_.readLinear(predelayStart + predelayStep * float(i + 1)) * 0.5f;
-    for (int c = 0; c < 2; ++c) {
-      float acc = 0;
-      for (int k = 0; k < kCombs; ++k) {
-        Comb& cb = combs_[c][k];
-        if (cb.level == 0.f) continue;
-        cb.delay += delayStep[c][k];
-        const float out = cb.line.readLinear(cb.delay - 1.f);
-        cb.store = out * (1.f - d) + cb.store * d;
-        cb.line.write(x + cb.store * gain[c][k]);
-        acc += out * norm[c][k];
-      }
-      for (Allpass& ap : allpasses_[c]) {
-        const float bo = ap.line.readInt(ap.delay - 1);
-        ap.line.write(acc + bo * kAllpassFeedback);
-        acc = bo - acc;
-      }
-      wetBuf_[c][i] = acc;
+  if (!echoOn_) {
+    if (!wetOn_) {
+      if (!dryR_.unity())
+        for (int i = 0; i < n; ++i) {
+          L[i] *= dryR_.at(i);
+          R[i] *= dryR_.at(i);
+        }
+      return;
     }
+    for (int i = 0; i < n; ++i) {
+      const float dry = dryR_.at(i), wet = mix_.at(i);
+      L[i] = dry * L[i] + wet * wetBuf_[0][i];
+      R[i] = dry * R[i] + wet * wetBuf_[1][i];
+    }
+    return;
   }
-
   const float hpC = onePoleCoef(150.f, fs_), lpC = onePoleCoef(3500.f, fs_);
   for (int i = 0; i < n; ++i) {
     const float oL = echo_[0].readInt(echoDelay_[0] - 1), oR = echo_[1].readInt(echoDelay_[1] - 1);
@@ -140,11 +102,101 @@ void Reverb::process(float* L, float* R, const float* send, int n, const float* 
     const float fL = echoLp_[0].lp(oL - echoHp_[0].lp(oL, hpC), lpC);
     const float fR = echoLp_[1].lp(oR - echoHp_[1].lp(oR, hpC), lpC);
     const float fb = echoFb_.at(i);
-    echo_[0].write(0.7f * L[i] + fb * fR);  // ping-pong
-    echo_[1].write(0.7f * R[i] + fb * fL);
-    const float dry = dryR_.at(i), wet = wetIdle ? 0.f : mix_.at(i), em = echoMix_.at(i);
-    L[i] = dry * L[i] + wet * wetBuf_[0][i] + em * oL;
-    R[i] = dry * R[i] + wet * wetBuf_[1][i] + em * oR;
+    const float in = 0.7f * echoWake_.at(i);
+    echo_[0].write(in * L[i] + fb * fR);  // ping-pong
+    echo_[1].write(in * R[i] + fb * fL);
+    const float dry = dryR_.at(i), wet = wetOn_ ? mix_.at(i) : 0.f, em = echoMix_.at(i);
+    L[i] = dry * L[i] + (wetOn_ ? wet * wetBuf_[0][i] : 0.f) + em * oL;
+    R[i] = dry * R[i] + (wetOn_ ? wet * wetBuf_[1][i] : 0.f) + em * oR;
+  }
+}
+
+void Reverb::clearWet() {
+  for (auto& side : combs_)
+    for (Comb& cb : side) {
+      cb.line.clear();
+      cb.store = 0;
+    }
+  for (auto& side : allpasses_)
+    for (Allpass& ap : side) ap.line.clear();
+  predelay_.clear();
+}
+
+void Reverb::clearEcho() {
+  for (int c = 0; c < 2; ++c) {
+    echo_[c].clear();
+    echoLp_[c].reset();
+    echoHp_[c].reset();
+  }
+}
+
+void Reverb::renderWet(const float* send, int n, bool saver, float kFast, float predelayStart, float predelayStep) {
+  const float d = damp_ * kScaleDamp;
+  for (int i = 0; i < n; ++i) {
+    predelay_.write(send[i] * wetWake_.at(i));  // fade before the pre-delay, whose line starts empty
+    in_[i] = predelay_.readLinear(predelayStart + predelayStep * float(i + 1)) * 0.5f;
+  }
+  // Comb by comb over the block (every delay is longer than a block, so no
+  // sample written here is read back within it): same result as sample by
+  // sample, far better locality.
+  for (int c = 0; c < 2; ++c) {
+    float* acc = wetBuf_[c];
+    for (int i = 0; i < n; ++i) acc[i] = 0.f;
+    for (int k = 0; k < kCombs; ++k) {
+      Comb& cb = combs_[c][k];
+      const float target = cb.base * (0.6f + 0.8f * size_);
+      const bool on = !saver || (k & 1) == 0;
+      const float level = approach(cb.level, on ? (saver ? 1.41421356f : 1.f) : 0.f, kFast);
+      if (level == 0.f) {
+        if (cb.level != 0.f) {  // just faded out: drop its stale tail
+          cb.line.clear();
+          cb.store = 0;
+        }
+        cb.level = 0.f;
+        cb.delay = target;
+        continue;
+      }
+      cb.level = level;
+      const float step = (target - cb.delay) / float(n);
+      if (cb.gainDecay != decay_ || cb.gainDelay != target) {
+        // Feedback from the requested RT60: -60 dB after decay_ seconds.
+        cb.gain = std::pow(10.f, -3.f * target / (fs_ * decay_));
+        // Partial energy normalisation keeps long decays from swamping the mix.
+        cb.norm = std::sqrt(std::sqrt(1.f - cb.gain * cb.gain)) * 0.35f;
+        cb.gainDecay = decay_;
+        cb.gainDelay = target;
+      }
+      const float g = cb.gain, nm = cb.norm * level;
+      float store = cb.store;
+      if (step == 0.f) {
+        // Static length: the fractional split is the same for every sample.
+        const int di = int(cb.delay - 1.f);
+        const float f = cb.delay - 1.f - float(di);
+        for (int i = 0; i < n; ++i) {
+          const float x0 = cb.line.readInt(di);
+          const float out = x0 + f * (cb.line.readInt(di + 1) - x0);
+          store = out * (1.f - d) + store * d;
+          cb.line.write(in_[i] + store * g);
+          acc[i] += out * nm;
+        }
+      } else {
+        for (int i = 0; i < n; ++i) {
+          cb.delay += step;
+          const float out = cb.line.readLinear(cb.delay - 1.f);
+          store = out * (1.f - d) + store * d;
+          cb.line.write(in_[i] + store * g);
+          acc[i] += out * nm;
+        }
+        cb.delay = target;
+      }
+      cb.store = store;
+    }
+    for (Allpass& ap : allpasses_[c])
+      for (int i = 0; i < n; ++i) {
+        const float bo = ap.line.readInt(ap.delay - 1);
+        ap.line.write(acc[i] + bo * kAllpassFeedback);
+        acc[i] = bo - acc[i];
+      }
   }
 }
 

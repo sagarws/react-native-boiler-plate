@@ -232,13 +232,29 @@ internal object Downmix {
       g
     }
 
+  // Reused per thread (the playback thread) so bulk reads allocate nothing.
+  private var shorts = ShortArray(0)
+  private var floats = FloatArray(0)
+
+  /** Bulk-reads the block into an array (one JNI-free copy) instead of a call per sample. */
   fun toStereo(input: ByteBuffer, channels: Int, frames: Int, float: Boolean, out: ByteBuffer) {
     val g = gains(channels)
+    val n = frames * channels
+    if (float) {
+      if (floats.size < n) floats = FloatArray(n)
+      input.asFloatBuffer().get(floats, 0, n)
+    } else {
+      if (shorts.size < n) shorts = ShortArray(n)
+      input.asShortBuffer().get(shorts, 0, n)
+    }
+    input.position(input.position() + n * (if (float) 4 else 2))
+    var k = 0
     repeat(frames) {
       var l = 0f
       var r = 0f
       for (c in 0 until channels) {
-        val v = if (float) input.getFloat() else input.getShort() / 32768f
+        val v = if (float) floats[k] else shorts[k] / 32768f
+        k++
         l += v * g[2 * c]
         r += v * g[2 * c + 1]
       }
@@ -251,6 +267,7 @@ internal object Downmix {
       }
     }
   }
+
 }
 
 /** ExoPlayer audio renderers whose sink runs [SpatialAudioProcessor] before Sonic. */

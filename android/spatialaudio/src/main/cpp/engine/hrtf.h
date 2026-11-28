@@ -41,8 +41,18 @@ struct Cues {
   float lowIldDb = 0;  // interaural level difference below ~1.2 kHz at +-90 degrees
 };
 
-// ear: -1 left, +1 right.
+// ear: -1 left, +1 right. The pinna and shoulder fields come out the same
+// for both ears (they depend on the polar angle only).
 void computeEar(const Dir& d, int ear, float fs, const Cues& cues, EarParams& out);
+
+// Bilinear head-shadow filter (alpha s + beta) / (s + beta): alpha only
+// enters the zero, so every direction shares the pole a1.
+struct HeadShadow {
+  float k = 0, beta = 0, inv = 0, a1 = 0;
+  void prepare(float fs);
+  float b0(float alpha) const { return (alpha * k + beta) * inv; }
+  float b1(float alpha) const { return (beta - alpha * k) * inv; }
+};
 
 // Renders one mono source to both ears; geometry targets are ramped per
 // sample across each process() call so motion is click-free.
@@ -60,9 +70,12 @@ class BinauralVoice {
     float x1 = 0, y1 = 0;  // head-shadow filter state
     OnePole rear, low;
   };
-  DelayLine line_;
+  DelayLine in_;    // raw input: the pinna/shoulder echoes read it once for both ears
+  DelayLine line_;  // pinna output: each ear reads it at its own ITD
   Ear ears_[2];
-  float k_ = 0, beta_ = 0, a1_ = 0, inv_ = 0, rearCoef_ = 0, lowCoef_ = 0;
+  HeadShadow shadow_;
+  float rearCoef_ = 0, lowCoef_ = 0;
+  float pin_[kChunk];
   bool primed_ = false;
 };
 
