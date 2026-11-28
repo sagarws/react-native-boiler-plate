@@ -40,7 +40,7 @@ src/services/realtime/
 src/store/mmkv.ts     every storage key, in one place
 src/specs/            TurboModule codegen specs — each imported only by its owner's services/
                       (NativeScreenOcr → capture, NativeFollowUp → followup,
-                      NativeUtility + NativeRecorder → utility, NativeExpense → expense,
+                      NativeUtility + NativeRecorder + NativeScanKeyboard → utility, NativeExpense → expense,
                       NativeNetInspector → network, NativePhotoWidget → photoWidget,
                       NativeRemoteControl → remote,
                       NativeLiveCamera → liveCamera,
@@ -55,7 +55,7 @@ src/features/
   settings/           settings, appearance, about
   life/               Manage Life (projects, targets, widget)
   followup/           Follow Up CRM (contacts, follow-ups, reminders) — docs/FOLLOW_UP.md
-  utility/            Utility tools (scanner, documents, compass, AR + angle measure,
+  utility/            Utility tools (scanner, scanner gun → PC via Bluetooth keyboard, documents, compass, AR + angle measure,
                       multiple stopwatch / timer, level, converter, water eject,
                       screen recorder) — docs/UTILITY.md, docs/SCREEN_RECORDER.md
   reminders/          Reminders & alarms (birthdays, events; snooze, ringtones,

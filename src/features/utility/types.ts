@@ -6,6 +6,9 @@ export type LengthUnit = (typeof UNITS)[number];
 
 export const WATER_MODES = ['low', 'sweep', 'pulse'] as const;
 export type WaterMode = (typeof WATER_MODES)[number];
+/** What the scanner gun presses after each code. */
+export const GUN_SUFFIXES = ['enter', 'tab', 'none'] as const;
+export type GunSuffix = (typeof GUN_SUFFIXES)[number];
 
 export const WATER_DURATIONS = [15, 30, 60, 90] as const;
 
@@ -59,6 +62,9 @@ export interface UtilityPrefs {
   waterMode: WaterMode;
   waterSeconds: number;
   waterVibrate: boolean;
+  gunSuffix: GunSuffix;
+  gunBeep: boolean;
+  gunVibrate: boolean;
 }
 
 export interface UtilityData {

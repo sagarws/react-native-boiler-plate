@@ -154,9 +154,10 @@ function EnterAmount({
 type ChooseStep = Extract<UpiPayment['step'], { kind: 'chooseApp' }>;
 
 /**
- * Pick a UPI app, and how to pay with it: hand it the payment link, or open
- * it to scan the QR there. Personal QRs default to scanning in the app —
- * UPI apps often refuse a payment to a person that another app started.
+ * Pick a UPI app, and how to pay with it: hand it the payment link (the
+ * default — payee and amount filled in, and the UPI app returns here), or
+ * open it to scan the QR there, the fallback when a UPI app refuses a
+ * payment to a person that another app started.
  */
 function ChooseApp({
   payment,
@@ -169,9 +170,7 @@ function ChooseApp({
 }) {
   const { t } = useTranslation();
   const { colors, typography, spacing, radius } = useTheme();
-  const [how, setHow] = useState<PayHow>(
-    step.payee.personal ? 'scanInApp' : 'link',
-  );
+  const [how, setHow] = useState<PayHow>('link');
   const scan = how === 'scanInApp';
   const payWith = async (app: UpiApp | null, method?: PayHow) => {
     const saved = await payment.pay(app, method);
@@ -189,8 +188,8 @@ function ChooseApp({
       <Notice tone="warning" message={t('expense.checkPayee')} />
       <SegmentedControl
         options={[
-          { value: 'scanInApp', label: t('expense.howScan') },
           { value: 'link', label: t('expense.howLink') },
+          { value: 'scanInApp', label: t('expense.howScan') },
         ]}
         value={how}
         onChange={setHow}

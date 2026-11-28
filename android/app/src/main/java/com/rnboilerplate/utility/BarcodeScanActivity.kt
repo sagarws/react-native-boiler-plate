@@ -12,10 +12,14 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.RectF
 import android.os.Bundle
+import android.os.SystemClock
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.FrameLayout
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -36,6 +40,7 @@ import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 import com.rnboilerplate.R
+import org.json.JSONArray
 import org.json.JSONObject
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -45,6 +50,11 @@ import java.util.concurrent.Executors
  * pause. The bundled ML Kit model runs on the device; frames are analysed in
  * memory and never stored. A code is returned once it's read the same way
  * on two frames in a row, so a code left in view triggers one result only.
+ *
+ * Gun mode ([EXTRA_GUN]): stays open and types every code on the computer
+ * paired through [ScanKeyboard], with a beep per code. The same code is
+ * never typed twice in a row: the next code typed must be a different one
+ * (A, A, A, B types A then B). Returns all codes on close.
  */
 class BarcodeScanActivity : ComponentActivity() {
   private lateinit var preview: PreviewView
@@ -61,6 +71,22 @@ class BarcodeScanActivity : ComponentActivity() {
   private var lastValue: String? = null
   private var torchOn = false
 
+  // Gun mode.
+  private var gun = false
+  private var suffix = "\n"
+  private var beepOn = true
+  private var vibrateOn = true
+  private var beep: ScanBeep? = null
+  private lateinit var link: TextView
+  private val gunResults = JSONArray()
+  private var typedCount = 0
+  private var sentValue: String? = null
+  private var sentAt = 0L
+  private var emptyFrames = 0
+  /** The last code reached the computer (a failed one may be retried). */
+  private var sentTyped = false
+  private val linkListener: () -> Unit = { showLink() }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     labels = try {
@@ -72,7 +98,19 @@ class BarcodeScanActivity : ComponentActivity() {
       finishWith(ERROR_PREFIX + "camera_permission")
       return
     }
+    gun = intent.getBooleanExtra(EXTRA_GUN, false)
+    if (gun) {
+      suffix = intent.getStringExtra(EXTRA_SUFFIX) ?: "\n"
+      beepOn = intent.getBooleanExtra(EXTRA_BEEP, true)
+      vibrateOn = intent.getBooleanExtra(EXTRA_VIBRATE, true)
+      if (beepOn) beep = ScanBeep()
+      window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+    }
     setContentView(buildUi())
+    if (gun) {
+      ScanKeyboard.addListener(linkListener)
+      showLink()
+    }
     startCamera()
   }
 
@@ -114,7 +152,7 @@ class BarcodeScanActivity : ComponentActivity() {
       contentDescription = label("close", "Close")
       minimumWidth = dp(48f).toInt()
       minimumHeight = dp(48f).toInt()
-      setOnClickListener { finishWith(null) }
+      setOnClickListener { close() }
     }
     top.addView(close)
     top.addView(View(this), LinearLayout.LayoutParams(0, 1, 1f))
@@ -124,6 +162,14 @@ class BarcodeScanActivity : ComponentActivity() {
     }
     top.addView(torch)
     root.addView(top, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP))
+    link = pill("").apply {
+      textSize = 13f
+      isClickable = false
+      visibility = if (gun) View.VISIBLE else View.GONE
+    }
+    root.addView(link, FrameLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT, Gravity.TOP or Gravity.CENTER_HORIZONTAL).apply {
+      topMargin = dp(104f).toInt()
+    })
 
     val bottom = LinearLayout(this).apply {
       orientation = LinearLayout.VERTICAL
@@ -185,6 +231,10 @@ class BarcodeScanActivity : ComponentActivity() {
       .addOnSuccessListener { codes ->
         val code = codes.firstOrNull { !it.rawValue.isNullOrEmpty() }
         val value = code?.rawValue
+        if (gun) {
+          onGunFrame(code, value)
+          return@addOnSuccessListener
+        }
         if (code != null && value != null && !done && !paused) {
           if (value == lastValue) {
             done = true
@@ -197,6 +247,80 @@ class BarcodeScanActivity : ComponentActivity() {
         }
       }
       .addOnCompleteListener { image.close() }
+  }
+
+  /**
+   * Two equal frames confirm a code. The code typed last is never typed
+   * again until a different code has been typed. Only a code that was not
+   * typed (no computer) can be retried, after it has left the view.
+   */
+  private fun onGunFrame(code: Barcode?, value: String?) {
+    if (paused || done) return
+    if (code == null || value == null) {
+      lastValue = null
+      if (++emptyFrames >= GONE_FRAMES && !sentTyped) sentValue = null
+      return
+    }
+    emptyFrames = 0
+    if (value != lastValue) {
+      lastValue = value
+      return
+    }
+    val now = SystemClock.elapsedRealtime()
+    if (value == sentValue || now - sentAt < MIN_GAP_MS) return
+    sentValue = value
+    sentAt = now
+    deliver(code, value)
+  }
+
+  private fun deliver(code: Barcode, value: String) {
+    val entry = BarcodeJson.of(code)
+    gunResults.put(entry)
+    if (gunResults.length() > MAX_GUN_RESULTS) gunResults.remove(0)
+    // One line per code: line breaks inside a code would submit the form early.
+    val text = value.replace(Regex("[\r\n]+"), " ").trim() + suffix
+    sentTyped = true // Until we know: no retry loop while typing.
+    ScanKeyboard.type(text) { typed, skipped ->
+      entry.put("typed", typed)
+      if (sentValue == value) sentTyped = typed
+      if (typed) {
+        typedCount++
+        beep?.ok()
+        buzz(40)
+        status.text = label("typed", "Typed: {v}").replace("{v}", shorten(value)) +
+          if (skipped > 0) "\n" + label("skipped", "{n} characters can't be typed").replace("{n}", "$skipped") else ""
+      } else {
+        beep?.fail()
+        buzz(250)
+        status.text = label("notTyped", "Not typed — no computer connected")
+      }
+      showLink()
+    }
+  }
+
+  private fun shorten(v: String) = if (v.length > 48) v.take(45) + "…" else v
+
+  private fun buzz(ms: Long) {
+    if (!vibrateOn) return
+    @Suppress("DEPRECATION")
+    val v = getSystemService(Vibrator::class.java) ?: return
+    if (v.hasVibrator()) v.vibrate(VibrationEffect.createOneShot(ms, VibrationEffect.DEFAULT_AMPLITUDE))
+  }
+
+  private fun showLink() {
+    if (!gun) return
+    val name = ScanKeyboard.hostName()
+    val count = label("count", "{n} typed").replace("{n}", "$typedCount")
+    link.text = if (name != null) "● $name · $count" else "○ " + label("noComputer", "No computer connected")
+  }
+
+  private fun close() {
+    if (gun) finishWith(JSONObject().put("gun", gunResults).toString()) else finishWith(null)
+  }
+
+  @Deprecated("Back closes the scanner like the close button.")
+  override fun onBackPressed() {
+    if (gun) close() else @Suppress("DEPRECATION") super.onBackPressed()
   }
 
   private fun toggleTorch() {
@@ -224,6 +348,8 @@ class BarcodeScanActivity : ComponentActivity() {
   }
 
   override fun onDestroy() {
+    ScanKeyboard.removeListener(linkListener)
+    beep?.release()
     provider?.unbindAll()
     analysis.shutdown()
     try {
@@ -273,6 +399,13 @@ class BarcodeScanActivity : ComponentActivity() {
     const val EXTRA_LABELS = "labels"
     const val EXTRA_RESULT = "result"
     const val ERROR_PREFIX = "error:"
+    const val EXTRA_GUN = "gun"
+    const val EXTRA_SUFFIX = "suffix"
+    const val EXTRA_BEEP = "beep"
+    const val EXTRA_VIBRATE = "vibrate"
+    private const val GONE_FRAMES = 4
+    private const val MIN_GAP_MS = 600L
+    private const val MAX_GUN_RESULTS = 500
   }
 }
 

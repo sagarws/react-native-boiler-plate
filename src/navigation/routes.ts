@@ -26,6 +26,7 @@ export const ROUTES = {
   UTILITY: 'Utility',
   UTILITY_COMPASS: 'UtilityCompass',
   UTILITY_SCANNER: 'UtilityScanner',
+  UTILITY_SCAN_GUN: 'UtilityScanGun',
   UTILITY_DOCUMENTS: 'UtilityDocuments',
   UTILITY_DOCUMENT: 'UtilityDocument',
   UTILITY_WATER_EJECT: 'UtilityWaterEject',

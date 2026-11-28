@@ -5,6 +5,7 @@ import {
   UNITS,
   WATER_DURATIONS,
   WATER_MODES,
+  GUN_SUFFIXES,
   type CodeKind,
   type Measurement,
   type MeasureMode,
@@ -98,6 +99,9 @@ const DEFAULT_PREFS: UtilityPrefs = {
   waterMode: 'low',
   waterSeconds: 30,
   waterVibrate: false,
+  gunSuffix: 'enter',
+  gunBeep: true,
+  gunVibrate: true,
 };
 
 function cleanPrefs(v: unknown): UtilityPrefs {
@@ -125,6 +129,9 @@ function cleanPrefs(v: unknown): UtilityPrefs {
       ? (r.waterSeconds as number)
       : DEFAULT_PREFS.waterSeconds,
     waterVibrate: r.waterVibrate === true,
+    gunSuffix: oneOf(r.gunSuffix, GUN_SUFFIXES, DEFAULT_PREFS.gunSuffix),
+    gunBeep: r.gunBeep !== false,
+    gunVibrate: r.gunVibrate !== false,
   };
 }
 

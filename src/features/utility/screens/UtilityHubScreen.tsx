@@ -25,6 +25,7 @@ type Tool = {
     | 'compass'
     | 'measure'
     | 'scanner'
+    | 'scanGun'
     | 'documents'
     | 'water'
     | 'recorder'
@@ -41,6 +42,7 @@ type Tool = {
     | typeof ROUTES.UTILITY_COMPASS
     | typeof ROUTES.UTILITY_MEASURE
     | typeof ROUTES.UTILITY_SCANNER
+    | typeof ROUTES.UTILITY_SCAN_GUN
     | typeof ROUTES.UTILITY_DOCUMENTS
     | typeof ROUTES.UTILITY_WATER_EJECT
     | typeof ROUTES.UTILITY_RECORDER
@@ -55,6 +57,12 @@ const TOOLS: readonly Tool[] = [
     route: ROUTES.UTILITY_SCANNER,
     icon: 'qrCode',
     color: 'violet',
+  },
+  {
+    key: 'scanGun',
+    route: ROUTES.UTILITY_SCAN_GUN,
+    icon: 'scanLine',
+    color: 'teal',
   },
   {
     key: 'documents',
@@ -162,6 +170,8 @@ export default function UtilityHubScreen() {
           : { text: t('utility.needsCameraAr'), warn: false };
       case 'scanner':
         return { text: t('utility.needsCamera'), warn: false };
+      case 'scanGun':
+        return { text: t('utility.needsBluetooth'), warn: false };
       case 'documents':
         return docs === false
           ? { text: t('utility.docsUnavailableShort'), warn: true }

@@ -10,6 +10,11 @@
          them is opened). Not required: the app installs on phones without a
          camera or ARCore, and those tools explain they're unavailable. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Utility → Scanner gun: the phone acts as a Bluetooth keyboard (HID device). -->
+    <uses-permission android:name="android.permission.BLUETOOTH" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
     <!-- Utility: optional vibration in Speaker Water Eject. -->

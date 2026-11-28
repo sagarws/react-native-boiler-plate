@@ -44,6 +44,7 @@ import {
   RecordingsScreen,
   MeasureScreen,
   ScannerScreen,
+  ScanGunScreen,
   StopwatchScreen,
   TimerScreen,
   TimerEditScreen,
@@ -123,6 +124,10 @@ export default function MainNavigator() {
         <Stack.Screen name={ROUTES.UTILITY} component={UtilityHubScreen} />
         <Stack.Screen name={ROUTES.UTILITY_COMPASS} component={CompassScreen} />
         <Stack.Screen name={ROUTES.UTILITY_SCANNER} component={ScannerScreen} />
+        <Stack.Screen
+          name={ROUTES.UTILITY_SCAN_GUN}
+          component={ScanGunScreen}
+        />
         <Stack.Screen
           name={ROUTES.UTILITY_DOCUMENTS}
           component={DocumentsScreen}

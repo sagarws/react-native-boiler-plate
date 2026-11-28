@@ -28,6 +28,7 @@ class MainApplication : Application(), ReactApplication {
           add(ScreenOcrPackage())
           add(FollowUpPackage())
           add(UtilityPackage())
+          add(com.rnboilerplate.utility.ScanKeyboardPackage())
           add(com.rnboilerplate.alarms.AlarmsPackage())
           add(com.rnboilerplate.photowidget.PhotoWidgetPackage())
           add(RecorderPackage())

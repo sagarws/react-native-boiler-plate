@@ -60,6 +60,7 @@ export type MainStackParamList = {
   Utility: undefined;
   UtilityCompass: undefined;
   UtilityScanner: undefined;
+  UtilityScanGun: undefined;
   UtilityDocuments: undefined;
   UtilityDocument: { documentId: string };
   UtilityWaterEject: undefined;

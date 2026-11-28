@@ -1,12 +1,13 @@
 # Utility — tools hub
 
-Sidebar → **Utility**. Ten independent tools (including Multiple Stopwatch and Multiple Timer); opening the hub starts nothing
+Sidebar → **Utility**. Eleven independent tools (including Multiple Stopwatch and Multiple Timer); opening the hub starts nothing
 (no camera, sensor or sound). Each tool fails on its own without affecting
 the others.
 
 | Tool | How it works | Needs |
 |---|---|---|
 | **QR & Barcode Scanner** | Own CameraX activity (`BarcodeScanActivity`) + bundled ML Kit barcode model (offline). Scan frame, torch, pause/resume. A code is returned only after it reads the same on two consecutive frames, so a code left in view triggers one result. History in MMKV (value, format, date; delete one / clear all). | Camera permission (asked on Start) |
+| **Scanner Gun (PC)** | The phone becomes a **Bluetooth keyboard** (Android `BluetoothHidDevice`, HID device profile, boot-keyboard descriptor) for a paired computer, and the same camera activity in *gun mode* stays open and types every code where the cursor is, then Enter / Tab / nothing, with a generated beep (`ScanBeep`: 2.7 kHz “bip” when typed, low double tone when not) and a short vibration. The same code is never typed twice in a row (A, A, A, B types A then B); only a code that failed to type (no computer) can be retried after it left the view. At most one code per 600 ms. Line breaks inside a code become spaces. Keys follow the **US layout**; characters a keyboard can't type are skipped and counted. The keyboard is registered only while the screen is open and reconnects to the last computer. Pairing: *Pair a new computer* makes the phone visible for 2 min; the computer adds it from its Bluetooth settings. Nothing is installed on the computer; no USB (Android can't be a USB keyboard without root). Codes go into the scanner history. | Bluetooth + “Nearby devices” (Android 12+), camera; Android 9+ with HID device support |
 | **Document Scanner** | Google’s ML Kit document scanner (Play services): automatic edge detection, draggable corners, perspective correction, filters, multi-page, gallery import. Pages are copied to private storage (`files/scans`). In the app: reorder, rotate (re-encodes the image), retake, remove, add pages; export a multi-page PDF (A4, fitted, one bitmap in memory at a time) or JPEG/PNG images to a location the user picks (Storage Access Framework); share the PDF via FileProvider. | Google Play services; no permission |
 | **Compass** | Rotation-vector sensor (fallback: accelerometer + magnetometer), corrected for screen rotation, smoothed on the unit circle, ~25 Hz. Sensors run only while the screen is focused and the app is in the foreground. Calibration prompt when magnetometer accuracy is low. Shows **magnetic** north. | Magnetometer |
 | **AR Measure** | ARCore (`MeasureActivity`): GL camera background, centre reticle hit-tested against planes / depth / oriented feature points. **Length** = 3D distance between two anchors; **Height** = vertical (gravity-axis) difference; **Distance** = camera to aimed surface. Live tracking-state messages; Save is enabled only while ARCore tracks the camera and every point. Units: cm / m / in / ft. Never derives a size from pixels. | ARCore-supported phone, camera |
@@ -24,10 +25,10 @@ the others.
   compass, water-eject lifecycles), `services/` (`native.service.ts`, `qr.ts`
   code parsing + link safety, `camera.ts` permission, `units.ts`), `store/utility.store.ts`.
 - Native: `android/.../utility/` — `UtilityModule.kt` (TurboModule), `CompassSensor`, `TiltSensor`, `SightActivity` (+ `SightMath`),
-  `TonePlayer` (+ `ToneShape`), `BarcodeScanActivity`, `DocumentPages` (+ `PageLayout`),
+  `TonePlayer` (+ `ToneShape`), `BarcodeScanActivity` (normal + gun mode), `ScanKeyboard` (Bluetooth keyboard) + `ScanKeyboardModule` + `ScanBeep`, `DocumentPages` (+ `PageLayout`),
   `MeasureActivity`, `ArBackgroundRenderer`, `MeasureMath`. Shared helpers in
   `android/.../common/` (`DocumentSaver` for “Save to…”/folder export, `FileShare` for FileProvider).
-- Spec: `src/specs/NativeUtility.ts` — imported only by `features/utility/services`.
+- Spec: `src/specs/NativeUtility.ts` and `src/specs/NativeScanKeyboard.ts` (scanner gun) — imported only by `features/utility/services`.
 - Screen Recorder: `android/.../recorder/`, spec `src/specs/NativeRecorder.ts` — details in [SCREEN_RECORDER.md](./SCREEN_RECORDER.md).
 
 ## Angle (trigonometric) measuring (`services/trig.ts`, `SightActivity`)
@@ -105,7 +106,7 @@ The default selection is 1080p when offered. Only the original audio track is us
 ## Permissions
 
 Timer alerts use the shared alarm engine's permissions (see [REMINDERS.md](./REMINDERS.md#permissions)). `CAMERA` (scanner, AR, angle sighting — requested on Start; `uses-feature` camera / camera.ar
-`required=false`), `VIBRATE` (water eject), `INTERNET` + `FOREGROUND_SERVICE_DATA_SYNC` (YouTube Downloader; both were already declared). The document scanner and file export
+`required=false`), `VIBRATE` (water eject, scanner gun), `BLUETOOTH_CONNECT` + `BLUETOOTH_ADVERTISE` (scanner gun, Android 12+, asked on the screen; `BLUETOOTH`/`BLUETOOTH_ADMIN` up to Android 11), `INTERNET` + `FOREGROUND_SERVICE_DATA_SYNC` (YouTube Downloader; both were already declared). The document scanner and file export
 need no permission (Play services UI + Storage Access Framework).
 
 ## Known limitations
@@ -120,3 +121,4 @@ need no permission (Play services UI + Storage Access Framework).
   permission, Doze can delay them a few minutes. Stopwatches and timers use the wall
   clock, so changing the phone's time shifts them.
 - The water-eject tone can’t guarantee water removal or repair water damage.
+- Scanner gun: US keyboard layout only (a computer set to another layout may type some symbols differently); non-keyboard characters (Hindi, emoji) are skipped. Some phones ship without Bluetooth HID device support and show “Not supported”. Typing speed is about 100 characters per second.

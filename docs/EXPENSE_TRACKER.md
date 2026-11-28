@@ -33,10 +33,11 @@ device; nothing is sent anywhere.
    `<data android:scheme="upi" android:host="pay" />` in the manifest `<queries>` — without the
    host, UPI apps stay hidden. *Other UPI app* opens Android's own chooser as a fallback.
 7. The user picks **how** to pay:
-   - **Pay link** — the UPI app opens with payee and amount filled (`launchUpiApp`). Default for
-     merchant QRs.
+   - **Pay link** — the UPI app opens with payee and amount filled (`launchUpiApp`) and returns
+     to the app when the payment ends. **Default for every QR** (personal ones too, so the amount is
+     always filled in).
    - **Scan in app** — the UPI app's home opens (`openUpiApp`) and the user scans the QR there.
-     Default for personal QRs (no merchant code, or `mc=0000`): Google Pay and PhonePe often
+     The fallback for personal QRs (no merchant code, or `mc=0000`): Google Pay and PhonePe sometimes
      decline a payment to a person that another app started (e.g. PhonePe's "pay up to ₹2,000
      with QR codes via gallery", Google Pay's "money has not been debited"), but not from their
      own scanner.
